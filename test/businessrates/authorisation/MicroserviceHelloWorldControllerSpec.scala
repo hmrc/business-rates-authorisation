@@ -1,5 +1,6 @@
-package uk.gov.hmrc.businessratesauthorisation.controllers
+package businessrates.authorisation
 
+import businessrates.authorisation.controllers.AuthorisationController
 import play.api.http.Status
 import play.api.test.FakeRequest
 import play.api.http.Status

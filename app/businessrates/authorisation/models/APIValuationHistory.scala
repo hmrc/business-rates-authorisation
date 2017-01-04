@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.businessratesauthorisation.controllers
+package businessrates.authorisation.models
 
-import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import play.api.mvc._
-import scala.concurrent.Future
+import org.joda.time.DateTime
+import play.api.data.format.Formats
+import play.api.libs.json.Json
 
-object MicroserviceHelloWorld extends MicroserviceHelloWorld
+case class APIValuationHistory (
+                                 asstRef: Long,
+                                 listYear: String,
+                                 uarn:Long,
+                                 effectiveDate:DateTime,
+                                 rateableValue:Long
+                               )
 
-trait MicroserviceHelloWorld extends BaseController {
-
-	def hello() = Action.async { implicit request =>
-		Future.successful(Ok("Hello world"))
-	}
+object APIValuationHistory {
+  implicit val formats = Json.format[APIValuationHistory]
 }

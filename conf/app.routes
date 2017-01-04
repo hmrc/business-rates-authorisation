@@ -1,3 +1,3 @@
 # microservice specific routes
 
-GET        /hello-world             uk.gov.hmrc.businessratesauthorisation.controllers.MicroserviceHelloWorld.hello
+GET        /property-link/:linkId/assessment/:assessmentRef        @businessrates.authorisation.controllers.AuthorisationController.forAssessment(linkId: String, assessmentRef: Long)
