@@ -30,7 +30,6 @@ import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 import uk.gov.hmrc.play.http.{HttpGet, HttpPut}
-import uk.gov.hmrc.play.http.ws.WSHttp
 
 
 class GuiceModule() extends AbstractModule with ServicesConfig {

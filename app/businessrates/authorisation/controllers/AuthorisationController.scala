@@ -18,36 +18,53 @@ package businessrates.authorisation.controllers
 
 import javax.inject.Inject
 
-import businessrates.authorisation.connectors.{AuthConnector, GroupAccounts, PropertyLinking}
+import businessrates.authorisation.connectors._
+import businessrates.authorisation.models.GovernmentGatewayIds
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.play.microservice.controller.BaseController
 import cats.data.OptionT
 import cats.instances.future._
+import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class AuthorisationController @Inject()(val authConnector: AuthConnector,
                                         val groupAccounts: GroupAccounts,
-                                        val propertyLinking: PropertyLinking
+                                        val propertyLinking: PropertyLinking,
+                                        val individualAccounts: IndividualAccounts
                                        ) extends BaseController {
+
+  def authenticate = Action.async { implicit request =>
+    authConnector.getGovernmentGatewayIds flatMap {
+      case Some(GovernmentGatewayIds(externalId, groupId)) => for {
+        organisationId <- groupAccounts.getOrganisationId(groupId)
+        personId <- individualAccounts.getPersonId(externalId)
+      } yield {
+        (organisationId, personId) match {
+          case (Some(oid), Some(pid)) => Ok(Json.obj("organisationId" -> oid, "personId" -> pid))
+          case _ => Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD"))
+        }
+      }
+      case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
+    }
+  }
 
 	def forAssessment(linkId: String, assessmentRef: Long) = Action.async { implicit request =>
     val hasAssessmentRef = (for {
-      ggGroupId <- OptionT.liftF(authConnector.getGGGroupId())
-      organisationId <- OptionT(groupAccounts.getOrganisationId(ggGroupId))
+      ids <- OptionT(authConnector.getGovernmentGatewayIds)
+      organisationId <- OptionT(groupAccounts.getOrganisationId(ids.groupId))
       pLinks <- OptionT.liftF(propertyLinking.linkedProperties(organisationId))
     } yield
-      pLinks.filter(_.linkId == linkId).flatMap(_.assessment)
+      pLinks.filter(_.linkId == linkId).flatMap(_.assessment.map(_.asstRef))
       ).value
       .map(_.toList.flatten)
       .map(_.contains(assessmentRef))
 
-    hasAssessmentRef.map(x => x match  {
+    hasAssessmentRef.map {
       case true => Ok
       case false => Forbidden
-    } ).recover{ case _ => Forbidden}
+    }.recover{ case _ => Forbidden}
   }
 
 }

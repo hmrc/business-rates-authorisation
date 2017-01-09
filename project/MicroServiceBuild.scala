@@ -27,7 +27,6 @@ private object AppDependencies {
 
 
   val compile = Seq(
-
     ws,
     "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
     "uk.gov.hmrc" %% "play-authorisation" % playAuthVersion,
@@ -57,19 +56,5 @@ private object AppDependencies {
     }.test
   }
 
-  object IntegrationTest {
-    def apply() = new TestDependencies {
-
-      override lazy val scope: String = "it"
-
-      override lazy val test = Seq(
-        "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
-        "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
-        "org.pegdown" % "pegdown" % pegdownVersion % scope,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
-      )
-    }.test
-  }
-
-  def apply() = compile ++ Test() ++ IntegrationTest()
+  def apply() = compile ++ Test()
 }

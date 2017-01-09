@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package businessrates.authorisation.models
+package businessrates.authorisation
 
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts}
+import org.scalatest.{BeforeAndAfterEach, FlatSpec, MustMatchers}
+import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
-case class APIValuationHistory (
-                                 asstRef: Long,
-                                 listYear: String,
-                                 uarn:Long,
-                                 effectiveDate:DateTime,
-                                 rateableValue:Long
-                               )
+class ControllerSpec extends FlatSpec with MustMatchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout {
 
-object APIValuationHistory {
-  implicit val formats = Json.format[APIValuationHistory]
+  override protected def beforeEach() = {
+    StubAuthConnector.reset()
+    StubGroupAccounts.reset()
+    StubIndividualAccounts.reset()
+  }
 }

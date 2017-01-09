@@ -1,3 +1,4 @@
 # microservice specific routes
 
+GET        /authenticate                                           @businessrates.authorisation.controllers.AuthorisationController.authenticate
 GET        /property-link/:linkId/assessment/:assessmentRef        @businessrates.authorisation.controllers.AuthorisationController.forAssessment(linkId: String, assessmentRef: Long)

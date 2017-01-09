@@ -16,17 +16,10 @@
 
 package businessrates.authorisation.models
 
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class APIValuationHistory (
-                                 asstRef: Long,
-                                 listYear: String,
-                                 uarn:Long,
-                                 effectiveDate:DateTime,
-                                 rateableValue:Long
-                               )
+case class GroupAccount(id: Int, groupId: String)
 
-object APIValuationHistory {
-  implicit val formats = Json.format[APIValuationHistory]
+object GroupAccount {
+  implicit val format = Json.format[GroupAccount]
 }
