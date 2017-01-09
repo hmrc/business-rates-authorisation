@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class GroupAccounts @Inject()(val http: HttpGet with HttpPost)(implicit ec: Exec
   def getOrganisationId(ggGroupId: String)(implicit hc: HeaderCarrier) = {
     http.GET[JsValue](s"$url/$ggGroupId").map( js => (js\ "id") match {
       case JsDefined(x) => {
-        Some(x.as[String])
+        Some(x.as[Int])
       }
       case _ => None
     })

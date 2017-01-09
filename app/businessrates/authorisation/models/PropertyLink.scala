@@ -17,17 +17,12 @@
 package businessrates.authorisation.models
 
 import org.joda.time.DateTime
-import play.api.data.format.Formats
 import play.api.libs.json.Json
 
-case class APIValuationHistory (
-                                 asstRef: Long,
-                                 listYear: String,
-                                 uarn:Long,
-                                 effectiveDate:DateTime,
-                                 rateableValue:Long
-                               )
+case class PropertyLink(linkId: String, uarn: Long, organisationId: Int,
+                                linkedDate: DateTime, pending: Boolean, assessment: Seq[Assessment])
 
-object APIValuationHistory {
-  implicit val formats = Json.format[APIValuationHistory]
+
+object PropertyLink {
+  implicit val format = Json.format[PropertyLink]
 }

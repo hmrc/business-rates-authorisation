@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,18 @@ package businessrates.authorisation.connectors
 
 import javax.inject.Inject
 
+import businessrates.authorisation.models.PropertyLink
 import play.api.libs.json.{JsDefined, JsValue}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PropertyLinking @Inject()(val http: HttpGet with HttpPost)(implicit ec: ExecutionContext) extends ServicesConfig {
 
-  lazy val url = baseUrl("property-linking") + " /property-links/:organisationId"
-
-  def getUarns(organisationId: String)(implicit hc: HeaderCarrier) = {
-    http.GET[JsValue](s"$url/$organisationId").map( js => (js \\ "uarn").map(_.as[Long]))
+  def linkedProperties(organisationId: Int)(implicit hc: HeaderCarrier): Future[Seq[PropertyLink]] = {
+    val url = baseUrl("property-linking") + s"/property-links/$organisationId"
+    http.GET[Seq[PropertyLink]](s"$url")
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,10 @@ import scala.concurrent.Future
 class AuthConnector @Inject() (val http: HttpGet) extends  ServicesConfig {
 
 
-  def authority()(implicit hc: HeaderCarrier) = {
-    //FIXME
+  def getGGGroupId()(implicit hc: HeaderCarrier) = {
     val url = baseUrl("auth") + s"/auth/authority"
-    val r1 = http.GET(url)
 
-
-    val res = r1.map(resp => {
+    val groupId = http.GET(url).map(resp => {
       (Json.parse(resp.body) \ "userDetailsLink").as[String]
     })
       .flatMap(userDetailsLink => http.GET(userDetailsLink))
@@ -43,8 +40,7 @@ class AuthConnector @Inject() (val http: HttpGet) extends  ServicesConfig {
         val js = Json.parse(resp.body)
         (js \ "groupIdentifier").as[String]
       })
-    res
-
+    groupId
   }
 
 }

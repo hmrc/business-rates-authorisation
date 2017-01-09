@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package businessrates.authorisation.controllers
 
 import javax.inject.Inject
 
-import businessrates.authorisation.connectors.{AuthConnector, GroupAccounts, PropertyLinking, VmvConnector}
+import businessrates.authorisation.connectors.{AuthConnector, GroupAccounts, PropertyLinking}
 import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -29,23 +29,19 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class AuthorisationController @Inject()(val authConnector: AuthConnector,
-                                        val vmvConnector: VmvConnector,
                                         val groupAccounts: GroupAccounts,
                                         val propertyLinking: PropertyLinking
                                        ) extends BaseController {
 
 	def forAssessment(linkId: String, assessmentRef: Long) = Action.async { implicit request =>
     val hasAssessmentRef = (for {
-      ggGroupId <- OptionT.liftF(authConnector.authority())
-      groupAccount <- OptionT(groupAccounts.getOrganisationId(ggGroupId))
-      uarns <- OptionT.liftF(propertyLinking.getUarns(groupAccount))
+      ggGroupId <- OptionT.liftF(authConnector.getGGGroupId())
+      organisationId <- OptionT(groupAccounts.getOrganisationId(ggGroupId))
+      pLinks <- OptionT.liftF(propertyLinking.linkedProperties(organisationId))
     } yield
-      uarns
+      pLinks.filter(_.linkId == linkId).flatMap(_.assessment)
       ).value
       .map(_.toList.flatten)
-      .map(x => Future.sequence(x.map(vmvConnector.getValuationHistory(_).map(_.map(_.asstRef)))))
-      .flatMap(identity)
-      .map(_.flatten)
       .map(_.contains(assessmentRef))
 
     hasAssessmentRef.map(x => x match  {
