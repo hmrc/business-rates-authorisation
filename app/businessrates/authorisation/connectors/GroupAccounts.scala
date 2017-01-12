@@ -18,23 +18,19 @@ package businessrates.authorisation.connectors
 
 import javax.inject.Inject
 
-import play.api.libs.json.{JsDefined, JsNumber, JsSuccess, JsValue}
+import play.api.libs.json._
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, NotFoundException}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class GroupAccounts @Inject()(val http: HttpGet with HttpPost)(implicit ec: ExecutionContext) extends ServicesConfig {
 
-  lazy val url = baseUrl("property-linking") + "/property-linking/groups"
+  lazy val url = baseUrl("data-platform")
 
   def getOrganisationId(ggGroupId: String)(implicit hc: HeaderCarrier) = {
-    http.GET[JsValue](s"$url/$ggGroupId").map( js => (js\ "id") match {
-      case JsDefined(x) => {
-        Some(x.as[Int])
-      }
-      case _ => None
-    })
+    http.GET[JsValue](s"$url/organisation?governmentGatewayExternalId=$ggGroupId") map { js => (js \ "id").asOpt[Int] } recover {
+      case _: NotFoundException => None
+    }
   }
-
 }

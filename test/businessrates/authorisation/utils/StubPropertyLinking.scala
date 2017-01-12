@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package businessrates.authorisation.models
+package businessrates.authorisation.utils
 
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import businessrates.authorisation.connectors.PropertyLinking
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-case class APIValuationHistory (
-                                 asstRef: Long,
-                                 listYear: String,
-                                 uarn:Long,
-                                 effectiveDate:DateTime,
-                                 rateableValue:Long
-                               )
+object StubPropertyLinking extends PropertyLinking(StubHttp) {
 
-object APIValuationHistory {
-  implicit val formats = Json.format[APIValuationHistory]
 }

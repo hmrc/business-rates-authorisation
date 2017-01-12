@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package businessrates.authorisation.models
+package businessrates.authorisation.utils
 
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import businessrates.authorisation.connectors.AuthConnector
+import businessrates.authorisation.models.GovernmentGatewayIds
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-case class APIValuationHistory (
-                                 asstRef: Long,
-                                 listYear: String,
-                                 uarn:Long,
-                                 effectiveDate:DateTime,
-                                 rateableValue:Long
-                               )
+import scala.concurrent.Future
 
-object APIValuationHistory {
-  implicit val formats = Json.format[APIValuationHistory]
+object StubAuthConnector extends AuthConnector(StubHttp) {
+  private var stubGGIds: Option[GovernmentGatewayIds] = None
+
+  def stubAuthentication(ids: GovernmentGatewayIds) = {
+    stubGGIds = Some(ids)
+  }
+
+  def reset() = { stubGGIds = None }
+
+  override def getGovernmentGatewayIds(implicit hc: HeaderCarrier) = Future.successful(stubGGIds)
 }

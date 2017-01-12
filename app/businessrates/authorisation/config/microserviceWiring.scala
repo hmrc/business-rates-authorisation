@@ -25,7 +25,7 @@ import uk.gov.hmrc.play.http.ws._
 import javax.inject.Singleton
 
 @Singleton
-class WSHttp  extends WSGet with WSPut with WSPost with WSDelete with WSPatch with AppName  {
+class WSHttp extends WSGet with WSPut with WSPost with WSDelete with WSPatch with AppName {
   override val hooks: Seq[HttpHook] = NoneRequired
 }
 

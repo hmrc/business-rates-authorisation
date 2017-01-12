@@ -16,19 +16,21 @@
 
 package businessrates.authorisation.connectors
 
-import javax.inject.Inject
-
-import businessrates.authorisation.models.PropertyLink
+import com.google.inject.Inject
+import play.api.libs.json.JsValue
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, NotFoundException}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class PropertyLinking @Inject()(val http: HttpGet with HttpPost)(implicit ec: ExecutionContext) extends ServicesConfig {
+class IndividualAccounts @Inject()(http: HttpGet)(implicit ec: ExecutionContext) extends ServicesConfig {
+  lazy val url = baseUrl("data-platform")
 
-  def linkedProperties(organisationId: Int)(implicit hc: HeaderCarrier): Future[Seq[PropertyLink]] = {
-    val url = baseUrl("property-linking") + s"/property-links/$organisationId"
-    http.GET[Seq[PropertyLink]](s"$url")
+  def getPersonId(externalId: String)(implicit hc: HeaderCarrier) = {
+    http.GET[JsValue](s"$url/person?governmentGatewayExternalId=$externalId") map { js =>
+      (js \ "id").asOpt[Int]
+    } recover {
+      case _: NotFoundException => None
+    }
   }
-
 }
