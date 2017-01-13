@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/hmrc/business-rates-authorisation.svg)](https://travis-ci.org/hmrc/business-rates-authorisation) [ ![Download](https://api.bintray.com/packages/hmrc/releases/business-rates-authorisation/images/download.svg) ](https://bintray.com/hmrc/releases/business-rates-authorisation/_latestVersion)
 
-This is a placeholder README.md for a new repository
+This is a microservice used to authorise and authenticate CCA users to perform actions within the CCA frontend services, such as starting checks, or viewing detailed valuations.
 
 ### License
 
