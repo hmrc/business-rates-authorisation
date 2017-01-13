@@ -16,15 +16,16 @@
 
 package businessrates.authorisation
 
-import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts}
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, MustMatchers}
+import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts, StubPropertyLinking}
+import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
-class ControllerSpec extends FlatSpec with MustMatchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout {
+class ControllerSpec extends WordSpec with MustMatchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout {
 
   override protected def beforeEach() = {
     StubAuthConnector.reset()
     StubGroupAccounts.reset()
     StubIndividualAccounts.reset()
+    StubPropertyLinking.reset()
   }
 }

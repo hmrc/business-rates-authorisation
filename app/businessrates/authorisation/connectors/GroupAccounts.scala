@@ -22,14 +22,16 @@ import play.api.libs.json._
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, NotFoundException}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class GroupAccounts @Inject()(val http: HttpGet with HttpPost)(implicit ec: ExecutionContext) extends ServicesConfig {
 
+  type OrganisationId = Int
+
   lazy val url = baseUrl("data-platform")
 
-  def getOrganisationId(ggGroupId: String)(implicit hc: HeaderCarrier) = {
-    http.GET[JsValue](s"$url/organisation?governmentGatewayExternalId=$ggGroupId") map { js => (js \ "id").asOpt[Int] } recover {
+  def getOrganisationId(ggGroupId: String)(implicit hc: HeaderCarrier): Future[Option[OrganisationId]] = {
+    http.GET[JsValue](s"$url/organisation?governmentGatewayExternalId=$ggGroupId") map { js => (js \ "id").asOpt[OrganisationId] } recover {
       case _: NotFoundException => None
     }
   }

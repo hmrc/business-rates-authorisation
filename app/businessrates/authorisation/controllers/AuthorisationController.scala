@@ -24,6 +24,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import cats.data.OptionT
 import cats.instances.future._
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.Future
@@ -35,36 +36,43 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
                                         val individualAccounts: IndividualAccounts
                                        ) extends BaseController {
 
+  type OrganisationId = Int
+  type PersonId = Int
+
   def authenticate = Action.async { implicit request =>
+    withIds { case (oid, pid) =>
+      Future.successful(Ok(Json.obj("organisationId" -> oid, "personId" -> pid)))
+    }
+  }
+
+  def authorise(linkId: Int, assessmentRef: Long) = Action.async { implicit request =>
+    withIds { case (oid, pid) =>
+      val hasAssessmentRef = (for {
+        propertyLinks <- OptionT(propertyLinking.find(oid, linkId))
+        assessment <- OptionT.fromOption(propertyLinks.assessment.find(_.asstRef == assessmentRef))
+      } yield assessment).value
+
+      hasAssessmentRef.map {
+        case Some(_) => Ok(Json.obj("organisationId" -> oid, "personId" -> pid))
+        case None => Forbidden
+      }.recover { case _ => Forbidden }
+    }
+  }
+
+  private def withIds(default: (OrganisationId, PersonId) => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
     authConnector.getGovernmentGatewayIds flatMap {
       case Some(GovernmentGatewayIds(externalId, groupId)) => for {
         organisationId <- groupAccounts.getOrganisationId(groupId)
         personId <- individualAccounts.getPersonId(externalId)
-      } yield {
-        (organisationId, personId) match {
-          case (Some(oid), Some(pid)) => Ok(Json.obj("organisationId" -> oid, "personId" -> pid))
-          case _ => Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD"))
+        res <- (organisationId, personId) match {
+          case (Some(oid), Some(pid)) => default(oid, pid)
+          case _ => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
         }
+      } yield {
+        res
       }
       case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
     }
-  }
-
-	def forAssessment(linkId: String, assessmentRef: Long) = Action.async { implicit request =>
-    val hasAssessmentRef = (for {
-      ids <- OptionT(authConnector.getGovernmentGatewayIds)
-      organisationId <- OptionT(groupAccounts.getOrganisationId(ids.groupId))
-      pLinks <- OptionT.liftF(propertyLinking.linkedProperties(organisationId))
-    } yield
-      pLinks.filter(_.linkId == linkId).flatMap(_.assessment.map(_.asstRef))
-      ).value
-      .map(_.toList.flatten)
-      .map(_.contains(assessmentRef))
-
-    hasAssessmentRef.map {
-      case true => Ok
-      case false => Forbidden
-    }.recover{ case _ => Forbidden}
   }
 
 }
