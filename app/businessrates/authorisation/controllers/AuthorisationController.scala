@@ -19,7 +19,7 @@ package businessrates.authorisation.controllers
 import javax.inject.Inject
 
 import businessrates.authorisation.connectors._
-import businessrates.authorisation.models.GovernmentGatewayIds
+import businessrates.authorisation.models.{AccountIds, GovernmentGatewayIds, SubmissionIds}
 import play.api.libs.json.Json
 import play.api.mvc._
 import cats.data.OptionT
@@ -36,36 +36,40 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
                                         val individualAccounts: IndividualAccounts
                                        ) extends BaseController {
 
-  type OrganisationId = Int
-  type PersonId = Int
-
   def authenticate = Action.async { implicit request =>
-    withIds { case (oid, pid) =>
-      Future.successful(Ok(Json.obj("organisationId" -> oid, "personId" -> pid)))
+    withIds { accountIds =>
+      Future.successful(Ok(Json.toJson(accountIds)))
     }
   }
 
   def authorise(linkId: Int, assessmentRef: Long) = Action.async { implicit request =>
-    withIds { case (oid, pid) =>
+    withIds { case a@AccountIds(oid, pid) =>
       val hasAssessmentRef = (for {
         propertyLinks <- OptionT(propertyLinking.find(oid, linkId))
         assessment <- OptionT.fromOption(propertyLinks.assessment.find(_.asstRef == assessmentRef))
       } yield assessment).value
 
       hasAssessmentRef.map {
-        case Some(_) => Ok(Json.obj("organisationId" -> oid, "personId" -> pid))
+        case Some(_) => Ok(Json.toJson(a))
         case None => Forbidden
       }.recover { case _ => Forbidden }
     }
   }
 
-  private def withIds(default: (OrganisationId, PersonId) => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+  def getIds(linkId: Int) = Action.async { implicit request =>
+    // TODO: requires agent API integration
+    withIds { case a@AccountIds(oid, pid) =>
+      Future.successful(Ok(Json.toJson(SubmissionIds(a, AccountIds(oid, pid)))))
+    }
+  }
+
+  private def withIds(default: AccountIds => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
     authConnector.getGovernmentGatewayIds flatMap {
       case Some(GovernmentGatewayIds(externalId, groupId)) => for {
         organisationId <- groupAccounts.getOrganisationId(groupId)
         personId <- individualAccounts.getPersonId(externalId)
         res <- (organisationId, personId) match {
-          case (Some(oid), Some(pid)) => default(oid, pid)
+          case (Some(oid), Some(pid)) => default(AccountIds(oid, pid))
           case _ => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
         }
       } yield {
@@ -74,5 +78,4 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
       case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
     }
   }
-
 }
