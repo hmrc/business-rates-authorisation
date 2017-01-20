@@ -31,7 +31,7 @@ class PropertyLinking @Inject()(val http: HttpGet with HttpPost)(implicit ec: Ex
   }
 
   def linkedProperties(organisationId: Int)(implicit hc: HeaderCarrier): Future[Seq[PropertyLink]] = {
-    val url = baseUrl("property-linking") + s"/property-links/$organisationId"
+    val url = baseUrl("property-linking") + s"/property-linking/property-links/$organisationId"
     http.GET[Seq[PropertyLink]](url)
   }
 

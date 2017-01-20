@@ -23,9 +23,7 @@ case class Assessment(
                        asstRef: Long,
                        listYear: String,
                        uarn:Long,
-                       effectiveDate:LocalDate,
-                       rateableValue:Long,
-                       address: String
+                       effectiveDate:LocalDate
                      )
 
 object Assessment {
