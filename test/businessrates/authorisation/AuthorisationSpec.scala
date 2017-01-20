@@ -66,7 +66,7 @@ class AuthorisationSpec extends ControllerSpec {
           StubAuthConnector.stubAuthentication(GovernmentGatewayIds("externalId", "groupId"))
           StubGroupAccounts.stubOrganisationId(organisationId)
           StubIndividualAccounts.stubPersonId(5678)
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisationId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now, 123456, "1 The Road, AA11 1AA"))))
+          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisationId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now))))
           val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }
@@ -82,7 +82,7 @@ class AuthorisationSpec extends ControllerSpec {
           StubAuthConnector.stubAuthentication(GovernmentGatewayIds("externalId", "groupId"))
           StubGroupAccounts.stubOrganisationId(organisationId)
           StubIndividualAccounts.stubPersonId(personId)
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisationId, DateTime.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now, 123456, "1 The Road, AA11 1AA"))))
+          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisationId, DateTime.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
           val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe OK
           contentAsJson(res) mustBe Json.obj("organisationId" -> organisationId, "personId" -> personId)
