@@ -16,19 +16,20 @@
 
 package businessrates.authorisation.utils
 
+import businessrates.authorisation.config.VOABackendWSHttp
 import play.api.libs.json.Writes
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost}
 
-object StubHttp extends HttpGet with HttpPost {
-  override protected def doGet(url: String)(implicit hc: HeaderCarrier) = ???
+object StubHttp extends VOABackendWSHttp {
+  override def doGet(url: String)(implicit hc: HeaderCarrier) = ???
 
-  override protected def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit wts: Writes[A], hc: HeaderCarrier) = ???
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit wts: Writes[A], hc: HeaderCarrier) = ???
 
-  override protected def doPostString(url: String, body: String, headers: Seq[(String, String)])(implicit hc: HeaderCarrier) = ???
+  override def doPostString(url: String, body: String, headers: Seq[(String, String)])(implicit hc: HeaderCarrier) = ???
 
-  override protected def doEmptyPost[A](url: String)(implicit hc: HeaderCarrier) = ???
+  override def doEmptyPost[A](url: String)(implicit hc: HeaderCarrier) = ???
 
-  override protected def doFormPost(url: String, body: Map[String, Seq[String]])(implicit hc: HeaderCarrier) = ???
+  override def doFormPost(url: String, body: Map[String, Seq[String]])(implicit hc: HeaderCarrier) = ???
 
   override val hooks = NoneRequired
 }

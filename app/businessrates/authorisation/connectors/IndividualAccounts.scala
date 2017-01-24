@@ -16,6 +16,7 @@
 
 package businessrates.authorisation.connectors
 
+import businessrates.authorisation.config.VOABackendWSHttp
 import com.google.inject.Inject
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.play.config.ServicesConfig
@@ -23,7 +24,7 @@ import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, NotFoundException}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class IndividualAccounts @Inject()(http: HttpGet)(implicit ec: ExecutionContext) extends ServicesConfig {
+class IndividualAccounts @Inject()(http: VOABackendWSHttp)(implicit ec: ExecutionContext) extends ServicesConfig {
 
   type PersonId = Int
 

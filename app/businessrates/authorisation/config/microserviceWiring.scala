@@ -24,9 +24,52 @@ import uk.gov.hmrc.play.http.hooks.HttpHook
 import uk.gov.hmrc.play.http.ws._
 import javax.inject.Singleton
 
+import play.api.libs.json.Writes
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+
+import scala.concurrent.Future
+
 @Singleton
 class WSHttp extends WSGet with WSPut with WSPost with WSDelete with WSPatch with AppName {
   override val hooks: Seq[HttpHook] = NoneRequired
+}
+@Singleton
+class VOABackendWSHttp  extends WSHttp {
+
+  override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    super.doGet(url)(hc.withExtraHeaders(
+      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
+      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
+    ))
+  }
+
+  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    super.doDelete(url)(hc.withExtraHeaders(
+      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
+      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
+    ))
+  }
+
+  override def doPatch[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+    super.doPatch(url, body)(rds, hc.withExtraHeaders(
+      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
+      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
+    ))
+  }
+
+  override def doPut[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+    super.doPut(url, body)(rds, hc.withExtraHeaders(
+      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
+      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
+    ))
+  }
+
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+    super.doPost(url, body, headers)(rds, hc.withExtraHeaders(
+      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
+      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
+    ))
+  }
 }
 
 object MicroserviceAuditConnector extends AuditConnector with RunMode {
