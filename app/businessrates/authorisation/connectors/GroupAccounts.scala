@@ -29,7 +29,7 @@ class GroupAccounts @Inject()(val http: VOABackendWSHttp)(implicit ec: Execution
 
   type OrganisationId = Int
 
-  lazy val url = baseUrl("data-platform")
+  lazy val url = baseUrl("data-platform") + "/customer-management-api"
 
   def getOrganisationId(ggGroupId: String)(implicit hc: HeaderCarrier): Future[Option[OrganisationId]] = {
     http.GET[JsValue](s"$url/organisation?governmentGatewayExternalId=$ggGroupId") map { js => (js \ "id").asOpt[OrganisationId] } recover {

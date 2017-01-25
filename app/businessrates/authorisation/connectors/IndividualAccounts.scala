@@ -28,7 +28,7 @@ class IndividualAccounts @Inject()(http: VOABackendWSHttp)(implicit ec: Executio
 
   type PersonId = Int
 
-  lazy val url = baseUrl("data-platform")
+  lazy val url = baseUrl("data-platform") + "/customer-management-api"
 
   def getPersonId(externalId: String)(implicit hc: HeaderCarrier): Future[Option[PersonId]] = {
     http.GET[JsValue](s"$url/person?governmentGatewayExternalId=$externalId") map { js =>
