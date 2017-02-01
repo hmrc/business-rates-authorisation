@@ -65,16 +65,20 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
 
   private def withIds(default: AccountIds => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
     authConnector.getGovernmentGatewayIds flatMap {
-      case Some(GovernmentGatewayIds(externalId, groupId)) => for {
-        organisationId <- groupAccounts.getOrganisationId(groupId)
-        personId <- individualAccounts.getPersonId(externalId)
-        res <- (organisationId, personId) match {
-          case (Some(oid), Some(pid)) => default(AccountIds(oid, pid))
-          case _ => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
+      case Some(GovernmentGatewayIds(externalId, groupId)) =>
+        val getOrganisationId = groupAccounts.getOrganisationId(groupId)
+        val getPersonId = individualAccounts.getPersonId(externalId)
+
+        for {
+          organisationId <- getOrganisationId
+          personId <- getPersonId
+          res <- (organisationId, personId) match {
+            case (Some(oid), Some(pid)) => default(AccountIds(oid, pid))
+            case _ => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
+          }
+        } yield {
+          res
         }
-      } yield {
-        res
-      }
       case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
     }
   }
