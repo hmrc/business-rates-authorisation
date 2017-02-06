@@ -21,7 +21,7 @@ import javax.inject.Inject
 import businessrates.authorisation.config.VOABackendWSHttp
 import play.api.libs.json._
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, NotFoundException}
+import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
 
 import scala.concurrent.{ExecutionContext, Future}
 
