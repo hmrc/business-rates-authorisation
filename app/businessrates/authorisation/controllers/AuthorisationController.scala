@@ -42,10 +42,10 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
     }
   }
 
-  def authorise(linkId: Int, assessmentRef: Long) = Action.async { implicit request =>
+  def authorise(authorisationId: Long, assessmentRef: Long) = Action.async { implicit request =>
     withIds { case a@AccountIds(oid, pid) =>
       val hasAssessmentRef = (for {
-        propertyLinks <- OptionT(propertyLinking.find(oid, linkId))
+        propertyLinks <- OptionT(propertyLinking.find(oid, authorisationId))
         assessment <- OptionT.fromOption(propertyLinks.assessment.find(_.asstRef == assessmentRef))
       } yield assessment).value
 
