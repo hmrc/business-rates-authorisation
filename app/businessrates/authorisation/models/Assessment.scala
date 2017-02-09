@@ -20,7 +20,7 @@ import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
 case class Assessment(
-                       asstRef: Long,
+                       assessmentRef: Long,
                        listYear: String,
                        uarn:Long,
                        effectiveDate:LocalDate
