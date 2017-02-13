@@ -57,7 +57,7 @@ class AuthorisationSpec extends ControllerSpec {
         }
       }
 
-      "the account has a property link, but is not linked to the specific assessment" must {
+      "the account has an approved property link, but is not linked to the specific assessment" must {
         "return a 403 response" in {
           val linkId = 1234
           val organisationId = 5678
@@ -67,6 +67,22 @@ class AuthorisationSpec extends ControllerSpec {
           StubGroupAccounts.stubOrganisationId(organisationId)
           StubIndividualAccounts.stubPersonId(5678)
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisationId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now))))
+          val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
+          status(res) mustBe FORBIDDEN
+        }
+      }
+
+      "the account has a pending property link" must {
+        "return a 403 response" in {
+          val linkId = 2345
+          val organisationId = 6789
+          val assessmentRef = 1234
+
+          StubAuthConnector.stubAuthentication(GovernmentGatewayIds("externalId", "groupId"))
+          StubGroupAccounts.stubOrganisationId(organisationId)
+          StubIndividualAccounts.stubPersonId(5678)
+          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisationId, DateTime.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
+
           val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }

@@ -27,7 +27,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class PropertyLinking @Inject()(val http: HttpGet with HttpPost)(implicit ec: ExecutionContext) extends ServicesConfig {
 
   def find(organisationId: Int, authorisationId: Long)(implicit hc: HeaderCarrier): Future[Option[PropertyLink]] = {
-    linkedProperties(organisationId) map { _.find(_.authorisationId == authorisationId) }
+    linkedProperties(organisationId) map {
+      _.find( link => link.authorisationId == authorisationId && !link.pending )
+    }
   }
 
   def linkedProperties(organisationId: Int)(implicit hc: HeaderCarrier): Future[Seq[PropertyLink]] = {

@@ -46,7 +46,7 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
     withIds { case a@AccountIds(oid, pid) =>
       val hasAssessmentRef = (for {
         propertyLinks <- OptionT(propertyLinking.find(oid, authorisationId))
-        assessment <- OptionT.fromOption(propertyLinks.assessment.find(_.asstRef == assessmentRef))
+        assessment <- OptionT.fromOption(propertyLinks.assessment.find(_.assessmentRef == assessmentRef))
       } yield assessment).value
 
       hasAssessmentRef.map {
