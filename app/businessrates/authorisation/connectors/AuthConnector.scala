@@ -34,14 +34,14 @@ class AuthConnector @Inject() (val http: HttpGet) extends ServicesConfig {
   def getGovernmentGatewayIds(implicit hc: HeaderCarrier) = {
     (for {
       authority <- OptionT(loadAuthority)
-      ids <- OptionT(getIds(authority))
-      userDetails <- OptionT(getUserDetails(authority))
-    } yield {
-      GovernmentGatewayIds(
-        (ids \ "externalId").as[String],
-        (userDetails \ "groupIdentifier").as[String]
-      )
-    }).value
+      eventualIds = OptionT(getIds(authority))
+      eventualUserDetails = OptionT(getUserDetails(authority))
+
+      ggIds <- for {
+        ids <- eventualIds
+        userDetails <- eventualUserDetails
+      } yield GovernmentGatewayIds((ids \ "externalId").as[String], (userDetails \ "groupIdentifier").as[String])
+    } yield ggIds).value
   }
 
   private def loadAuthority(implicit hc: HeaderCarrier) = {
@@ -51,7 +51,7 @@ class AuthConnector @Inject() (val http: HttpGet) extends ServicesConfig {
   }
 
   private def getIds(authority: Authority)(implicit hc: HeaderCarrier) = authority.ids match {
-    case Some(idsUri) => http.GET[Option[JsValue]](url + idsUri)
+    case Some(idsUri) => http.GET[Option[JsValue]](s"$url$idsUri")
     case None => Future.successful(None)
   }
 
