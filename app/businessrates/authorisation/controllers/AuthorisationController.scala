@@ -56,7 +56,7 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
     }
   }
 
-  def getIds(linkId: Int) = Action.async { implicit request =>
+  def getIds(authorisationId: Long) = Action.async { implicit request =>
     // TODO: requires agent API integration
     withIds { case a@AccountIds(oid, pid) =>
       Future.successful(Ok(Json.toJson(SubmissionIds(a, AccountIds(oid, pid)))))
