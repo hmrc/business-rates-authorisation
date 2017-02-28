@@ -36,39 +36,28 @@ class WSHttp extends WSGet with WSPut with WSPost with WSDelete with WSPatch wit
 @Singleton
 class VOABackendWSHttp  extends WSHttp {
 
+  def sanitiseHeaderCarrier(hc: HeaderCarrier): HeaderCarrier = HeaderCarrier(requestId = hc.requestId, sessionId = hc.sessionId)
+    .withExtraHeaders(("Ocp-Apim-Subscription-Key", ApplicationConfig.apiConfigSubscriptionKeyHeader), ("Ocp-Apim-Trace", ApplicationConfig.apiConfigTraceHeader))
+    .withExtraHeaders(hc.extraHeaders: _*)
+
   override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    super.doGet(url)(hc.withExtraHeaders(
-      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
-      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
-    ))
+    super.doGet(url)(sanitiseHeaderCarrier(hc))
   }
 
   override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    super.doDelete(url)(hc.withExtraHeaders(
-      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
-      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
-    ))
+    super.doDelete(url)(sanitiseHeaderCarrier(hc))
   }
 
   override def doPatch[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    super.doPatch(url, body)(rds, hc.withExtraHeaders(
-      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
-      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
-    ))
+    super.doPatch(url, body)(rds, sanitiseHeaderCarrier(hc))
   }
 
   override def doPut[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    super.doPut(url, body)(rds, hc.withExtraHeaders(
-      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
-      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
-    ))
+    super.doPut(url, body)(rds, sanitiseHeaderCarrier(hc))
   }
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    super.doPost(url, body, headers)(rds, hc.withExtraHeaders(
-      ("Ocp-Apim-Subscription-Key" , ApplicationConfig.apiConfigSubscriptionKeyHeader),
-      ("Ocp-Apim-Trace" , ApplicationConfig.apiConfigTraceHeader)
-    ))
+    super.doPost(url, body, headers)(rds,sanitiseHeaderCarrier(hc))
   }
 }
 
