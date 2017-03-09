@@ -19,7 +19,7 @@ package businessrates.authorisation.controllers
 import javax.inject.Inject
 
 import businessrates.authorisation.connectors._
-import businessrates.authorisation.models.{AccountIds, GovernmentGatewayIds, SubmissionIds}
+import businessrates.authorisation.models.{AccountIds, Accounts, GovernmentGatewayIds, SubmissionIds}
 import play.api.libs.json.Json
 import play.api.mvc._
 import cats.data.OptionT
@@ -43,7 +43,7 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
   }
 
   def authorise(authorisationId: Long, assessmentRef: Long) = Action.async { implicit request =>
-    withIds { case a@AccountIds(oid, pid) =>
+    withIds { case a@Accounts(oid, pid, _, _) =>
       val hasAssessmentRef = (for {
         propertyLinks <- OptionT(propertyLinking.find(oid, authorisationId))
         assessment <- OptionT.fromOption(propertyLinks.assessment.find(_.assessmentRef == assessmentRef))
@@ -58,22 +58,22 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
 
   def getIds(authorisationId: Long) = Action.async { implicit request =>
     // TODO: requires agent API integration
-    withIds { case a@AccountIds(oid, pid) =>
-      Future.successful(Ok(Json.toJson(SubmissionIds(a, AccountIds(oid, pid)))))
+    withIds { case Accounts(oid, pid, o, p) =>
+      Future.successful(Ok(Json.toJson(SubmissionIds(AccountIds(oid, pid), AccountIds(oid, pid)))))
     }
   }
 
-  private def withIds(default: AccountIds => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+  private def withIds(default: Accounts => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
     authConnector.getGovernmentGatewayIds flatMap {
       case Some(GovernmentGatewayIds(externalId, groupId)) =>
-        val getOrganisationId = groupAccounts.getOrganisationId(groupId)
-        val getPersonId = individualAccounts.getPersonId(externalId)
+        val eventualOrganisation = groupAccounts.getOrganisation(groupId)
+        val eventualPerson = individualAccounts.getPerson(externalId)
 
         for {
-          organisationId <- getOrganisationId
-          personId <- getPersonId
+          organisationId <- eventualOrganisation
+          personId <- eventualPerson
           res <- (organisationId, personId) match {
-            case (Some(oid), Some(pid)) => default(AccountIds(oid, pid))
+            case (Some(o), Some(p)) => default(Accounts(o.id, p.individualId, o, p))
             case _ => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
           }
         } yield {

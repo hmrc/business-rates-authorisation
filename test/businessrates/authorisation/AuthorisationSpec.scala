@@ -17,7 +17,7 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.models.{Assessment, GovernmentGatewayIds, PropertyLink}
+import businessrates.authorisation.models._
 import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts, StubPropertyLinking}
 import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json.Json
@@ -27,6 +27,33 @@ import play.api.test.Helpers._
 class AuthorisationSpec extends ControllerSpec {
 
   val testController = new AuthorisationController(StubAuthConnector, StubGroupAccounts, StubPropertyLinking, StubIndividualAccounts)
+
+  private val organisation = Organisation(
+    12345,
+    "anotherGroupId",
+    "some company",
+    Address(Some(1), "The place", "", "", "", "AA11 1AA"),
+    "email@address.com",
+    "12345",
+    false,
+    false,
+    1L
+  )
+
+  private val person = Person(
+    "anotherExternalId",
+    "trustId",
+    12345,
+    67890,
+    PersonDetails(
+      "Not A",
+      "Real Person",
+      "aa@bb.cc",
+      "123456",
+      None,
+      Address(Some(2), "The Road", "The Place", "", "", "AA11 1AA")
+    )
+  )
 
   "Calling the check authorisation endpoint" when {
     "the user is not logged in to government gateway" must {
@@ -39,7 +66,7 @@ class AuthorisationSpec extends ControllerSpec {
 
     "the user is logged in to government gateway but has not registered a VOA account" must {
       "return a 401 response and the NO_CUSTOMER_RECORD error code" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayIds("externalId", "groupId"))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
         val res = testController.authorise(123, 456)(FakeRequest())
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
@@ -49,9 +76,9 @@ class AuthorisationSpec extends ControllerSpec {
     "the user is logged in to government gateway and has a VOA account" when {
       "the account does not have a link to the property" must {
         "return a 403 response" in {
-          StubAuthConnector.stubAuthentication(GovernmentGatewayIds("externalId", "groupId"))
-          StubGroupAccounts.stubOrganisationId(1234)
-          StubIndividualAccounts.stubPersonId(5678)
+          StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
+          StubGroupAccounts.stubOrganisation(organisation)
+          StubIndividualAccounts.stubPerson(person)
           val res = testController.authorise(123, 456)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }
@@ -60,13 +87,12 @@ class AuthorisationSpec extends ControllerSpec {
       "the account has an approved property link, but is not linked to the specific assessment" must {
         "return a 403 response" in {
           val linkId = 1234
-          val organisationId = 5678
           val assessmentRef = 9012
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayIds("externalId", "groupId"))
-          StubGroupAccounts.stubOrganisationId(organisationId)
-          StubIndividualAccounts.stubPersonId(5678)
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisationId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now))))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
+          StubGroupAccounts.stubOrganisation(organisation)
+          StubIndividualAccounts.stubPerson(person)
+          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now))))
           val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }
@@ -75,13 +101,12 @@ class AuthorisationSpec extends ControllerSpec {
       "the account has a pending property link" must {
         "return a 403 response" in {
           val linkId = 2345
-          val organisationId = 6789
           val assessmentRef = 1234
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayIds("externalId", "groupId"))
-          StubGroupAccounts.stubOrganisationId(organisationId)
-          StubIndividualAccounts.stubPersonId(5678)
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisationId, DateTime.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
+          StubGroupAccounts.stubOrganisation(organisation)
+          StubIndividualAccounts.stubPerson(person)
+          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, DateTime.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
 
           val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
@@ -91,17 +116,15 @@ class AuthorisationSpec extends ControllerSpec {
       "the account has a valid link to the assessment" must {
         "return a 200 response and the organisation and person IDs" in {
           val linkId = 1234
-          val organisationId = 5678
-          val personId = 3456
           val assessmentRef = 9012
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayIds("externalId", "groupId"))
-          StubGroupAccounts.stubOrganisationId(organisationId)
-          StubIndividualAccounts.stubPersonId(personId)
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisationId, DateTime.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
+          StubGroupAccounts.stubOrganisation(organisation)
+          StubIndividualAccounts.stubPerson(person)
+          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, DateTime.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
           val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj("organisationId" -> organisationId, "personId" -> personId)
+          contentAsJson(res) mustBe Json.obj("organisationId" -> organisation.id, "personId" -> person.individualId, "organisation" -> Json.toJson(organisation), "person" -> Json.toJson(person))
         }
       }
     }

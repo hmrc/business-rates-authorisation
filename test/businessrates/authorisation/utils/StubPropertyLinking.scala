@@ -34,5 +34,5 @@ object StubPropertyLinking extends PropertyLinking(StubHttp) {
     stubbedLinks = Nil
   }
 
-  override def linkedProperties(organisationId: Int)(implicit hc: HeaderCarrier) = Future.successful(stubbedLinks)
+  override def linkedProperties(organisationId: Long)(implicit hc: HeaderCarrier) = Future.successful(stubbedLinks)
 }

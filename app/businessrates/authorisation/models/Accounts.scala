@@ -18,8 +18,8 @@ package businessrates.authorisation.models
 
 import play.api.libs.json.Json
 
-case class AccountIds(organisationId: Int, personId: Int)
+case class Accounts(organisationId: Long, personId: Long, organisation: Organisation, person: Person)
 
-object AccountIds {
-  implicit lazy val format = Json.format[AccountIds]
+object Accounts {
+  implicit lazy val format = Json.format[Accounts]
 }
