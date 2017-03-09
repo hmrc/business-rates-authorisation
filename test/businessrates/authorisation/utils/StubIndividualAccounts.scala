@@ -17,21 +17,22 @@
 package businessrates.authorisation.utils
 
 import businessrates.authorisation.connectors.IndividualAccounts
+import businessrates.authorisation.models.Person
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 object StubIndividualAccounts extends IndividualAccounts(StubHttp) {
-  private var stubbedPersonId: Option[Int] = None
+  private var stubbedPerson: Option[Person] = None
 
-  def stubPersonId(personId: Int) = {
-    stubbedPersonId = Some(personId)
+  def stubPerson(person: Person) = {
+    stubbedPerson = Some(person)
   }
 
   def reset() = {
-    stubbedPersonId = None
+    stubbedPerson = None
   }
 
-  override def getPersonId(externalId: String)(implicit hc: HeaderCarrier) = Future.successful(stubbedPersonId)
+  override def getPerson(externalId: String)(implicit hc: HeaderCarrier): Future[Option[Person]] = Future.successful(stubbedPerson)
 }

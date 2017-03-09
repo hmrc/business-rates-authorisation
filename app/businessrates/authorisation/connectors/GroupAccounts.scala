@@ -19,6 +19,7 @@ package businessrates.authorisation.connectors
 import javax.inject.Inject
 
 import businessrates.authorisation.config.VOABackendWSHttp
+import businessrates.authorisation.models.Organisation
 import play.api.libs.json._
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
@@ -29,11 +30,9 @@ class GroupAccounts @Inject()(val http: VOABackendWSHttp)(implicit ec: Execution
 
   type OrganisationId = Int
 
-  lazy val url = baseUrl("data-platform") + "/customer-management-api"
+  lazy val groupAccountsUrl = baseUrl("property-linking") + "/property-linking/groups"
 
-  def getOrganisationId(ggGroupId: String)(implicit hc: HeaderCarrier): Future[Option[OrganisationId]] = {
-    http.GET[JsValue](s"$url/organisation?governmentGatewayGroupId=$ggGroupId") map { js => (js \ "id").asOpt[OrganisationId] } recover {
-      case _: NotFoundException => None
-    }
+  def getOrganisation(ggGroupId: String)(implicit hc: HeaderCarrier): Future[Option[Organisation]] = {
+    http.GET[Option[Organisation]](s"$groupAccountsUrl?groupId=$ggGroupId") recover { case _: NotFoundException => None }
   }
 }

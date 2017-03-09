@@ -17,10 +17,11 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.config.VOABackendWSHttp
+import businessrates.authorisation.models.Person
 import com.google.inject.Inject
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, NotFoundException}
+import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -28,13 +29,9 @@ class IndividualAccounts @Inject()(http: VOABackendWSHttp)(implicit ec: Executio
 
   type PersonId = Int
 
-  lazy val url = baseUrl("data-platform") + "/customer-management-api"
+  lazy val individualAccountsUrl = baseUrl("property-linking") + "/property-linking/individuals"
 
-  def getPersonId(externalId: String)(implicit hc: HeaderCarrier): Future[Option[PersonId]] = {
-    http.GET[JsValue](s"$url/person?governmentGatewayExternalId=$externalId") map { js =>
-      (js \ "id").asOpt[PersonId]
-    } recover {
-      case _: NotFoundException => None
-    }
+  def getPerson(externalId: String)(implicit hc: HeaderCarrier): Future[Option[Person]] = {
+    http.GET[Option[Person]](s"$individualAccountsUrl?externalId=$externalId") recover { case _: NotFoundException => None }
   }
 }

@@ -18,7 +18,7 @@ package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
 import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts, StubPropertyLinking}
-import businessrates.authorisation.models.GovernmentGatewayIds
+import businessrates.authorisation.models._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -46,13 +46,40 @@ class AuthenticationSpec extends ControllerSpec {
     }
 
     "the user is logged in to Government Gateway and has registered a CCA account" must {
-      "return a 200 status and the organisation ID and person ID" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayIds("anotherExternalId", "anotherGroupId"))
-        StubGroupAccounts.stubOrganisationId(12345)
-        StubIndividualAccounts.stubPersonId(67890)
+      "return a 200 status and the organisation ID, the person ID, and the organisation and person accounts" in {
+        val stubOrganisation = Organisation(
+          12345,
+          "anotherGroupId",
+          "some company",
+          Address(Some(1), "The place", "", "", "", "AA11 1AA"),
+          "email@address.com",
+          "12345",
+          false,
+          false,
+          1L
+        )
+
+        val stubPerson = Person(
+          "anotherExternalId",
+          "trustId",
+          12345,
+          67890,
+          PersonDetails(
+            "Not A",
+            "Real Person",
+            "aa@bb.cc",
+            "123456",
+            None,
+            Address(Some(2), "The Road", "The Place", "", "", "AA11 1AA")
+          )
+        )
+
+        StubAuthConnector.stubAuthentication(GovernmentGatewayIds(stubPerson.externalId, stubOrganisation.groupId))
+        StubGroupAccounts.stubOrganisation(stubOrganisation)
+        StubIndividualAccounts.stubPerson(stubPerson)
         val res = testController.authenticate()(FakeRequest())
         status(res) mustBe OK
-        contentAsJson(res) mustBe Json.obj("organisationId" -> 12345, "personId" -> 67890)
+        contentAsJson(res) mustBe Json.obj("organisationId" -> 12345, "personId" -> 67890, "organisation" -> Json.toJson(stubOrganisation), "person" -> Json.toJson(stubPerson))
       }
     }
   }

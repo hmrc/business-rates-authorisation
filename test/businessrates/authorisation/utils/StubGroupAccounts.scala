@@ -17,21 +17,22 @@
 package businessrates.authorisation.utils
 
 import businessrates.authorisation.connectors.GroupAccounts
+import businessrates.authorisation.models.Organisation
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 object StubGroupAccounts extends GroupAccounts(StubHttp) {
-  private var stubbedOrganisationId: Option[Int] = None
+  private var stubbedOrganisation: Option[Organisation] = None
 
-  def stubOrganisationId(organisationId: Int) = {
-    stubbedOrganisationId = Some(organisationId)
+  def stubOrganisation(organisation: Organisation) = {
+    stubbedOrganisation = Some(organisation)
   }
 
   def reset() = {
-    stubbedOrganisationId = None
+    stubbedOrganisation = None
   }
 
-  override def getOrganisationId(ggGroupId: String)(implicit hc: HeaderCarrier) = Future.successful(stubbedOrganisationId)
+  override def getOrganisation(ggGroupId: String)(implicit hc: HeaderCarrier): Future[Option[Organisation]] = Future.successful(stubbedOrganisation)
 }
