@@ -32,7 +32,7 @@ class AuthorisationSpec extends ControllerSpec {
     12345,
     "anotherGroupId",
     "some company",
-    Address(Some(1), "The place", "", "", "", "AA11 1AA"),
+    1,
     "email@address.com",
     "12345",
     false,
@@ -51,7 +51,7 @@ class AuthorisationSpec extends ControllerSpec {
       "aa@bb.cc",
       "123456",
       None,
-      Address(Some(2), "The Road", "The Place", "", "", "AA11 1AA")
+      2
     )
   )
 
