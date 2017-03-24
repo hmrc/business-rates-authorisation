@@ -57,9 +57,11 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
   }
 
   def getIds(authorisationId: Long) = Action.async { implicit request =>
-    // TODO: requires agent API integration
-    withIds { case Accounts(oid, pid, o, p) =>
-      Future.successful(Ok(Json.toJson(SubmissionIds(AccountIds(oid, pid), AccountIds(oid, pid)))))
+    withIds { case Accounts(oid, pid, _, _) =>
+      propertyLinking.find(oid, authorisationId) map {
+        case Some(link) => Ok(Json.toJson(SubmissionIds(caseCreator = AccountIds(oid, pid), interestedParty = AccountIds(link.organisationId, link.personId))))
+        case None => Forbidden
+      }
     }
   }
 

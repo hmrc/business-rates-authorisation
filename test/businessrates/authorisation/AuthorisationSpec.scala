@@ -92,7 +92,7 @@ class AuthorisationSpec extends ControllerSpec {
           StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now))))
+          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now))))
           val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }
@@ -106,7 +106,7 @@ class AuthorisationSpec extends ControllerSpec {
           StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, DateTime.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
+          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, DateTime.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
 
           val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
@@ -121,7 +121,7 @@ class AuthorisationSpec extends ControllerSpec {
           StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, DateTime.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
+          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, DateTime.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
           val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe OK
           contentAsJson(res) mustBe Json.obj("organisationId" -> organisation.id, "personId" -> person.individualId, "organisation" -> Json.toJson(organisation), "person" -> Json.toJson(person))
