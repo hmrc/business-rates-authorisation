@@ -19,7 +19,9 @@ package businessrates.authorisation.models
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
-case class PropertyLink(authorisationId: Long, uarn: Long, organisationId: Int, linkedDate: DateTime, pending: Boolean, assessment: Seq[Assessment])
+case class PropertyLink(authorisationId: Long, uarn: Long, organisationId: Long,
+                        personId: Long, linkedDate: DateTime, pending: Boolean,
+                        assessment: Seq[Assessment])
 
 
 object PropertyLink {
