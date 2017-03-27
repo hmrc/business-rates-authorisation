@@ -16,11 +16,11 @@
 
 package businessrates.authorisation.utils
 
-import businessrates.authorisation.config.VOABackendWSHttp
 import play.api.libs.json.Writes
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost}
+import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.http.ws.WSHttp
 
-object StubHttp extends VOABackendWSHttp {
+object StubHttp extends WSHttp {
   override def doGet(url: String)(implicit hc: HeaderCarrier) = ???
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit wts: Writes[A], hc: HeaderCarrier) = ???
