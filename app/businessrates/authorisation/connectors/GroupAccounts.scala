@@ -18,15 +18,15 @@ package businessrates.authorisation.connectors
 
 import javax.inject.Inject
 
-import businessrates.authorisation.config.VOABackendWSHttp
 import businessrates.authorisation.models.Organisation
-import play.api.libs.json._
+import com.google.inject.name.Named
 import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GroupAccounts @Inject()(val http: VOABackendWSHttp)(implicit ec: ExecutionContext) extends ServicesConfig {
+class GroupAccounts @Inject()(@Named("voaBackendWSHttp") http: WSHttp)(implicit ec: ExecutionContext) extends ServicesConfig {
 
   type OrganisationId = Int
 
