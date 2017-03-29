@@ -20,18 +20,16 @@ import javax.inject.Inject
 
 import businessrates.authorisation.connectors._
 import businessrates.authorisation.models.{AccountIds, Accounts, GovernmentGatewayIds, SubmissionIds}
-import play.api.libs.json.Json
-import play.api.mvc._
 import cats.data.OptionT
 import cats.instances.future._
-import com.google.inject.Singleton
+import play.api.libs.json.Json
+import play.api.mvc._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-@Singleton
 class AuthorisationController @Inject()(val authConnector: AuthConnector,
                                         val groupAccounts: GroupAccounts,
                                         val propertyLinking: PropertyLinking,
