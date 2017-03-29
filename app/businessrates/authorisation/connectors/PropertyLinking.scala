@@ -19,6 +19,7 @@ package businessrates.authorisation.connectors
 import javax.inject.Inject
 
 import businessrates.authorisation.models.PropertyLink
+import com.google.inject.Singleton
 import com.google.inject.name.Named
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -26,6 +27,7 @@ import uk.gov.hmrc.play.http.ws.WSHttp
 
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class PropertyLinking @Inject()(@Named("simpleWSHttp") http: WSHttp)(implicit ec: ExecutionContext) extends ServicesConfig {
 
   def find(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier): Future[Option[PropertyLink]] = {
