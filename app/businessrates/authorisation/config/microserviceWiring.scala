@@ -17,26 +17,23 @@
 package businessrates.authorisation.config
 
 import java.net.URL
-
-import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.auth.microservice.connectors.AuthConnector
-import uk.gov.hmrc.play.config.{AppName, RunMode, ServicesConfig}
-import uk.gov.hmrc.play.http.hooks.HttpHook
-import uk.gov.hmrc.play.http.ws._
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import businessrates.authorisation.metrics.HasMetrics
 import com.google.inject.name.Named
 import com.kenshoo.play.metrics.Metrics
-import play.api.libs.json.Writes
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.Writes
+import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.auth.microservice.connectors.AuthConnector
+import uk.gov.hmrc.play.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.http.hooks.HttpHook
+import uk.gov.hmrc.play.http.ws._
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.Future
 
-@Singleton
 class SimpleWSHttp extends WSHttp {
   override val hooks: Seq[HttpHook] = NoneRequired
 }
@@ -49,7 +46,6 @@ object MicroserviceAuthConnector extends AuthConnector with ServicesConfig {
   override val authBaseUrl = baseUrl("auth")
 }
 
-@Singleton
 class VOABackendWSHttp @Inject()(val metrics: Metrics,
                                  @Named("voaApiSubscriptionHeader") voaApiSubscriptionHeader: String,
                                  @Named("voaApiTraceHeader") voaApiTraceHeader: String) extends WSHttp with HasMetrics {
