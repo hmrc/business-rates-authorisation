@@ -17,7 +17,7 @@
 package businessrates.authorisation.models
 
 import org.joda.time.LocalDate
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class Assessment(
                        assessmentRef: Long,
@@ -27,5 +27,5 @@ case class Assessment(
                      )
 
 object Assessment {
-  implicit val formats = Json.format[Assessment]
+  implicit val formats: OFormat[Assessment] = Json.format[Assessment]
 }

@@ -16,16 +16,16 @@
 
 package businessrates.authorisation.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class PersonDetails(firstName: String, lastName: String, email: String, phone1: String, phone2: Option[String], addressId: Int)
 
 object PersonDetails {
-  implicit val formats = Json.format[PersonDetails]
+  implicit val formats: OFormat[PersonDetails] = Json.format[PersonDetails]
 }
 
 case class Person(externalId: String, trustId: String, organisationId: Long, individualId: Long, details: PersonDetails)
 
 object Person {
-  implicit val formats = Json.format[Person]
+  implicit val formats: OFormat[Person] = Json.format[Person]
 }

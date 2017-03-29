@@ -16,10 +16,10 @@
 
 package businessrates.authorisation.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class Address(addressUnitId: Option[Int], line1: String, line2: String, line3: String, line4: String, postcode: String)
 
 object Address {
-  implicit val format = Json.format[Address]
+  implicit val format: OFormat[Address] = Json.format[Address]
 }

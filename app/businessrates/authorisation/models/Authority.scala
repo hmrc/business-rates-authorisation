@@ -16,10 +16,10 @@
 
 package businessrates.authorisation.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class Authority(uri: String, userDetailsLink: Option[String], ids: Option[String])
 
 object Authority {
-  implicit val format = Json.format[Authority]
+  implicit val format: OFormat[Authority] = Json.format[Authority]
 }

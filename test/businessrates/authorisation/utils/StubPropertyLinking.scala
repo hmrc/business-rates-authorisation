@@ -16,29 +16,4 @@
 
 package businessrates.authorisation.utils
 
-import businessrates.authorisation.connectors.PropertyLinking
-import businessrates.authorisation.models.PropertyLink
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.Future
-
-object StubPropertyLinking extends PropertyLinking(StubHttp) {
-  private var stubbedLinks: Seq[(Long, PropertyLink)] = Nil
-
-  def stubLink(link: PropertyLink) = {
-    stubbedLinks :+= ((link.organisationId, link))
-  }
-
-  def stubAgentLink(agentOrgId: Long, link: PropertyLink) = {
-    stubbedLinks :+= ((agentOrgId, link))
-  }
-
-  def reset() = {
-    stubbedLinks = Nil
-  }
-
-  override def linkedProperties(organisationId: Long)(implicit hc: HeaderCarrier) = Future.successful {
-    stubbedLinks collect { case (`organisationId`, link) => link }
-  }
-}
+object StubPropertyLinking extends StubBackendConnector

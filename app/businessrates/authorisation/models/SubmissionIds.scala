@@ -16,16 +16,16 @@
 
 package businessrates.authorisation.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class AccountIds(organisationId: Long, personId: Long)
 
 object AccountIds {
-  implicit val format = Json.format[AccountIds]
+  implicit val format: OFormat[AccountIds] = Json.format[AccountIds]
 }
 
 case class SubmissionIds(caseCreator: AccountIds, interestedParty: AccountIds)
 
 object SubmissionIds {
-  implicit lazy val format = Json.format[SubmissionIds]
+  implicit lazy val format: OFormat[SubmissionIds] = Json.format[SubmissionIds]
 }

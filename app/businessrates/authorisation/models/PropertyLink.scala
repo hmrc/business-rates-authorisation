@@ -17,7 +17,7 @@
 package businessrates.authorisation.models
 
 import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class PropertyLink(authorisationId: Long, uarn: Long, organisationId: Long,
                         personId: Long, linkedDate: DateTime, pending: Boolean,
@@ -25,5 +25,5 @@ case class PropertyLink(authorisationId: Long, uarn: Long, organisationId: Long,
 
 
 object PropertyLink {
-  implicit val format = Json.format[PropertyLink]
+  implicit val format: OFormat[PropertyLink] = Json.format[PropertyLink]
 }

@@ -43,24 +43,27 @@ object MicroserviceAuditConnector extends AuditConnector with RunMode {
 }
 
 object MicroserviceAuthConnector extends AuthConnector with ServicesConfig {
-  override val authBaseUrl = baseUrl("auth")
+  override val authBaseUrl: String = baseUrl("auth")
 }
 
 class VOABackendWSHttp @Inject()(val metrics: Metrics,
                                  @Named("voaApiSubscriptionHeader") voaApiSubscriptionHeader: String,
                                  @Named("voaApiTraceHeader") voaApiTraceHeader: String) extends WSHttp with HasMetrics {
 
-  def buildHeaderCarrier(hc: HeaderCarrier): HeaderCarrier = HeaderCarrier(requestId = hc.requestId, sessionId = hc.sessionId)
-    .withExtraHeaders(("Ocp-Apim-Subscription-Key", voaApiSubscriptionHeader), ("Ocp-Apim-Trace", voaApiTraceHeader))
+  val baseModernizerHC = HeaderCarrier(extraHeaders = Seq("Ocp-Apim-Subscription-Key" -> voaApiSubscriptionHeader,
+    "Ocp-Apim-Trace" -> voaApiTraceHeader))
+
+  def buildHeaderCarrier(hc: HeaderCarrier): HeaderCarrier = baseModernizerHC
+    .copy(requestId = hc.requestId, sessionId = hc.sessionId)
     .withExtraHeaders(hc.extraHeaders: _*)
 
   def mapResponseToSuccessOrFailure(response: HttpResponse, timer: MetricsTimer): HttpResponse =
     response.status.toString match {
       case status if status.startsWith("2") =>
-        timer.completeTimerAndMarkAsSuccess
+        timer.completeTimerAndMarkAsSuccess()
         response
       case _ =>
-        timer.completeTimerAndMarkAsFailure
+        timer.completeTimerAndMarkAsFailure()
         response
     }
 
@@ -71,77 +74,43 @@ class VOABackendWSHttp @Inject()(val metrics: Metrics,
 
   override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doGet(url)(buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
+      process(_)(super.doGet(url)(buildHeaderCarrier(hc)))
     }
   }
 
   override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doDelete(url)(buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
+      process(_)(super.doDelete(url)(buildHeaderCarrier(hc)))
     }
   }
 
   override def doPatch[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
     withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doPatch(url, body)(rds, buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
+      process(_)(super.doPatch(url, body)(rds, buildHeaderCarrier(hc)))
     }
   }
 
   override def doPut[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
     withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doPut(url, body)(rds, buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
+      process(_)(super.doPut(url, body)(rds, buildHeaderCarrier(hc)))
     }
   }
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
     withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doPost(url, body, headers)(rds, buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
+      process(_)(super.doPost(url, body, headers)(rds, buildHeaderCarrier(hc)))
     }
+  }
+
+  def process: MetricsTimer => Future[HttpResponse] => Future[HttpResponse] = { timer =>
+    resp =>
+      resp map {
+        response => mapResponseToSuccessOrFailure(response, timer)
+      } recover {
+        case ex: Exception =>
+          timer.completeTimerAndMarkAsFailure()
+          throw ex
+      }
   }
 
   override val hooks = NoneRequired

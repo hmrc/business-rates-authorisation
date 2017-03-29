@@ -19,7 +19,6 @@ package businessrates.authorisation.metrics
 import com.codahale.metrics._
 import com.kenshoo.play.metrics.Metrics
 
-
 trait HasMetrics {
 
   type Metric = String
@@ -28,18 +27,18 @@ trait HasMetrics {
 
   val localMetrics = new LocalMetrics
 
-  lazy val registry = metrics.defaultRegistry
+  lazy val registry: MetricRegistry = metrics.defaultRegistry
 
   class MetricsTimer(metric: Metric) {
-    val timer = localMetrics.startTimer(metric)
+    val timer: Timer.Context = localMetrics.startTimer(metric)
 
-    def completeTimerAndMarkAsSuccess: Unit = {
+    def completeTimerAndMarkAsSuccess(): Unit = {
       timer.stop()
       localMetrics.incrementSuccessCounter(metric)
       localMetrics.incrementSuccessMeter(metric)
     }
 
-    def completeTimerAndMarkAsFailure: Unit = {
+    def completeTimerAndMarkAsFailure(): Unit = {
       timer.stop()
       localMetrics.incrementFailedCounter(metric)
       localMetrics.incrementFailedMeter(metric)
@@ -50,9 +49,9 @@ trait HasMetrics {
     block(new MetricsTimer(metric))
 
   class LocalMetrics {
-    def startTimer(metric: Metric) = registry.timer(s"$metric/timer").time()
+    def startTimer(metric: Metric): Timer.Context = registry.timer(s"$metric/timer").time()
 
-    def stopTimer(context: Timer.Context) = context.stop()
+    def stopTimer(context: Timer.Context): Long = context.stop()
 
     def incrementSuccessMeter(metric: Metric): Unit = registry.meter(s"$metric/success-meter").mark()
 

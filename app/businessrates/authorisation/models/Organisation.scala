@@ -16,11 +16,23 @@
 
 package businessrates.authorisation.models
 
-import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 case class Organisation(id: Int, groupId: String, companyName: String, addressId: Int, email: String, phone: String,
                         isSmallBusiness: Boolean, isAgent: Boolean, agentCode: Long)
 
 object Organisation {
-  implicit val format = Json.format[Organisation]
+  private val readsBuilder =
+    (__ \ "id").read[Int] and
+    (__ \ "governmentGatewayGroupId").read[String] and
+    (__ \ "organisationLatestDetail" \ "organisationName").read[String] and
+    (__ \ "organisationLatestDetail" \ "addressUnitId").read[Int] and
+    (__ \ "organisationLatestDetail" \ "organisationEmailAddress").read[String] and
+    (__ \ "organisationLatestDetail" \ "organisationTelephoneNumber").read[String] | Reads.pure[String]("not set") and
+    (__ \ "organisationLatestDetail" \ "smallBusinessFlag").read[Boolean] and
+    (__ \ "organisationLatestDetail" \ "representativeFlag").read[Boolean] and
+    (__ \ "representativeCode").read[Long]
+
+  implicit val format: OFormat[Organisation] = OFormat(readsBuilder.apply(Organisation.apply _), Json.writes[Organisation])
 }
