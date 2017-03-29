@@ -24,12 +24,14 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import cats.data.OptionT
 import cats.instances.future._
+import com.google.inject.Singleton
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
+@Singleton
 class AuthorisationController @Inject()(val authConnector: AuthConnector,
                                         val groupAccounts: GroupAccounts,
                                         val propertyLinking: PropertyLinking,
