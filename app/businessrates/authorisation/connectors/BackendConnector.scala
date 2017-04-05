@@ -20,24 +20,23 @@ import javax.inject.Inject
 
 import businessrates.authorisation.models.{Organisation, Person, PropertyLink}
 import com.google.inject.name.Named
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.config.inject.ServicesConfig
 import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.http.ws.WSHttp
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp) extends ServicesConfig
-  with GroupAccounts with IndividualAccounts with PropertyLinking {
+class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp, val config: ServicesConfig)
+  extends GroupAccounts with IndividualAccounts with PropertyLinking {
 
   private def NotFound[T]: PartialFunction[Throwable, Option[T]] = { case _: NotFoundException => None }
 
-  lazy val backendUrl: String = baseUrl("external-business-rates-data-platform")
+  lazy val backendUrl: String = config.baseUrl("external-business-rates-data-platform")
 
   lazy val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
+  lazy val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
 
-  lazy val propertyLinkingUrl: String = s"${baseUrl("property-linking")}/property-linking"
-
-  lazy val individualAccountsUrl: String = s"$propertyLinkingUrl/individuals"
+  lazy val propertyLinkingUrl: String = s"${config.baseUrl("property-linking")}/property-linking"
   lazy val linkedPropertiesUrl: String = s"$propertyLinkingUrl/property-links"
 
   def getOrganisation(ggGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] = {
@@ -45,7 +44,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp) ex
   }
 
   def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
-    http.GET[Option[Person]](s"$individualAccountsUrl?externalId=$externalId") recover NotFound[Person]
+    http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
   }
 
   def find(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {

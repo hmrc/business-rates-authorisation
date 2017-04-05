@@ -16,16 +16,31 @@
 
 package businessrates.authorisation.models
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 case class PersonDetails(firstName: String, lastName: String, email: String, phone1: String, phone2: Option[String], addressId: Int)
-
-object PersonDetails {
-  implicit val formats: OFormat[PersonDetails] = Json.format[PersonDetails]
-}
-
 case class Person(externalId: String, trustId: String, organisationId: Long, individualId: Long, details: PersonDetails)
 
+object PersonDetails {
+  private val readsBuilder =
+    (__ \ "firstName").read[String] and
+    (__ \ "lastName").read[String] and
+    (__ \ "emailAddress").read[String] and
+    (__ \ "telephoneNumber").read[String] | Reads.pure("not set") and
+    (__ \ "mobileNumber").readNullable[String] and
+    (__ \ "addressUnitId").read[Int]
+
+  implicit val format: OFormat[PersonDetails] = OFormat(readsBuilder.apply(PersonDetails.apply _), Json.writes[PersonDetails])
+}
+
 object Person {
-  implicit val formats: OFormat[Person] = Json.format[Person]
+  private val readsBuilder =
+    (__ \ "governmentGatewayExternalId").read[String] and
+    (__ \ "personLatestDetail" \ "identifyVerificationId").read[String] | Reads.pure("") and
+    (__ \ "organisationId").read[Long] and
+    (__ \ "id").read[Long] and
+    (__ \ "personLatestDetail").read[PersonDetails]
+
+  implicit val format: OFormat[Person] = OFormat(readsBuilder.apply(Person.apply _), Json.writes[Person])
 }
