@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-package businessrates.authorisation.utils
+package businessrates.authorisation.models
 
-import businessrates.authorisation.connectors.AuthConnector
-import businessrates.authorisation.models.GovernmentGatewayDetails
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.Future
-
-object StubAuthConnector extends AuthConnector(StubHttp) {
-  private var stubGGIds: Option[GovernmentGatewayDetails] = None
-
-  def stubAuthentication(ids: GovernmentGatewayDetails) = {
-    stubGGIds = Some(ids)
-  }
-
-  def reset() = { stubGGIds = None }
-
-  override def getGovernmentGatewayDetails(implicit hc: HeaderCarrier) = Future.successful(stubGGIds)
-}
+case class GovernmentGatewayDetails(externalId: String, groupId: String, affinityGroup: String)

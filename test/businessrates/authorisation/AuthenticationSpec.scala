@@ -36,9 +36,27 @@ class AuthenticationSpec extends ControllerSpec {
       }
     }
 
-    "the user is logged in to Government Gateway but has not registered a CCA account" must {
+    "the user is logged in to Government Gateway with an individual account" must {
+      "return a 401 status and the NON_ORGANISATION_ACCOUNT error code" in {
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", "aGroupId", "Individual"))
+        val res = testController.authenticate()(FakeRequest())
+        status(res) mustBe UNAUTHORIZED
+        contentAsJson(res) mustBe Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")
+      }
+    }
+
+    "the user is logged in to Government Gateway with an agent account" must {
+      "return a 401 status and the NON_ORGANISATION_ACCOUNT error code" in {
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", "aGroupId", "Agent"))
+        val res = testController.authenticate()(FakeRequest())
+        status(res) mustBe UNAUTHORIZED
+        contentAsJson(res) mustBe Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")
+      }
+    }
+
+    "the user is logged in to Government Gateway with an organisation account but has not registered a CCA account" must {
       "return a 401 status and the NO_CUSTOMER_RECORD error code" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayIds("anExternalId", "aGroupId"))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", "aGroupId", "Organisation"))
         val res = testController.authenticate()(FakeRequest())
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
@@ -47,39 +65,21 @@ class AuthenticationSpec extends ControllerSpec {
 
     "the user is logged in to Government Gateway and has registered a CCA account" must {
       "return a 200 status and the organisation ID, the person ID, and the organisation and person accounts" in {
-        val stubOrganisation = Organisation(
-          12345,
-          "anotherGroupId",
-          "some company",
-          1,
-          "email@address.com",
-          "12345",
-          false,
-          false,
-          1L
-        )
+        val stubOrganisation: Organisation = randomOrganisation
 
-        val stubPerson = Person(
-          "anotherExternalId",
-          "trustId",
-          12345,
-          67890,
-          PersonDetails(
-            "Not A",
-            "Real Person",
-            "aa@bb.cc",
-            "123456",
-            None,
-            2
-          )
-        )
+        val stubPerson: Person = randomPerson
 
-        StubAuthConnector.stubAuthentication(GovernmentGatewayIds(stubPerson.externalId, stubOrganisation.groupId))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, stubOrganisation.groupId, "Organisation"))
         StubGroupAccounts.stubOrganisation(stubOrganisation)
         StubIndividualAccounts.stubPerson(stubPerson)
         val res = testController.authenticate()(FakeRequest())
         status(res) mustBe OK
-        contentAsJson(res) mustBe Json.obj("organisationId" -> 12345, "personId" -> 67890, "organisation" -> Json.toJson(stubOrganisation), "person" -> Json.toJson(stubPerson))
+        contentAsJson(res) mustBe Json.obj(
+          "organisationId" -> stubOrganisation.id,
+          "personId" -> stubPerson.individualId,
+          "organisation" -> Json.toJson(stubOrganisation),
+          "person" -> Json.toJson(stubPerson)
+        )
       }
     }
   }

@@ -16,4 +16,10 @@
 
 package businessrates.authorisation.models
 
-case class GovernmentGatewayIds(externalId: String, groupId: String)
+import play.api.libs.json.Json
+
+case class UserDetails(groupIdentifier: String, affinityGroup: String)
+
+object UserDetails {
+  implicit val format = Json.format[UserDetails]
+}

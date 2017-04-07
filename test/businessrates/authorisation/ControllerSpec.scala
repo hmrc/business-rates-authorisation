@@ -20,7 +20,7 @@ import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, 
 import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
-class ControllerSpec extends WordSpec with MustMatchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout {
+class ControllerSpec extends WordSpec with MustMatchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout with ArbitraryDataGeneration {
 
   override protected def beforeEach() = {
     StubAuthConnector.reset()

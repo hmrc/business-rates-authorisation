@@ -23,6 +23,7 @@ import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import org.scalacheck.Arbitrary.arbitrary
 
 class GetIdsSpec extends ControllerSpec {
 
@@ -31,7 +32,7 @@ class GetIdsSpec extends ControllerSpec {
   "Getting the IDs" when {
     "a user is submitting a check on their own property link" must {
       "return the same IDs for the case creator's IDs and the link owner's IDs" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayIds(client.externalId, clientOrganisation.groupId))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(client.externalId, clientOrganisation.groupId, "Organisation"))
         StubGroupAccounts.stubOrganisation(clientOrganisation)
         StubIndividualAccounts.stubPerson(client)
         StubPropertyLinking.stubLink(PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now))))
@@ -48,7 +49,7 @@ class GetIdsSpec extends ControllerSpec {
 
     "an agent is submitting a check on behalf of a client" must {
       "return the agent's IDs as the case creator's IDs, and the client's IDs as the link owner's IDs" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayIds(agent.externalId, agentOrganisation.groupId))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(agent.externalId, agentOrganisation.groupId, "Organisation"))
         StubGroupAccounts.stubOrganisation(agentOrganisation)
         StubIndividualAccounts.stubPerson(agent)
         StubPropertyLinking.stubAgentLink(
@@ -67,60 +68,14 @@ class GetIdsSpec extends ControllerSpec {
     }
   }
 
-  private lazy val clientOrganisation = Organisation(
-    12345,
-    "anotherGroupId",
-    "some company",
-    1,
-    "email@address.com",
-    "12345",
-    false,
-    false,
-    1L
-  )
+  private lazy val clientOrganisation: Organisation = randomOrganisation
 
-  private lazy val client = Person(
-    "anotherExternalId",
-    "trustId",
-    12345,
-    67890,
-    PersonDetails(
-      "Not A",
-      "Real Person",
-      "aa@bb.cc",
-      "123456",
-      None,
-      2
-    )
-  )
+  private lazy val client: Person = randomPerson
 
-  private lazy val agentOrganisation = Organisation(
-    54321,
-    "agentGroupId",
-    "some agent",
-    1,
-    "agent@address.com",
-    "12345",
-    false,
-    true,
-    2L
-  )
+  private lazy val agentOrganisation: Organisation = randomOrganisation.copy(isAgent = true)
 
-  private lazy val agent = Person(
-    "yetAnotherExternalId",
-    "anotherTrustId",
-    54321,
-    9876,
-    PersonDetails(
-      "Definitely A",
-      "Real Person",
-      "aa@bb.cc",
-      "123456",
-      None,
-      2
-    )
-  )
+  private lazy val agent: Person = randomPerson
 
-  private lazy val authorisationId = 1234
-  private lazy val assessmentRef = 9012
+  private lazy val authorisationId: Int = arbitrary[Int]
+  private lazy val assessmentRef: Int = arbitrary[Int]
 }
