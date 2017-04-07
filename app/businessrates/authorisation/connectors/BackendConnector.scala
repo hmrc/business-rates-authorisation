@@ -31,7 +31,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp, va
 
   private def NotFound[T]: PartialFunction[Throwable, Option[T]] = { case _: NotFoundException => None }
 
-  lazy val backendUrl: String = config.baseUrl("external-business-rates-data-platform")
+  lazy val backendUrl: String = config.baseUrl("data-platform")
 
   lazy val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
   lazy val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"

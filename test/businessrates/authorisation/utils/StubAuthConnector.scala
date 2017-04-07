@@ -18,11 +18,18 @@ package businessrates.authorisation.utils
 
 import businessrates.authorisation.connectors.AuthConnector
 import businessrates.authorisation.models.GovernmentGatewayDetails
+import uk.gov.hmrc.play.config.inject.ServicesConfig
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object StubAuthConnector extends AuthConnector(StubHttp) {
+object Mock {
+  import org.scalatest.mock.MockitoSugar._
+
+  val servicesConfig = mock[ServicesConfig]
+}
+
+object StubAuthConnector extends AuthConnector(StubHttp, Mock.servicesConfig) {
   private var stubGGIds: Option[GovernmentGatewayDetails] = None
 
   def stubAuthentication(ids: GovernmentGatewayDetails) = {

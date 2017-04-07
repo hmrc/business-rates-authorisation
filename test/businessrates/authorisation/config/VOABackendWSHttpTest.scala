@@ -20,43 +20,84 @@ import businessrates.authorisation.utils.WireMockSpec
 import com.codahale.metrics.{Counter, Meter, MetricRegistry, Timer}
 import com.kenshoo.play.metrics.Metrics
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito.when
+import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import uk.gov.hmrc.play.http.HeaderCarrier
+import play.api.libs.ws
+import play.api.libs.ws.WSResponse
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.http.ws.WSRequest
 import uk.gov.hmrc.play.test.UnitSpec
+
+import scala.concurrent.Future
 
 class VOABackendWSHttpTest extends UnitSpec with WireMockSpec with MockitoSugar {
 
   val metricsMock = mock[Metrics]
   val metricRegistry = mock[MetricRegistry]
+  val mockTimer = mock[Timer]
 
   when(metricsMock.defaultRegistry).thenReturn(metricRegistry)
 
-  when(metricRegistry.timer(any[String])).thenReturn(mock[Timer])
+  when(metricRegistry.timer(any[String])).thenReturn(mockTimer)
   when(metricRegistry.counter(any[String])).thenReturn(mock[Counter])
   when(metricRegistry.meter(any[String])).thenReturn(mock[Meter])
 
+  when(mockTimer.time()).thenReturn(mock[Timer.Context])
+
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val wsHttp = new VOABackendWSHttp(metricsMock, "subKey", "true")
+  val wsHttp = new VOABackendWSHttp(metricsMock, "subKey", "true") with MockWsRequest { val status = 200 }
+  val failHttp = new VOABackendWSHttp(metricsMock, "subKey", "true") with MockWsRequest { val status = 400 }
 
-  "when extracting the API name to use for the request metrics" should {
-    "the API name should be extracted from a simple URL" in {
+  "Invoking a method on the VOABackendWSHttp connection" should {
+    "trigger metrics success logging for the customer-management-api endpoint" in {
       val url = "http://voa-api-proxy.service:80/customer-management-api/organisation"
 
-      wsHttp.getApiName(url) shouldBe "customer-management-api"
+      await(wsHttp.doGet(url))
+
+      verify(metricRegistry, times(1)).counter("customer-management-api/success-counter")
+      verify(metricRegistry, times(1)).meter("customer-management-api/success-meter")
     }
 
-    "the API name should be extracted from a URL with query params" in {
+    "trigger metrics success logging for the mdtp-dashboard-management-api endpoint - irrespective of query params" in {
       val url = "http://voa-api-proxy.service:80/mdtp-dashboard-management-api/mdtp_dashboard/properties_view?listYear=2016&organisationId=101"
 
-      wsHttp.getApiName(url) shouldBe "mdtp-dashboard-management-api"
+      await(wsHttp.doGet(url))
+
+      verify(metricRegistry, times(1)).counter("mdtp-dashboard-management-api/success-counter")
+      verify(metricRegistry, times(1)).meter("mdtp-dashboard-management-api/success-meter")
     }
 
-    "the API name should be extracted from a URL with query params including JSON" in {
+    "trigger metrics success logging for the address-management-api endpoint with JSON query" in {
       val url = "http://voa-api-proxy.service:80/address-management-api/address?pageSize=100&startPoint=1&SearchParameters={\"postcode\": \"BN12 6EA\"}"
 
-      wsHttp.getApiName(url) shouldBe "address-management-api"
+      await(wsHttp.doGet(url))
+
+      verify(metricRegistry, times(1)).counter("address-management-api/success-counter")
+      verify(metricRegistry, times(1)).meter("address-management-api/success-meter")
+    }
+
+    "trigger metrics failure logging for the address-management-api endpoint with JSON query" in {
+      val url = "http://voa-api-proxy.service:80/address-management-api/address?pageSize=100&startPoint=1&SearchParameters={\"postcode\": \"BN12 6EA\"}"
+
+      await(failHttp.doGet(url))
+
+      verify(metricRegistry, times(1)).counter("address-management-api/failed-counter")
+      verify(metricRegistry, times(1)).meter("address-management-api/failed-meter")
+    }
+  }
+
+  trait MockWsRequest extends WSRequest {
+    val status: Int
+
+    override def buildRequest[A](url: String)(implicit hc: HeaderCarrier): ws.WSRequest = {
+      val mockRequest = mock[play.api.libs.ws.WSRequest]
+      val mockResponse = mock[WSResponse]
+
+      when(mockRequest.get()).thenReturn(Future.successful(mockResponse))
+      when(mockResponse.status).thenReturn(status)
+
+      mockRequest
     }
   }
 }

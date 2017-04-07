@@ -16,50 +16,75 @@
 
 package businessrates.authorisation.metrics
 
+import java.net.URL
+
 import com.codahale.metrics._
 import com.kenshoo.play.metrics.Metrics
+import play.api.libs.json.Writes
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.http.ws.WSHttp
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-trait HasMetrics {
+import scala.concurrent.Future
+
+trait HasMetrics extends WSHttp {
 
   type Metric = String
 
   val metrics: Metrics
 
-  val localMetrics = new LocalMetrics
-
   lazy val registry: MetricRegistry = metrics.defaultRegistry
 
-  class MetricsTimer(metric: Metric) {
-    val timer: Timer.Context = localMetrics.startTimer(metric)
+  override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    withMetricsTimer(getApiName(url)) { () => super.doGet(url) }
+  }
 
-    def completeTimerAndMarkAsSuccess(): Unit = {
-      timer.stop()
-      localMetrics.incrementSuccessCounter(metric)
-      localMetrics.incrementSuccessMeter(metric)
-    }
+  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    withMetricsTimer(getApiName(url)) { () => super.doDelete(url) }
+  }
 
-    def completeTimerAndMarkAsFailure(): Unit = {
-      timer.stop()
-      localMetrics.incrementFailedCounter(metric)
-      localMetrics.incrementFailedMeter(metric)
+  override def doPatch[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+    withMetricsTimer(getApiName(url)) { () => super.doPatch(url, body) }
+  }
+
+  override def doPut[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+    withMetricsTimer(getApiName(url)) { () => super.doPut(url, body) }
+  }
+
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+    withMetricsTimer(getApiName(url)) { () => super.doPost(url, body, headers) }
+  }
+
+  private def getApiName(url: String): String = new URL(url).getPath.drop(1).split("/").head
+
+  private def withMetricsTimer(metric: Metric)(block: () => Future[HttpResponse]): Future[HttpResponse] = {
+    val timer = MetricsTimer(metric)
+    block() map { response =>
+      timer.complete(response.status)
+      response
+    } recover {
+      case ex: Exception =>
+        timer.fail()
+        throw ex
     }
   }
 
-  def withMetricsTimer[T](metric: Metric)(block: MetricsTimer => T): T =
-    block(new MetricsTimer(metric))
+  case class MetricsTimer(metric: Metric) {
+    private val timer = registry.timer(s"$metric/timer").time()
 
-  class LocalMetrics {
-    def startTimer(metric: Metric): Timer.Context = registry.timer(s"$metric/timer").time()
+    def complete: Int => Unit = {
+      case s if s >= 200 && s <= 399 => success()
+      case _ => fail()
+    }
 
-    def stopTimer(context: Timer.Context): Long = context.stop()
+    def success(): Unit = op("success")
 
-    def incrementSuccessMeter(metric: Metric): Unit = registry.meter(s"$metric/success-meter").mark()
+    def fail(): Unit = op("failed")
 
-    def incrementFailedMeter(metric: Metric): Unit = registry.meter(s"$metric/failed-meter").mark()
-
-    def incrementSuccessCounter(metric: Metric): Unit = registry.counter(s"$metric/success-counter").inc()
-
-    def incrementFailedCounter(metric: Metric): Unit = registry.counter(s"$metric/failed-counter").inc()
+    private def op(status: String): Unit = {
+      timer.stop()
+      registry.counter(s"$metric/$status-counter").inc()
+      registry.meter(s"$metric/$status-meter").mark()
+    }
   }
-
 }

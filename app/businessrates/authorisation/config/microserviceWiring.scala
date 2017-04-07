@@ -16,13 +16,11 @@
 
 package businessrates.authorisation.config
 
-import java.net.URL
 import javax.inject.Inject
 
 import businessrates.authorisation.metrics.HasMetrics
 import com.google.inject.name.Named
 import com.kenshoo.play.metrics.Metrics
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Writes
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -57,60 +55,24 @@ class VOABackendWSHttp @Inject()(val metrics: Metrics,
     .copy(requestId = hc.requestId, sessionId = hc.sessionId)
     .withExtraHeaders(hc.extraHeaders: _*)
 
-  def mapResponseToSuccessOrFailure(response: HttpResponse, timer: MetricsTimer): HttpResponse =
-    response.status.toString match {
-      case status if status.startsWith("2") =>
-        timer.completeTimerAndMarkAsSuccess()
-        response
-      case _ =>
-        timer.completeTimerAndMarkAsFailure()
-        response
-    }
-
-  def getApiName(url: String): String = {
-    val path = new URL(url).getPath.drop(1)
-    path.substring(0, path.indexOf("/"))
-  }
-
   override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      process(_)(super.doGet(url)(buildHeaderCarrier(hc)))
-    }
+    super.doGet(url)(buildHeaderCarrier(hc))
   }
 
   override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      process(_)(super.doDelete(url)(buildHeaderCarrier(hc)))
-    }
+    super.doDelete(url)(buildHeaderCarrier(hc))
   }
 
   override def doPatch[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      process(_)(super.doPatch(url, body)(rds, buildHeaderCarrier(hc)))
-    }
+    super.doPatch(url, body)(rds, buildHeaderCarrier(hc))
   }
 
   override def doPut[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      process(_)(super.doPut(url, body)(rds, buildHeaderCarrier(hc)))
-    }
+    super.doPut(url, body)(rds, buildHeaderCarrier(hc))
   }
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      process(_)(super.doPost(url, body, headers)(rds, buildHeaderCarrier(hc)))
-    }
-  }
-
-  def process: MetricsTimer => Future[HttpResponse] => Future[HttpResponse] = { timer =>
-    resp =>
-      resp map {
-        response => mapResponseToSuccessOrFailure(response, timer)
-      } recover {
-        case ex: Exception =>
-          timer.completeTimerAndMarkAsFailure()
-          throw ex
-      }
+    super.doPost(url, body, headers)(rds, buildHeaderCarrier(hc))
   }
 
   override val hooks = NoneRequired
