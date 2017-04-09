@@ -53,11 +53,11 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
 
   def getIds(authorisationId: Long) = Action.async { implicit request =>
     withIds { case Accounts(oid, pid, _, _) =>
-      propertyLinking.getLink(oid, authorisationId) map {
+      propertyLinking.getLink(oid, authorisationId).map {
         case Some(link) => Ok(toJson(SubmissionIds(caseCreator = AccountIds(oid, pid),
-                                                        interestedParty = AccountIds(link.organisationId, link.personId))))
+                                                   interestedParty = AccountIds(link.organisationId, link.personId))))
         case None => Forbidden
-      }
+      }.recover { case _ => Forbidden }
     }
   }
 

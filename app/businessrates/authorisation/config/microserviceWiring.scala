@@ -47,6 +47,7 @@ object MicroserviceAuthConnector extends AuthConnector with ServicesConfig {
 class VOABackendWSHttp @Inject()(val metrics: Metrics,
                                  @Named("voaApiSubscriptionHeader") voaApiSubscriptionHeader: String,
                                  @Named("voaApiTraceHeader") voaApiTraceHeader: String) extends WSHttp with HasMetrics {
+  override val hooks = NoneRequired
 
   val baseModernizerHC = HeaderCarrier(extraHeaders = Seq("Ocp-Apim-Subscription-Key" -> voaApiSubscriptionHeader,
     "Ocp-Apim-Trace" -> voaApiTraceHeader))
@@ -55,25 +56,17 @@ class VOABackendWSHttp @Inject()(val metrics: Metrics,
     .copy(requestId = hc.requestId, sessionId = hc.sessionId)
     .withExtraHeaders(hc.extraHeaders: _*)
 
-  override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     super.doGet(url)(buildHeaderCarrier(hc))
-  }
 
-  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    super.doDelete(url)(buildHeaderCarrier(hc))
-  }
+  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = super.doDelete(url)(buildHeaderCarrier(hc))
 
-  override def doPatch[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    super.doPatch(url, body)(rds, buildHeaderCarrier(hc))
-  }
+  override def doPatch[A](url: String, body: A)(implicit w: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
+    super.doPatch(url, body)(w, buildHeaderCarrier(hc))
 
-  override def doPut[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    super.doPut(url, body)(rds, buildHeaderCarrier(hc))
-  }
+  override def doPut[A](url: String, body: A)(implicit w: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
+    super.doPut(url, body)(w, buildHeaderCarrier(hc))
 
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    super.doPost(url, body, headers)(rds, buildHeaderCarrier(hc))
-  }
-
-  override val hooks = NoneRequired
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit w: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
+    super.doPost(url, body, headers)(w, buildHeaderCarrier(hc))
 }
