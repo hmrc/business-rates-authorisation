@@ -44,7 +44,7 @@ class StubBackendConnector extends GroupAccounts with IndividualAccounts with Pr
   override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
     Future.successful(stubbedPerson)
 
-  override def find(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
+  override def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
     Future.successful {
       (stubbedLinks find {
         case (orgId, link) => orgId == organisationId && link.authorisationId == authorisationId && !link.pending

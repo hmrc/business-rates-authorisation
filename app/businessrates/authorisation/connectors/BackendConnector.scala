@@ -47,7 +47,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp, va
     http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
   }
 
-  def find(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
+  def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
     http.GET[Seq[PropertyLink]](s"$linkedPropertiesUrl/$organisationId") map {
       _.find( link => link.authorisationId == authorisationId && !link.pending )
     }

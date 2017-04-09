@@ -22,5 +22,5 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PropertyLinking {
-  def find(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]]
+  def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]]
 }

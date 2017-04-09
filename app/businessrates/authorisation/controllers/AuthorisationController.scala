@@ -20,10 +20,9 @@ import javax.inject.Inject
 
 import businessrates.authorisation.connectors._
 import businessrates.authorisation.models.{AccountIds, Accounts, GovernmentGatewayDetails, SubmissionIds}
-import cats.data.OptionT
-import cats.instances.future._
 import play.api.Logger
 import play.api.libs.json.Json
+import play.api.libs.json.Json.toJson
 import play.api.mvc._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -38,29 +37,25 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
                                        ) extends BaseController {
 
   def authenticate = Action.async { implicit request =>
-    withIds { accountIds =>
-      Future.successful(Ok(Json.toJson(accountIds)))
+    withIds { accounts =>
+      Future successful Ok(toJson(accounts))
     }
   }
 
   def authorise(authorisationId: Long, assessmentRef: Long) = Action.async { implicit request =>
-    withIds { case a@Accounts(oid, pid, _, _) =>
-      val hasAssessmentRef = (for {
-        propertyLinks <- OptionT(propertyLinking.find(oid, authorisationId))
-        assessment <- OptionT.fromOption(propertyLinks.assessment.find(_.assessmentRef == assessmentRef))
-      } yield assessment).value
-
-      hasAssessmentRef.map {
-        case Some(_) => Ok(Json.toJson(a))
-        case None => Forbidden
+    withIds { accounts =>
+      propertyLinking.getLink(accounts.organisationId, authorisationId).map {
+        case Some(link) if link.assessment.exists(_.assessmentRef == assessmentRef) => Ok(toJson(accounts))
+        case _ => Forbidden
       }.recover { case _ => Forbidden }
     }
   }
 
   def getIds(authorisationId: Long) = Action.async { implicit request =>
     withIds { case Accounts(oid, pid, _, _) =>
-      propertyLinking.find(oid, authorisationId) map {
-        case Some(link) => Ok(Json.toJson(SubmissionIds(caseCreator = AccountIds(oid, pid), interestedParty = AccountIds(link.organisationId, link.personId))))
+      propertyLinking.getLink(oid, authorisationId) map {
+        case Some(link) => Ok(toJson(SubmissionIds(caseCreator = AccountIds(oid, pid),
+                                                        interestedParty = AccountIds(link.organisationId, link.personId))))
         case None => Forbidden
       }
     }
