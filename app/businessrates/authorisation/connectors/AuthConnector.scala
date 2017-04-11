@@ -18,7 +18,7 @@ package businessrates.authorisation.connectors
 
 import javax.inject.Inject
 
-import businessrates.authorisation.models.{Authority, GovernmentGatewayIds}
+import businessrates.authorisation.models.{Authority, GovernmentGatewayDetails, UserDetails}
 import cats.data.OptionT
 import cats.implicits._
 import com.google.inject.name.Named
@@ -33,7 +33,7 @@ import scala.concurrent.Future
 class AuthConnector @Inject() (@Named("simpleWSHttp") http: WSHttp) extends ServicesConfig {
   lazy val url = baseUrl("auth")
 
-  def getGovernmentGatewayIds(implicit hc: HeaderCarrier) = {
+  def getGovernmentGatewayDetails(implicit hc: HeaderCarrier): Future[Option[GovernmentGatewayDetails]] = {
     (for {
       authority <- OptionT(loadAuthority)
       eventualIds = OptionT(getIds(authority))
@@ -42,7 +42,7 @@ class AuthConnector @Inject() (@Named("simpleWSHttp") http: WSHttp) extends Serv
       ggIds <- for {
         ids <- eventualIds
         userDetails <- eventualUserDetails
-      } yield GovernmentGatewayIds((ids \ "externalId").as[String], (userDetails \ "groupIdentifier").as[String])
+      } yield GovernmentGatewayDetails((ids \ "externalId").as[String], userDetails.groupIdentifier, userDetails.affinityGroup)
     } yield ggIds).value
   }
 
@@ -58,7 +58,7 @@ class AuthConnector @Inject() (@Named("simpleWSHttp") http: WSHttp) extends Serv
   }
 
   private def getUserDetails(authority: Authority)(implicit hc: HeaderCarrier) = authority.userDetailsLink match {
-    case Some(userDetailsUri) => http.GET[Option[JsValue]](userDetailsUri)
+    case Some(userDetailsUri) => http.GET[Option[UserDetails]](userDetailsUri)
     case None => Future.successful(None)
   }
 }

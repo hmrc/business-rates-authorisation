@@ -19,9 +19,10 @@ package businessrates.authorisation.controllers
 import javax.inject.Inject
 
 import businessrates.authorisation.connectors._
-import businessrates.authorisation.models.{AccountIds, Accounts, GovernmentGatewayIds, SubmissionIds}
+import businessrates.authorisation.models.{AccountIds, Accounts, GovernmentGatewayDetails, SubmissionIds}
 import cats.data.OptionT
 import cats.instances.future._
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -66,8 +67,9 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
   }
 
   private def withIds(default: Accounts => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
-    authConnector.getGovernmentGatewayIds flatMap {
-      case Some(GovernmentGatewayIds(externalId, groupId)) =>
+    authConnector.getGovernmentGatewayDetails flatMap {
+      case Some(GovernmentGatewayDetails(externalId, groupId, "Organisation")) =>
+
         val eventualOrganisation = groupAccounts.getOrganisation(groupId)
         val eventualPerson = individualAccounts.getPerson(externalId)
 
@@ -81,6 +83,11 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
         } yield {
           res
         }
+
+      case Some(GovernmentGatewayDetails(_, _, affinityGroup)) =>
+        Logger.info(s"User has logged in with non-permitted affinityGroup $affinityGroup")
+        Future.successful(Unauthorized(Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")))
+
       case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
     }
   }

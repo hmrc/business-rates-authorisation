@@ -28,32 +28,9 @@ class AuthorisationSpec extends ControllerSpec {
 
   val testController = new AuthorisationController(StubAuthConnector, StubGroupAccounts, StubPropertyLinking, StubIndividualAccounts)
 
-  private val organisation = Organisation(
-    12345,
-    "anotherGroupId",
-    "some company",
-    1,
-    "email@address.com",
-    "12345",
-    false,
-    false,
-    1L
-  )
+  private val organisation: Organisation = randomOrganisation
 
-  private val person = Person(
-    "anotherExternalId",
-    "trustId",
-    12345,
-    67890,
-    PersonDetails(
-      "Not A",
-      "Real Person",
-      "aa@bb.cc",
-      "123456",
-      None,
-      2
-    )
-  )
+  private val person: Person = randomPerson
 
   "Calling the check authorisation endpoint" when {
     "the user is not logged in to government gateway" must {
@@ -66,7 +43,7 @@ class AuthorisationSpec extends ControllerSpec {
 
     "the user is logged in to government gateway but has not registered a VOA account" must {
       "return a 401 response and the NO_CUSTOMER_RECORD error code" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
         val res = testController.authorise(123, 456)(FakeRequest())
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
@@ -76,7 +53,7 @@ class AuthorisationSpec extends ControllerSpec {
     "the user is logged in to government gateway and has a VOA account" when {
       "the account does not have a link to the property" must {
         "return a 403 response" in {
-          StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
           val res = testController.authorise(123, 456)(FakeRequest())
@@ -89,7 +66,7 @@ class AuthorisationSpec extends ControllerSpec {
           val linkId = 1234
           val assessmentRef = 9012
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now))))
@@ -103,7 +80,7 @@ class AuthorisationSpec extends ControllerSpec {
           val linkId = 2345
           val assessmentRef = 1234
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, DateTime.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))
@@ -118,7 +95,7 @@ class AuthorisationSpec extends ControllerSpec {
           val linkId = 1234
           val assessmentRef = 9012
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayIds(person.externalId, organisation.groupId))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, DateTime.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now))))

@@ -52,7 +52,8 @@ private object AppDependencies {
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "org.mockito" % "mockito-core" % "2.2.9",
-        "com.github.tomakehurst" % "wiremock" % "2.5.1" % "test"
+        "com.github.tomakehurst" % "wiremock" % "2.5.1" % "test",
+        "org.scalacheck" %% "scalacheck" % "1.13.4" % scope
       )
     }.test
   }
