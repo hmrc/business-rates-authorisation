@@ -18,29 +18,45 @@ package businessrates.authorisation.connectors
 
 import javax.inject.Inject
 
-import businessrates.authorisation.models.{Organisation, Person, PropertyLink}
+import businessrates.authorisation.models._
 import com.google.inject.name.Named
-import uk.gov.hmrc.play.config.inject.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
+import play.api.libs.json.JsValue
 import uk.gov.hmrc.play.http.ws.WSHttp
+import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp, val config: ServicesConfig)
+class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
+                                 @Named("dataPlatformUrl") val backendUrl: String,
+                                 @Named("ratesListYear") val listYear: Int)
   extends GroupAccounts with IndividualAccounts with PropertyLinking {
 
+  type AgentFilter = Party => Boolean
+  type AuthFilter = PropertyLink => Boolean
+
+  val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
+  val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
+  val declinedStatuses = Seq("REVOKED", "DECLINED")
+
+  private val onlyPendingAndApproved: AgentFilter = agent => List("APPROVED", "PENDING").contains(agent.authorisedPartyStatus)
+  private val mustHaveAPermission: AgentFilter = _.permissions.nonEmpty
+  private val withoutPermissionEndDate: Party => Party = agent => agent.copy(permissions = agent.permissions.filterNot(_.endDate.isDefined))
+
   private def NotFound[T]: PartialFunction[Throwable, Option[T]] = { case _: NotFoundException => None }
+  private def withAuthId(id: Long): AuthFilter = p => p.authorisationId == id
+  private def withAgentOrg(agentId: Long): AuthFilter = a => a.agents.exists(_.organisationId == agentId)
+  private def withAuthIdAndAgent(authId: Long, agentId: Long): AuthFilter = a => withAuthId(authId)(a) && withAgentOrg(agentId)(a)
 
-  lazy val backendUrl: String = config.baseUrl("data-platform")
+  private def getOrganisation(id: String, paramName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] = {
+    http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
+  }
 
-  lazy val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
-  lazy val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
+  def getOrganisationByGGId(ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] = {
+    getOrganisation(ggId, "governmentGatewayGroupId")
+  }
 
-  lazy val propertyLinkingUrl: String = s"${config.baseUrl("property-linking")}/property-linking"
-  lazy val linkedPropertiesUrl: String = s"$propertyLinkingUrl/property-links"
-
-  def getOrganisation(ggGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] = {
-    http.GET[Option[Organisation]](s"$groupAccountsUrl?governmentGatewayGroupId=$ggGroupId") recover NotFound[Organisation]
+  def getOrganisationByOrgId(orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] = {
+    getOrganisation(s"$orgId", "organisationId")
   }
 
   def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
@@ -48,8 +64,45 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp, va
   }
 
   def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
-    http.GET[Seq[PropertyLink]](s"$linkedPropertiesUrl/$organisationId") map {
-      _.find( link => link.authorisationId == authorisationId && !link.pending )
+    val eventualMaybeUserProperty = getProperty(organisationId, withAuthId(authorisationId))
+    val eventualMaybeManagedProperty = getManagedProperty(organisationId, authorisationId)
+
+    for {
+      maybeUserProperty <- eventualMaybeUserProperty
+      maybeManagedProp <- eventualMaybeManagedProperty
+    } yield {
+      (maybeUserProperty ++ maybeManagedProp).headOption
+    }
+  }
+
+  private def getProperty(organisationId: Long, filter: PropertyLink => Boolean)(implicit  hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
+    getAuthorisations(organisationId).map(_.find(filter))
+  }
+
+  private def getPropertyWithAgent(organisationId: Long, authId: Long, agentOrgId: Long)(implicit  hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
+    getProperty(organisationId, withAuthIdAndAgent(authId, agentOrgId))
+  }
+
+  private def getManagedProperty(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
+    val params=s"status=APPROVED&organisationId=$organisationId&startPoint=1"
+    val url = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/agent_representation_requests?$params"
+
+    http.GET[AgentRequests](url).map { json =>
+      json.requests.collect{ case a => a.representationId }
+    }.flatMap { clientOrgIds =>
+      Future.traverse(clientOrgIds) (userOrgId => getPropertyWithAgent(userOrgId, authorisationId, organisationId))
+    }.map(_.flatten.headOption)
+  }
+
+  def getAuthorisations(organisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PropertyLink]] = {
+    val url = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/properties_view?listYear=$listYear&organisationId=$organisationId"
+
+    http.GET[Authorisations](url).map(_.authorisations).map {
+      _.filterNot(pl => declinedStatuses.contains(pl.authorisationStatus.toUpperCase))
+    }.map { ps =>
+      ps.collect {
+        case p => p.copy(agents = p.agents.filter(onlyPendingAndApproved).map(withoutPermissionEndDate).filter(mustHaveAPermission))
+      }
     }
   }
 }

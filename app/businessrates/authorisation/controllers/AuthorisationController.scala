@@ -65,7 +65,7 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
     authConnector.getGovernmentGatewayDetails flatMap {
       case Some(GovernmentGatewayDetails(externalId, groupId, "Organisation")) =>
 
-        val eventualOrganisation = groupAccounts.getOrganisation(groupId)
+        val eventualOrganisation = groupAccounts.getOrganisationByGGId(groupId)
         val eventualPerson = individualAccounts.getPerson(externalId)
 
         for {

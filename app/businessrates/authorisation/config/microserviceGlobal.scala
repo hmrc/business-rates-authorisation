@@ -33,10 +33,14 @@ import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 
 
-class GuiceModule(environment: Environment, configuration: Configuration) extends AbstractModule {
+class GuiceModule(override val environment: Environment, configuration: Configuration) extends AbstractModule with ServicesConfig {
+  override val runModeConfiguration = configuration
+
   def configure(): Unit = {
     bindConstant().annotatedWith(Names.named("voaApiSubscriptionHeader")).to(configuration.getString("voaApi.subscriptionKeyHeader").get)
     bindConstant().annotatedWith(Names.named("voaApiTraceHeader")).to(configuration.getString("voaApi.subscriptionKeyHeader").get)
+    bindConstant().annotatedWith(Names.named("dataPlatformUrl")).to(baseUrl("data-platform"))
+    bindConstant().annotatedWith(Names.named("ratesListYear")).to(getConfInt("rates.list.year", 2017))
     bind(classOf[WSHttp]).annotatedWith(Names.named("voaBackendWSHttp")).to(classOf[VOABackendWSHttp])
     bind(classOf[WSHttp]).annotatedWith(Names.named("simpleWSHttp")).to(classOf[SimpleWSHttp])
     bind(classOf[ServicesConfig]).to(classOf[DefaultServicesConfig])

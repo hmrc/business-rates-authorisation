@@ -38,7 +38,10 @@ class StubBackendConnector extends GroupAccounts with IndividualAccounts with Pr
   def stubLink(link: PropertyLink) = stubbedLinks :+= ((link.organisationId, link))
   def stubAgentLink(agentOrgId: Long, link: PropertyLink) = stubbedLinks :+= ((agentOrgId, link))
 
-  override def getOrganisation(ggGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
+  override def getOrganisationByGGId(ggGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
+    Future.successful(stubbedOrganisation)
+
+  override def getOrganisationByOrgId(orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     Future.successful(stubbedOrganisation)
 
   override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
