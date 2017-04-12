@@ -20,7 +20,6 @@ import javax.inject.Inject
 
 import businessrates.authorisation.models._
 import com.google.inject.name.Named
-import play.api.libs.json.JsValue
 import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
 
@@ -36,6 +35,9 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
 
   val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
   val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
+  val agentRepresentationRequestUrl: String = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/agent_representation_requests"
+  val authorisationsUrl: String = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/properties_view"
+
   val declinedStatuses = Seq("REVOKED", "DECLINED")
 
   private val onlyPendingAndApproved: AgentFilter = agent => List("APPROVED", "PENDING").contains(agent.authorisedPartyStatus)
@@ -47,21 +49,14 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
   private def withAgentOrg(agentId: Long): AuthFilter = a => a.agents.exists(_.organisationId == agentId)
   private def withAuthIdAndAgent(authId: Long, agentId: Long): AuthFilter = a => withAuthId(authId)(a) && withAgentOrg(agentId)(a)
 
-  private def getOrganisation(id: String, paramName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] = {
-    http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
-  }
-
-  def getOrganisationByGGId(ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] = {
+  def getOrganisationByGGId(ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     getOrganisation(ggId, "governmentGatewayGroupId")
-  }
 
-  def getOrganisationByOrgId(orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] = {
+  def getOrganisationByOrgId(orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     getOrganisation(s"$orgId", "organisationId")
-  }
 
-  def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
+  def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
     http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
-  }
 
   def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
     val eventualMaybeUserProperty = getProperty(organisationId, withAuthId(authorisationId))
@@ -75,29 +70,25 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
     }
   }
 
-  private def getProperty(organisationId: Long, filter: PropertyLink => Boolean)(implicit  hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
-    getAuthorisations(organisationId).map(_.find(filter))
-  }
+  private def getOrganisation(id: String, paramName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
+    http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
 
-  private def getPropertyWithAgent(organisationId: Long, authId: Long, agentOrgId: Long)(implicit  hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
+  private def getProperty(organisationId: Long, filter: PropertyLink => Boolean)(implicit  hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
+    getAuthorisations(organisationId).map(_.find(filter))
+
+  private def getPropertyWithAgent(organisationId: Long, authId: Long, agentOrgId: Long)(implicit  hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
     getProperty(organisationId, withAuthIdAndAgent(authId, agentOrgId))
-  }
 
   private def getManagedProperty(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
-    val params=s"status=APPROVED&organisationId=$organisationId&startPoint=1"
-    val url = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/agent_representation_requests?$params"
-
-    http.GET[AgentRequests](url).map { json =>
+    http.GET[AgentRequests](s"$agentRepresentationRequestUrl?status=APPROVED&organisationId=$organisationId&startPoint=1").map { json =>
       json.requests.collect{ case a => a.representationId }
     }.flatMap { clientOrgIds =>
       Future.traverse(clientOrgIds) (userOrgId => getPropertyWithAgent(userOrgId, authorisationId, organisationId))
     }.map(_.flatten.headOption)
   }
 
-  def getAuthorisations(organisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PropertyLink]] = {
-    val url = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/properties_view?listYear=$listYear&organisationId=$organisationId"
-
-    http.GET[Authorisations](url).map(_.authorisations).map {
+  private def getAuthorisations(organisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PropertyLink]] = {
+    http.GET[Authorisations](s"$authorisationsUrl?listYear=$listYear&organisationId=$organisationId").map(_.authorisations).map {
       _.filterNot(pl => declinedStatuses.contains(pl.authorisationStatus.toUpperCase))
     }.map { ps =>
       ps.collect {
