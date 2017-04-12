@@ -36,6 +36,12 @@ class SimpleWSHttp extends WSHttp {
   override val hooks: Seq[HttpHook] = NoneRequired
 }
 
+class VOABackendWSHttp @Inject()(val metrics: Metrics,
+                                 @Named("voaApiSubscriptionHeader") val voaApiSubscriptionHeader: String,
+                                 @Named("voaApiTraceHeader") val voaApiTraceHeader: String) extends WSHttp with HasMetrics with AzureHeaders {
+  override val hooks: Seq[HttpHook] = NoneRequired
+}
+
 object MicroserviceAuditConnector extends AuditConnector with RunMode {
   override lazy val auditingConfig = LoadAuditingConfig(s"auditing")
 }
@@ -44,10 +50,9 @@ object MicroserviceAuthConnector extends AuthConnector with ServicesConfig {
   override val authBaseUrl: String = baseUrl("auth")
 }
 
-class VOABackendWSHttp @Inject()(val metrics: Metrics,
-                                 @Named("voaApiSubscriptionHeader") voaApiSubscriptionHeader: String,
-                                 @Named("voaApiTraceHeader") voaApiTraceHeader: String) extends WSHttp with HasMetrics {
-  override val hooks = NoneRequired
+trait AzureHeaders extends WSHttp {
+  val voaApiSubscriptionHeader: String
+  val voaApiTraceHeader: String
 
   val baseModernizerHC = HeaderCarrier(extraHeaders = Seq("Ocp-Apim-Subscription-Key" -> voaApiSubscriptionHeader,
     "Ocp-Apim-Trace" -> voaApiTraceHeader))
