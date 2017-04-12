@@ -16,13 +16,13 @@
 
 package businessrates.authorisation.utils
 
-import businessrates.authorisation.connectors.{GroupAccounts, IndividualAccounts, PropertyLinking}
-import businessrates.authorisation.models.{Organisation, Person, PropertyLink}
+import businessrates.authorisation.connectors.BackendConnector
+import businessrates.authorisation.models.{Assessment, Organisation, Person, PropertyLink}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class StubBackendConnector extends GroupAccounts with IndividualAccounts with PropertyLinking {
+class StubBackendConnector extends BackendConnector(StubHttp, "http://locahost:9536", 2017) {
   private var stubbedOrganisation: Option[Organisation] = None
   private var stubbedPerson: Option[Person] = None
   private var stubbedLinks: Seq[(Long, PropertyLink)] = Nil
@@ -50,7 +50,7 @@ class StubBackendConnector extends GroupAccounts with IndividualAccounts with Pr
   override def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
     Future.successful {
       (stubbedLinks find {
-        case (orgId, link) => orgId == organisationId && link.authorisationId == authorisationId && !link.pending
+        case (orgId, link) => orgId == organisationId && link.authorisationId == authorisationId
       }) map { case (k, v) => v }
     }
 }

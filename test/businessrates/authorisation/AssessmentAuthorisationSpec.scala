@@ -24,7 +24,7 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-class AuthorisationSpec extends ControllerSpec {
+class AssessmentAuthorisationSpec extends ControllerSpec {
 
   val testController = new AuthorisationController(StubAuthConnector, StubGroupAccounts, StubPropertyLinking, StubIndividualAccounts)
 
@@ -32,10 +32,10 @@ class AuthorisationSpec extends ControllerSpec {
 
   private val person: Person = randomPerson
 
-  "Calling the check authorisation endpoint" when {
+  "Calling the assessment authorisation endpoint" when {
     "the user is not logged in to government gateway" must {
       "return a 401 response and the INVALID_GATEWAY_SESSION error code" in {
-        val res = testController.authorise(123, 456)(FakeRequest())
+        val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")
       }
@@ -44,7 +44,7 @@ class AuthorisationSpec extends ControllerSpec {
     "the user is logged in to government gateway but has not registered a VOA account" must {
       "return a 401 response and the NO_CUSTOMER_RECORD error code" in {
         StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
-        val res = testController.authorise(123, 456)(FakeRequest())
+        val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
       }
@@ -56,7 +56,7 @@ class AuthorisationSpec extends ControllerSpec {
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
-          val res = testController.authorise(123, 456)(FakeRequest())
+          val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }
       }
@@ -70,7 +70,7 @@ class AuthorisationSpec extends ControllerSpec {
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
-          val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
+          val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }
       }
@@ -85,7 +85,7 @@ class AuthorisationSpec extends ControllerSpec {
           StubIndividualAccounts.stubPerson(person)
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, DateTime.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)), Seq(), "PENDING"))
 
-          val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
+          val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }
       }
@@ -99,7 +99,7 @@ class AuthorisationSpec extends ControllerSpec {
           StubGroupAccounts.stubOrganisation(organisation)
           StubIndividualAccounts.stubPerson(person)
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, DateTime.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
-          val res = testController.authorise(linkId, assessmentRef)(FakeRequest())
+          val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe OK
           contentAsJson(res) mustBe Json.obj("organisationId" -> organisation.id, "personId" -> person.individualId, "organisation" -> Json.toJson(organisation), "person" -> Json.toJson(person))
         }
