@@ -36,30 +36,32 @@ trait HasMetrics extends WSHttp {
   lazy val registry: MetricRegistry = metrics.defaultRegistry
 
   override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) { () => super.doGet(url) }
+    withMetricsTimer(getApiName(url)) {
+      super.doGet(url)
+    }
   }
 
   override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) { () => super.doDelete(url) }
+    withMetricsTimer(getApiName(url)) { super.doDelete(url) }
   }
 
   override def doPatch[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) { () => super.doPatch(url, body) }
+    withMetricsTimer(getApiName(url)) { super.doPatch(url, body) }
   }
 
   override def doPut[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) { () => super.doPut(url, body) }
+    withMetricsTimer(getApiName(url)) { super.doPut(url, body) }
   }
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) { () => super.doPost(url, body, headers) }
+    withMetricsTimer(getApiName(url)) { super.doPost(url, body, headers) }
   }
 
   private def getApiName(url: String): String = new URL(url).getPath.drop(1).split("/").head
 
-  private def withMetricsTimer(metric: Metric)(block: () => Future[HttpResponse]): Future[HttpResponse] = {
+  private def withMetricsTimer(metric: Metric)(block: => Future[HttpResponse]): Future[HttpResponse] = {
     val timer = MetricsTimer(metric)
-    block() map { response =>
+    block map { response =>
       timer.complete(response.status)
       response
     } recover {
