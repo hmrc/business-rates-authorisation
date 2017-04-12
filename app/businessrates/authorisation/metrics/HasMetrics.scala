@@ -45,15 +45,15 @@ trait HasMetrics extends WSHttp {
     withMetricsTimer(getApiName(url)) { super.doDelete(url) }
   }
 
-  override def doPatch[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+  override def doPatch[A](url: String, body: A)(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
     withMetricsTimer(getApiName(url)) { super.doPatch(url, body) }
   }
 
-  override def doPut[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+  override def doPut[A](url: String, body: A)(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
     withMetricsTimer(getApiName(url)) { super.doPut(url, body) }
   }
 
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
     withMetricsTimer(getApiName(url)) { super.doPost(url, body, headers) }
   }
 
