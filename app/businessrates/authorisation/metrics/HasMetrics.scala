@@ -36,9 +36,7 @@ trait HasMetrics extends WSHttp {
   lazy val registry: MetricRegistry = metrics.defaultRegistry
 
   override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      super.doGet(url)
-    }
+    withMetricsTimer(getApiName(url)) { super.doGet(url) }
   }
 
   override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
