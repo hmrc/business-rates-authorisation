@@ -73,18 +73,6 @@ object PropertyLink {
   implicit val format: OFormat[PropertyLink] = OFormat(readsBuilder.apply(PropertyLink.apply _), Json.writes[PropertyLink])
 }
 
-case class AgentRequest(representationId: Long)
-
-object AgentRequest {
-  implicit val format: OFormat[AgentRequest] = Json.format[AgentRequest]
-}
-
-case class AgentRequests(requests: Seq[AgentRequest])
-
-object AgentRequests {
-  implicit val format: OFormat[AgentRequests] = Json.format[AgentRequests]
-}
-
 case class Authorisations(authorisations: Seq[PropertyLink])
 
 object Authorisations {
