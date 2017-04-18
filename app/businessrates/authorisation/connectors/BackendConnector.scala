@@ -70,10 +70,19 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
     }
   }
 
+  override def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long)
+                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Assessment]] = {
+
+    getLink(organisationId, authorisationId) map {
+      case Some(link) if !link.pending => link.assessment.find(_.assessmentRef == assessmentRef)
+      case None => None
+    }
+  }
+
   private def getOrganisation(id: String, paramName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
 
-  private def getProperty(organisationId: Long, filter: PropertyLink => Boolean)(implicit  hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
+  private def getProperty(organisationId: Long, filter: AuthFilter)(implicit  hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
     getAuthorisations(organisationId).map(_.find(filter))
 
   private def getPropertyWithAgent(organisationId: Long, authId: Long, agentOrgId: Long)(implicit  hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =

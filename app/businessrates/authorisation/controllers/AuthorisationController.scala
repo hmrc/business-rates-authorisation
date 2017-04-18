@@ -42,12 +42,21 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
     }
   }
 
-  def authorise(authorisationId: Long, assessmentRef: Long) = Action.async { implicit request =>
+  def authoriseToViewAssessment(authorisationId: Long, assessmentRef: Long) = Action.async { implicit request =>
     withIds { accounts =>
-      propertyLinking.getLink(accounts.organisationId, authorisationId).map {
-        case Some(link) if link.assessment.exists(_.assessmentRef == assessmentRef) => Ok(toJson(accounts))
+      propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef).map {
+        case Some(assessment) => Ok(toJson(accounts))
         case _ => Forbidden
       }.recover { case _ => Forbidden }
+    }
+  }
+
+  def authorise(authorisationId: Long) = Action.async { implicit request =>
+    withIds { case a@Accounts(oid, _, _, _) =>
+      propertyLinking.getLink(oid, authorisationId) map {
+        case Some(_) => Ok(Json.toJson(a))
+        case None => Forbidden
+      }
     }
   }
 
