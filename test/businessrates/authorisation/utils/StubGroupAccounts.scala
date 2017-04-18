@@ -16,23 +16,4 @@
 
 package businessrates.authorisation.utils
 
-import businessrates.authorisation.connectors.GroupAccounts
-import businessrates.authorisation.models.Organisation
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.Future
-
-object StubGroupAccounts extends GroupAccounts(StubHttp) {
-  private var stubbedOrganisation: Option[Organisation] = None
-
-  def stubOrganisation(organisation: Organisation) = {
-    stubbedOrganisation = Some(organisation)
-  }
-
-  def reset() = {
-    stubbedOrganisation = None
-  }
-
-  override def getOrganisation(ggGroupId: String)(implicit hc: HeaderCarrier): Future[Option[Organisation]] = Future.successful(stubbedOrganisation)
-}
+object StubGroupAccounts extends StubBackendConnector

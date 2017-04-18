@@ -23,15 +23,15 @@ import cats.data.OptionT
 import cats.implicits._
 import com.google.inject.name.Named
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.config.inject.ServicesConfig
 import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.http.{HeaderCarrier, Upstream4xxResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthConnector @Inject() (@Named("simpleWSHttp") http: WSHttp) extends ServicesConfig {
-  lazy val url = baseUrl("auth")
+class AuthConnector @Inject() (@Named("simpleWSHttp") http: WSHttp, val config: ServicesConfig) {
+  lazy val url = config.baseUrl("auth")
 
   def getGovernmentGatewayDetails(implicit hc: HeaderCarrier): Future[Option[GovernmentGatewayDetails]] = {
     (for {

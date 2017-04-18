@@ -17,21 +17,10 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.models.Person
-import com.google.inject.Inject
-import com.google.inject.name.Named
-import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.ws.WSHttp
-import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class IndividualAccounts @Inject()(@Named("voaBackendWSHttp") http: WSHttp)(implicit ec: ExecutionContext) extends ServicesConfig {
-
-  type PersonId = Int
-
-  lazy val individualAccountsUrl = baseUrl("property-linking") + "/property-linking/individuals"
-
-  def getPerson(externalId: String)(implicit hc: HeaderCarrier): Future[Option[Person]] = {
-    http.GET[Option[Person]](s"$individualAccountsUrl?externalId=$externalId") recover { case _: NotFoundException => None }
-  }
+trait IndividualAccounts {
+  def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]]
 }

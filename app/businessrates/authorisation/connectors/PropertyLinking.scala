@@ -16,27 +16,11 @@
 
 package businessrates.authorisation.connectors
 
-import javax.inject.Inject
-
 import businessrates.authorisation.models.PropertyLink
-import com.google.inject.name.Named
-import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.ws.WSHttp
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class PropertyLinking @Inject()(@Named("simpleWSHttp") http: WSHttp)(implicit ec: ExecutionContext) extends ServicesConfig {
-
-  def find(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier): Future[Option[PropertyLink]] = {
-    linkedProperties(organisationId) map {
-      _.find( link => link.authorisationId == authorisationId && !link.pending )
-    }
-  }
-
-  def linkedProperties(organisationId: Long)(implicit hc: HeaderCarrier): Future[Seq[PropertyLink]] = {
-    val url = baseUrl("property-linking") + s"/property-linking/property-links/$organisationId"
-    http.GET[Seq[PropertyLink]](url)
-  }
-
+trait PropertyLinking {
+  def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]]
 }

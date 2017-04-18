@@ -16,14 +16,65 @@
 
 package businessrates.authorisation.models
 
+import java.time.LocalDate
+
 import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
-case class PropertyLink(authorisationId: Long, uarn: Long, organisationId: Long,
-                        personId: Long, linkedDate: DateTime, pending: Boolean,
-                        assessment: Seq[Assessment])
+case class Permission(checkPermission: String, challengePermission: String, endDate:Option[LocalDate])
 
+object Permission {
+  private val readsBuilder =
+    (__ \ "checkPermission").read[String] and
+    (__ \ "challengePermission").read[String] and
+    (__ \ "endDate").readNullable[LocalDate]
+
+  implicit val format: OFormat[Permission] = OFormat(readsBuilder.apply(Permission.apply _), Json.writes[Permission])
+}
+
+case class Party(permissions: Seq[Permission], authorisedPartyStatus: String, organisationId: Long)
+
+object Party {
+  private val readsBuilder =
+    (__ \ "permissions").read[Seq[Permission]] and
+    (__ \ "authorisedPartyStatus").read[String] and
+    (__ \ "authorisedPartyOrganisationId").read[Long]
+
+  implicit val format: OFormat[Party] = OFormat(readsBuilder.apply(Party.apply _), Json.writes[Party])
+}
+
+case class PropertyLink(authorisationId: Long,
+                        uarn: Long,
+                        organisationId: Long,
+                        personId: Long,
+                        linkedDate: DateTime,
+                        pending: Boolean,
+                        assessment: Seq[Assessment],
+                        agents: Seq[Party],
+                        authorisationStatus: String)
 
 object PropertyLink {
-  implicit val format = Json.format[PropertyLink]
+  object ReadsIsPending extends Reads[Boolean] {
+    override def reads(json: JsValue): JsResult[Boolean] = JsSuccess(json.as[String] == "PENDING")
+  }
+
+  private val readsBuilder =
+    (__ \ "authorisationId").read[Long] and
+    (__ \ "uarn").read[Long] and
+    (__ \ "authorisationOwnerOrganisationId").read[Long] and
+    (__ \ "authorisationOwnerPersonId").read[Long] and
+    (__ \ "startDate").read[DateTime] and
+    (__ \ "authorisationStatus").read[Boolean](ReadsIsPending) and
+    (__ \ "NDRListValuationHistoryItems").read[Seq[Assessment]] and
+    (__ \ "parties").read[Seq[Party]] and
+    (__ \ "authorisationStatus").read[String]
+
+  implicit val format: OFormat[PropertyLink] = OFormat(readsBuilder.apply(PropertyLink.apply _), Json.writes[PropertyLink])
+}
+
+case class Authorisations(authorisations: Seq[PropertyLink])
+
+object Authorisations {
+  implicit val format: OFormat[Authorisations] = Json.format[Authorisations]
 }

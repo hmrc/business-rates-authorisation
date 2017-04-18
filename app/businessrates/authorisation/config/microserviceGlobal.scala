@@ -16,62 +16,69 @@
 
 package businessrates.authorisation.config
 
+import businessrates.authorisation.connectors.{BackendConnector, GroupAccounts, IndividualAccounts, PropertyLinking}
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
-import play.api.{Application, Configuration, Environment, Play}
+import play.api._
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
-import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode, ServicesConfig}
+import uk.gov.hmrc.play.config.inject.{DefaultServicesConfig, ServicesConfig}
+import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
 import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
 import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 
 
-class GuiceModule(environment: Environment, configuration: Configuration) extends AbstractModule with ServicesConfig {
+class GuiceModule(override val environment: Environment, configuration: Configuration) extends AbstractModule with ServicesConfig {
+  override val runModeConfiguration = configuration
 
-  def configure() = {
+  def configure(): Unit = {
     bindConstant().annotatedWith(Names.named("voaApiSubscriptionHeader")).to(configuration.getString("voaApi.subscriptionKeyHeader").get)
     bindConstant().annotatedWith(Names.named("voaApiTraceHeader")).to(configuration.getString("voaApi.subscriptionKeyHeader").get)
+    bindConstant().annotatedWith(Names.named("dataPlatformUrl")).to(baseUrl("data-platform"))
+    bindConstant().annotatedWith(Names.named("ratesListYear")).to(getConfInt("rates.list.year", 2017))
     bind(classOf[WSHttp]).annotatedWith(Names.named("voaBackendWSHttp")).to(classOf[VOABackendWSHttp])
     bind(classOf[WSHttp]).annotatedWith(Names.named("simpleWSHttp")).to(classOf[SimpleWSHttp])
+    bind(classOf[ServicesConfig]).to(classOf[DefaultServicesConfig])
+    bind(classOf[GroupAccounts]).to(classOf[BackendConnector])
+    bind(classOf[IndividualAccounts]).to(classOf[BackendConnector])
+    bind(classOf[PropertyLinking]).to(classOf[BackendConnector])
   }
 }
 
 object ControllerConfiguration extends ControllerConfig {
-  lazy val controllerConfigs = Play.current.configuration.underlying.as[Config]("controllers")
+  lazy val controllerConfigs: Config = Play.current.configuration.underlying.as[Config]("controllers")
 }
 
 object AuthParamsControllerConfiguration extends AuthParamsControllerConfig {
-  lazy val controllerConfigs = ControllerConfiguration.controllerConfigs
+  lazy val controllerConfigs: Config = ControllerConfiguration.controllerConfigs
 }
 
 object MicroserviceAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport {
   override val auditConnector = MicroserviceAuditConnector
-  override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
+  override def controllerNeedsAuditing(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuditing
 }
 
 object MicroserviceLoggingFilter extends LoggingFilter with MicroserviceFilterSupport {
-  override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
+  override def controllerNeedsLogging(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
 
 object MicroserviceAuthFilter extends AuthorisationFilter with MicroserviceFilterSupport {
   override lazy val authParamsConfig = AuthParamsControllerConfiguration
   override lazy val authConnector = MicroserviceAuthConnector
+
   override def controllerNeedsAuth(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuth
 }
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with MicroserviceFilterSupport {
   override val auditConnector = MicroserviceAuditConnector
+  override val loggingFilter = MicroserviceLoggingFilter
+  override val microserviceAuditFilter = MicroserviceAuditFilter
+  override val authFilter = Some(MicroserviceAuthFilter)
 
   override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig(s"microservice.metrics")
-
-  override val loggingFilter = MicroserviceLoggingFilter
-
-  override val microserviceAuditFilter = MicroserviceAuditFilter
-
-  override val authFilter = Some(MicroserviceAuthFilter)
 }

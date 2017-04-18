@@ -16,23 +16,12 @@
 
 package businessrates.authorisation.connectors
 
-import javax.inject.Inject
-
 import businessrates.authorisation.models.Organisation
-import com.google.inject.name.Named
-import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.ws.WSHttp
-import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GroupAccounts @Inject()(@Named("voaBackendWSHttp") http: WSHttp)(implicit ec: ExecutionContext) extends ServicesConfig {
-
-  type OrganisationId = Int
-
-  lazy val groupAccountsUrl = baseUrl("property-linking") + "/property-linking/groups"
-
-  def getOrganisation(ggGroupId: String)(implicit hc: HeaderCarrier): Future[Option[Organisation]] = {
-    http.GET[Option[Organisation]](s"$groupAccountsUrl?groupId=$ggGroupId") recover { case _: NotFoundException => None }
-  }
+trait GroupAccounts {
+  def getOrganisationByGGId(ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]]
+  def getOrganisationByOrgId(orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]]
 }

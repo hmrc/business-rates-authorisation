@@ -16,13 +16,11 @@
 
 package businessrates.authorisation.config
 
-import java.net.URL
 import javax.inject.Inject
 
 import businessrates.authorisation.metrics.HasMetrics
 import com.google.inject.name.Named
 import com.kenshoo.play.metrics.Metrics
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Writes
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -38,111 +36,42 @@ class SimpleWSHttp extends WSHttp {
   override val hooks: Seq[HttpHook] = NoneRequired
 }
 
+class VOABackendWSHttp @Inject()(val metrics: Metrics,
+                                 @Named("voaApiSubscriptionHeader") val voaApiSubscriptionHeader: String,
+                                 @Named("voaApiTraceHeader") val voaApiTraceHeader: String) extends WSHttp with HasMetrics with AzureHeaders {
+  override val hooks: Seq[HttpHook] = NoneRequired
+}
+
 object MicroserviceAuditConnector extends AuditConnector with RunMode {
   override lazy val auditingConfig = LoadAuditingConfig(s"auditing")
 }
 
 object MicroserviceAuthConnector extends AuthConnector with ServicesConfig {
-  override val authBaseUrl = baseUrl("auth")
+  override val authBaseUrl: String = baseUrl("auth")
 }
 
-class VOABackendWSHttp @Inject()(val metrics: Metrics,
-                                 @Named("voaApiSubscriptionHeader") voaApiSubscriptionHeader: String,
-                                 @Named("voaApiTraceHeader") voaApiTraceHeader: String) extends WSHttp with HasMetrics {
+trait AzureHeaders extends WSHttp {
+  val voaApiSubscriptionHeader: String
+  val voaApiTraceHeader: String
 
-  def buildHeaderCarrier(hc: HeaderCarrier): HeaderCarrier = HeaderCarrier(requestId = hc.requestId, sessionId = hc.sessionId)
-    .withExtraHeaders(("Ocp-Apim-Subscription-Key", voaApiSubscriptionHeader), ("Ocp-Apim-Trace", voaApiTraceHeader))
+  val baseModernizerHC = HeaderCarrier(extraHeaders = Seq("Ocp-Apim-Subscription-Key" -> voaApiSubscriptionHeader,
+    "Ocp-Apim-Trace" -> voaApiTraceHeader))
+
+  def buildHeaderCarrier(hc: HeaderCarrier): HeaderCarrier = baseModernizerHC
+    .copy(requestId = hc.requestId, sessionId = hc.sessionId)
     .withExtraHeaders(hc.extraHeaders: _*)
 
-  def mapResponseToSuccessOrFailure(response: HttpResponse, timer: MetricsTimer): HttpResponse =
-    response.status.toString match {
-      case status if status.startsWith("2") =>
-        timer.completeTimerAndMarkAsSuccess
-        response
-      case _ =>
-        timer.completeTimerAndMarkAsFailure
-        response
-    }
+  override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+    super.doGet(url)(buildHeaderCarrier(hc))
 
-  def getApiName(url: String): String = {
-    val path = new URL(url).getPath.drop(1)
-    path.substring(0, path.indexOf("/"))
-  }
+  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = super.doDelete(url)(buildHeaderCarrier(hc))
 
-  override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doGet(url)(buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
-    }
-  }
+  override def doPatch[A](url: String, body: A)(implicit w: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
+    super.doPatch(url, body)(w, buildHeaderCarrier(hc))
 
-  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doDelete(url)(buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
-    }
-  }
+  override def doPut[A](url: String, body: A)(implicit w: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
+    super.doPut(url, body)(w, buildHeaderCarrier(hc))
 
-  override def doPatch[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doPatch(url, body)(rds, buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
-    }
-  }
-
-  override def doPut[A](url: String, body: A)(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doPut(url, body)(rds, buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
-    }
-  }
-
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit rds: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
-    withMetricsTimer(getApiName(url)) {
-      timer => {
-        super.doPost(url, body, headers)(rds, buildHeaderCarrier(hc)) map {
-          response => mapResponseToSuccessOrFailure(response, timer)
-        } recover {
-          case ex: Exception => {
-            timer.completeTimerAndMarkAsFailure
-            throw ex
-          }
-        }
-      }
-    }
-  }
-
-  override val hooks = NoneRequired
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit w: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
+    super.doPost(url, body, headers)(w, buildHeaderCarrier(hc))
 }
