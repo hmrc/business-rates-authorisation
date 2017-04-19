@@ -16,7 +16,7 @@
 
 package businessrates.authorisation.models
 
-import org.joda.time.LocalDate
+import org.joda.time.{DateTimeZone, LocalDate}
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
@@ -58,7 +58,7 @@ object PropertyLink {
   }
 
   implicit val LocalDateWrites = new Writes[LocalDate] {
-    def writes(date: LocalDate) = JsNumber(date.toDate.getTime)
+    def writes(date: LocalDate) = JsNumber(date.toDateTimeAtStartOfDay(DateTimeZone.UTC).toDate.getTime)
   }
 
   private val readsBuilder =
