@@ -17,12 +17,12 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.models._
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers.{eq => isEqual, _}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
-import play.api.libs.json.{JsNull, JsSuccess, JsValue, Json}
+import play.api.libs.json.{JsSuccess, Json}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpReads}
@@ -322,7 +322,7 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
   private val validPropertyLink = PropertyLink(authorisationId = 42,
     organisationId = 1000000001,
     uarn = 9342442000L,
-    linkedDate = DateTime.parse("2017-04-01"),
+    linkedDate = LocalDate.parse("2017-04-01"),
     personId = 46,
     pending = false,
     assessment = Seq(Assessment(assessmentRef = 18630583000L, listYear = "2017", uarn = 9342442000L, effectiveDate = LocalDate.parse("2017-03-31"))),

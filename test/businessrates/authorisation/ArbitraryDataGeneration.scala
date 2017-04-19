@@ -17,7 +17,7 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.models._
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, LocalDate}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 
@@ -29,6 +29,7 @@ trait ArbitraryDataGeneration {
   def randomNumericString: Gen[String] = Gen.listOfN(20, Gen.numChar).map(_.mkString)
   def randomPositiveLong: Gen[Long] = Gen.choose(0L, Long.MaxValue)
   def randomDate: Gen[DateTime] = Gen.choose(0L, 32472144000000L /* 1/1/2999 */).map(new DateTime(_))
+  def randomLocalDate: Gen[LocalDate] = Gen.choose(0L, 32472144000000L /* 1/1/2999 */).map(new DateTime(_).toLocalDate)
 
   def randomEmail: Gen[String] = for {
     mailbox <- randomShortString
@@ -85,7 +86,7 @@ trait ArbitraryDataGeneration {
     uarn <- randomPositiveLong
     organisationId <- randomPositiveLong
     personId <- randomPositiveLong
-    linkedDate <- randomDate
+    linkedDate <- randomLocalDate
     pending <- arbitrary[Boolean]
     assessment <- Gen.nonEmptyListOf(randomAssessment).retryUntil(_.size < 10)
     status <- Gen.oneOf("APPROVED", "PENDING", "REVOKED", "DECLINED")

@@ -16,9 +16,7 @@
 
 package businessrates.authorisation.models
 
-import java.time.LocalDate
-
-import org.joda.time.DateTime
+import org.joda.time.LocalDate
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
@@ -48,7 +46,7 @@ case class PropertyLink(authorisationId: Long,
                         uarn: Long,
                         organisationId: Long,
                         personId: Long,
-                        linkedDate: DateTime,
+                        linkedDate: LocalDate,
                         pending: Boolean,
                         assessment: Seq[Assessment],
                         agents: Seq[Party],
@@ -59,12 +57,16 @@ object PropertyLink {
     override def reads(json: JsValue): JsResult[Boolean] = JsSuccess(json.as[String] == "PENDING")
   }
 
+  implicit val LocalDateWrites = new Writes[LocalDate] {
+    def writes(date: LocalDate) = JsNumber(date.toDate.getTime)
+  }
+
   private val readsBuilder =
     (__ \ "authorisationId").read[Long] and
     (__ \ "uarn").read[Long] and
     (__ \ "authorisationOwnerOrganisationId").read[Long] and
     (__ \ "authorisationOwnerPersonId").read[Long] and
-    (__ \ "startDate").read[DateTime] and
+    (__ \ "startDate").read[LocalDate] and
     (__ \ "authorisationStatus").read[Boolean](ReadsIsPending) and
     (__ \ "NDRListValuationHistoryItems").read[Seq[Assessment]] and
     (__ \ "parties").read[Seq[Party]] and

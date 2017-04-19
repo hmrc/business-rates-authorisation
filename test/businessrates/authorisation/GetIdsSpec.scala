@@ -35,7 +35,7 @@ class GetIdsSpec extends ControllerSpec {
         StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(client.externalId, clientOrganisation.groupId, "Organisation"))
         StubGroupAccounts.stubOrganisation(clientOrganisation)
         StubIndividualAccounts.stubPerson(client)
-        StubPropertyLinking.stubLink(PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
+        StubPropertyLinking.stubLink(PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
 
         val res = testController.getIds(authorisationId)(FakeRequest())
         status(res) mustBe OK
@@ -54,7 +54,7 @@ class GetIdsSpec extends ControllerSpec {
         StubIndividualAccounts.stubPerson(agent)
         StubPropertyLinking.stubAgentLink(
           agentOrganisation.id,
-          PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, DateTime.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED")
+          PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED")
         )
         
         val res = testController.getIds(authorisationId)(FakeRequest())
