@@ -170,7 +170,7 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
        |"uarn":9342442000,
        |"organisationId":1000000001,
        |"personId":46,
-       |"linkedDate":1491001200000,
+       |"linkedDate":1491004800000,
        |"pending":false,
        |"assessment":[
        |{
