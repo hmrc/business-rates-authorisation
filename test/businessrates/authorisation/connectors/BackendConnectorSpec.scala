@@ -16,6 +16,7 @@
 
 package businessrates.authorisation.connectors
 
+import businessrates.authorisation.ArbitraryDataGeneration
 import businessrates.authorisation.models._
 import org.joda.time.LocalDate
 import org.joda.time.format.{DateTimeFormatter, ISODateTimeFormat}
@@ -32,7 +33,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach
-  with FutureAwaits with DefaultAwaitTimeout {
+  with FutureAwaits with DefaultAwaitTimeout with ArbitraryDataGeneration {
 
   implicit val hc = HeaderCarrier()
 
@@ -355,31 +356,19 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     .thenReturn(Future.successful(None))
 
   when(mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=extId"))(any[HttpReads[Option[Person]]], refEq(hc)))
-    .thenReturn(Future.successful(Some(validPerson)))
+    .thenReturn(Future.successful(Some(validPerson)))1
 
-  when(mockWsHttp.GET[AgentRequests](contains("agent_representation_requests" +
-    "?status=APPROVED&organisationId=2000000002"))(any[HttpReads[AgentRequests]], refEq(hc)))
-    .thenReturn(Future.successful(AgentRequests(Seq(AgentRequest(1000000001)))))
+  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+    s"?listYear=2017&authorisationId=$directlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    .thenReturn(Future.successful(Some(validPropertyLink)))
 
-  when(mockWsHttp.GET[AgentRequests](contains("agent_representation_requests" +
-    "?status=APPROVED&organisationId=1000000001"))(any[HttpReads[AgentRequests]], refEq(hc)))
-    .thenReturn(Future.successful(AgentRequests(Seq())))
+  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+    s"?listYear=2017&authorisationId=$nonExistentAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    .thenReturn(Future.successful(None))
 
-  when(mockWsHttp.GET[AgentRequests](contains("agent_representation_requests" +
-    "?status=APPROVED&organisationId=999999999"))(any[HttpReads[AgentRequests]], refEq(hc)))
-    .thenReturn(Future.successful(AgentRequests(Seq())))
-
-  when(mockWsHttp.GET[Authorisations](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/properties_view" +
-    "?listYear=2017&organisationId=1000000001"))(any[HttpReads[Authorisations]], refEq(hc)))
-    .thenReturn(Future.successful(Authorisations(Seq(validPropertyLink))))
-
-  when(mockWsHttp.GET[Authorisations](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/properties_view" +
-    "?listYear=2017&organisationId=999999999"))(any[HttpReads[Authorisations]], refEq(hc)))
-    .thenReturn(Future.successful(Authorisations(Nil)))
-
-  when(mockWsHttp.GET[Authorisations](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/properties_view" +
-    "?listYear=2017&organisationId=2000000002"))(any[HttpReads[Authorisations]], refEq(hc)))
-    .thenReturn(Future.successful(Authorisations(Nil)))
+  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+    s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    .thenReturn(Future.successful(Some(validPropertyLink)))
 
   private val connector = new BackendConnector(mockWsHttp, "http://localhost", 2017)
 
@@ -437,15 +426,19 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     }
 
     "for a not found PropertyLink return a 'None'" in {
-      await(connector.getLink(999999999, 42)) mustBe None
+      await(connector.getLink(999999999, nonExistentAuthId)) mustBe None
     }
 
     "for a found PropertyLink in the USER's properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(1000000001, 42)) mustBe Some(validPropertyLink)
+      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(validPropertyLink)
     }
 
     "for a found PropertyLink in the AGENT's delegated properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(2000000002, 42)) mustBe Some(validPropertyLink)
+      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(validPropertyLink)
     }
   }
+
+  lazy val nonExistentAuthId: Long = randomPositiveLong
+  lazy val directlyLinkedAuthId: Long = randomPositiveLong
+  lazy val indirectlyLinkedAuthId: Long = randomPositiveLong
 }
