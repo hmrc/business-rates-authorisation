@@ -52,8 +52,10 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration {
         StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(agent.externalId, agentOrganisation.groupId, "Organisation"))
         StubGroupAccounts.stubOrganisation(agentOrganisation)
         StubIndividualAccounts.stubPerson(agent)
+
+        val party = randomParty.copy(organisationId = agentOrganisation.id)
         StubPropertyLinking.stubLink(
-          PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(randomParty.copy(organisationId = agentOrganisation.id)), "APPROVED")
+          PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(party), "APPROVED")
         )
         
         val res = testController.getIds(authorisationId)(FakeRequest())
