@@ -49,8 +49,6 @@ trait ArbitraryDataGeneration {
     agentCode <- randomPositiveLong
   } yield Organisation(id, groupId, companyName, addressId, email, phone, isSmallBusiness, isAgent, agentCode)
 
-  private implicit val arbitraryOrganisation: Arbitrary[Organisation] = Arbitrary(randomOrganisation)
-
   def randomPersonDetails: Gen[PersonDetails] = for {
     firstName <- randomShortString
     lastName <- randomShortString
@@ -60,17 +58,13 @@ trait ArbitraryDataGeneration {
     addressId <- arbitrary[Int]
   } yield PersonDetails(firstName, lastName, email, phone1, phone2, addressId)
 
-  private implicit val arbitraryPersonDetails: Arbitrary[PersonDetails] = Arbitrary(randomPersonDetails)
-
   def randomPerson: Gen[Person] = for {
     externalId <- randomShortString
     trustId <- randomShortString
     organisationId <- randomPositiveLong
     individualId <- randomPositiveLong
-    details <- arbitrary[PersonDetails]
+    details <- randomPersonDetails
   } yield Person(externalId, trustId, organisationId, individualId, details)
-
-  private implicit val arbitraryPersonGenerator: Arbitrary[Person] = Arbitrary(randomPerson)
 
   def randomAssessment: Gen[Assessment] = for {
     assessmentRef <- randomPositiveLong
@@ -78,8 +72,6 @@ trait ArbitraryDataGeneration {
     uarn <- randomPositiveLong
     effectiveDate <- randomDate.map(_.toLocalDate)
   } yield Assessment(assessmentRef, listYear, uarn, effectiveDate)
-
-  private implicit val arbitraryAssessment: Arbitrary[Assessment] = Arbitrary(randomAssessment)
 
   def randomPropertyLink: Gen[PropertyLink] = for {
     authorisationId <- randomPositiveLong
@@ -92,5 +84,14 @@ trait ArbitraryDataGeneration {
     status <- Gen.oneOf("APPROVED", "PENDING", "REVOKED", "DECLINED")
   } yield PropertyLink(authorisationId, uarn, organisationId, personId, linkedDate, pending, assessment, Nil, status)
 
-  private implicit val arbitraryPropertyLink: Arbitrary[PropertyLink] = Arbitrary(randomPropertyLink)
+  def randomParty: Gen[Party] = for {
+    permissions <- randomPermissions
+    authorisedPartyStatus <- Gen.oneOf("APPROVED", "PENDING")
+    organisationId <- randomPositiveLong
+  } yield Party(permissions, authorisedPartyStatus, organisationId)
+
+  def randomPermissions: Gen[Seq[Permission]] = for {
+    checkPermission <- Gen.oneOf("START_AND_CONTINUE", "NOT_PERMITTED")
+    challengePermission <- Gen.oneOf("START_AND_CONTINUE", "NOT_PERMITTED")
+  } yield Seq(Permission(checkPermission, challengePermission, None))
 }

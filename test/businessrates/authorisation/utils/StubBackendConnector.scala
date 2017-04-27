@@ -47,10 +47,7 @@ class StubBackendConnector extends BackendConnector(StubHttp, "http://locahost:9
   override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
     Future.successful(stubbedPerson)
 
-  override def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
-    Future.successful {
-      (stubbedLinks find {
-        case (orgId, link) => orgId == organisationId && link.authorisationId == authorisationId
-      }) map { case (k, v) => v }
-    }
+  override protected def getAuthorisation(authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = Future.successful {
+    stubbedLinks collect { case (_, link) if link.authorisationId == authorisationId => link } headOption
+  }
 }

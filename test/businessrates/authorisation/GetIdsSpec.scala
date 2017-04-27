@@ -19,13 +19,13 @@ package businessrates.authorisation
 import businessrates.authorisation.controllers.AuthorisationController
 import businessrates.authorisation.models._
 import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts, StubPropertyLinking}
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.LocalDate
+import org.scalacheck.Arbitrary.arbitrary
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.scalacheck.Arbitrary.arbitrary
 
-class GetIdsSpec extends ControllerSpec {
+class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration {
 
   val testController = new AuthorisationController(StubAuthConnector, StubGroupAccounts, StubPropertyLinking, StubIndividualAccounts)
 
@@ -52,9 +52,8 @@ class GetIdsSpec extends ControllerSpec {
         StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(agent.externalId, agentOrganisation.groupId, "Organisation"))
         StubGroupAccounts.stubOrganisation(agentOrganisation)
         StubIndividualAccounts.stubPerson(agent)
-        StubPropertyLinking.stubAgentLink(
-          agentOrganisation.id,
-          PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED")
+        StubPropertyLinking.stubLink(
+          PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(randomParty.copy(organisationId = agentOrganisation.id)), "APPROVED")
         )
         
         val res = testController.getIds(authorisationId)(FakeRequest())
