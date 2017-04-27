@@ -356,7 +356,7 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     .thenReturn(Future.successful(None))
 
   when(mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=extId"))(any[HttpReads[Option[Person]]], refEq(hc)))
-    .thenReturn(Future.successful(Some(validPerson)))1
+    .thenReturn(Future.successful(Some(validPerson)))
 
   when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
     s"?listYear=2017&authorisationId=$directlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))

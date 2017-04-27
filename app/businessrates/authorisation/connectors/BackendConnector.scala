@@ -31,11 +31,9 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
   extends GroupAccounts with IndividualAccounts with PropertyLinking {
 
   type AgentFilter = Party => Boolean
-  type AuthFilter = PropertyLink => Boolean
 
   val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
   val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
-  val agentRepresentationRequestUrl: String = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/agent_representation_requests"
   val authorisationsUrl: String = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment"
 
   val declinedStatuses = Seq("REVOKED", "DECLINED")
@@ -48,12 +46,6 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
     case _: NotFoundException => None
   }
 
-  private def withAuthId(id: Long): AuthFilter = p => p.authorisationId == id
-
-  private def withAgentOrg(agentId: Long): AuthFilter = a => a.agents.exists(_.organisationId == agentId)
-
-  private def withAuthIdAndAgent(authId: Long, agentId: Long): AuthFilter = a => withAuthId(authId)(a) && withAgentOrg(agentId)(a)
-
   def getOrganisationByGGId(ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     getOrganisation(ggId, "governmentGatewayGroupId")
 
@@ -64,7 +56,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
     http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
 
   def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
-    getProperty(authorisationId, organisationId)
+    getAuthorisation(authorisationId).map(_.find(l => l.organisationId == organisationId || l.agents.exists(_.organisationId == organisationId)))
   }
 
   override def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long)
@@ -79,11 +71,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
   private def getOrganisation(id: String, paramName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
 
-  private def getProperty(authorisationId: Long, organisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
-    getAuthorisation(authorisationId).map(_.find(l => l.organisationId == organisationId || l.agents.exists(_.organisationId == organisationId)))
-  }
-
-  private def getAuthorisation(authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
+  protected def getAuthorisation(authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
     val url = s"$authorisationsUrl" +
       s"?listYear=$listYear" +
       s"&authorisationId=$authorisationId"

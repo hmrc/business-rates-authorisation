@@ -96,6 +96,24 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec {
           contentAsJson(res) mustBe Json.obj("organisationId" -> organisation.id, "personId" -> person.individualId, "organisation" -> Json.toJson(organisation), "person" -> Json.toJson(person))
         }
       }
+
+      "the user is acting as an agent on behalf of the property" must {
+        "return a 200 response, the organisation and person IDs, and the organisation and person account details" in {
+          val anAgent: Person = randomPerson
+          val agentOrganisation: Organisation = randomOrganisation
+
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(anAgent.externalId, agentOrganisation.groupId, "Organisation"))
+          StubGroupAccounts.stubOrganisation(agentOrganisation)
+          StubIndividualAccounts.stubPerson(anAgent)
+
+          val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(pending = false, agents = Seq(randomParty.copy(organisationId = agentOrganisation.id)))
+          StubPropertyLinking.stubLink(propertyLink)
+
+          val res = TestAuthController.authorise(propertyLink.authorisationId)(FakeRequest())
+          status(res) mustBe OK
+          contentAsJson(res) mustBe Json.obj("organisationId" -> agentOrganisation.id, "personId" -> anAgent.individualId, "organisation" -> Json.toJson(agentOrganisation), "person" -> Json.toJson(anAgent))
+        }
+      }
     }
   }
 }
