@@ -17,7 +17,7 @@
 package businessrates.authorisation.utils
 
 import businessrates.authorisation.connectors.BackendConnector
-import businessrates.authorisation.models.{Assessment, Organisation, Person, PropertyLink}
+import businessrates.authorisation.models.{Organisation, Person, PropertyLink}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -25,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class StubBackendConnector extends BackendConnector(StubHttp, "http://locahost:9536", 2017) {
   private var stubbedOrganisation: Option[Organisation] = None
   private var stubbedPerson: Option[Person] = None
-  private var stubbedLinks: Seq[(Long, PropertyLink)] = Nil
+  private var stubbedLinks: Seq[PropertyLink] = Nil
 
   def reset() = {
     stubbedPerson = None
@@ -35,8 +35,7 @@ class StubBackendConnector extends BackendConnector(StubHttp, "http://locahost:9
 
   def stubOrganisation(organisation: Organisation) = stubbedOrganisation = Some(organisation)
   def stubPerson(person: Person) = stubbedPerson = Some(person)
-  def stubLink(link: PropertyLink) = stubbedLinks :+= ((link.organisationId, link))
-  def stubAgentLink(agentOrgId: Long, link: PropertyLink) = stubbedLinks :+= ((agentOrgId, link))
+  def stubLink(link: PropertyLink) = stubbedLinks :+= link
 
   override def getOrganisationByGGId(ggGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     Future.successful(stubbedOrganisation)
@@ -48,6 +47,6 @@ class StubBackendConnector extends BackendConnector(StubHttp, "http://locahost:9
     Future.successful(stubbedPerson)
 
   override protected def getAuthorisation(authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = Future.successful {
-    stubbedLinks collect { case (_, link) if link.authorisationId == authorisationId => link } headOption
+    stubbedLinks.find(_.authorisationId == authorisationId)
   }
 }
