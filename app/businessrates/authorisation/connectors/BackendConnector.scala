@@ -72,11 +72,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
 
   protected def getAuthorisation(authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
-    val url = s"$authorisationsUrl" +
-      s"?listYear=$listYear" +
-      s"&authorisationId=$authorisationId"
-
-    http.GET[Option[PropertyLink]](url) map {
+    http.GET[Option[PropertyLink]](s"$authorisationsUrl?listYear=$listYear&authorisationId=$authorisationId") map {
       case Some(link) if !declinedStatuses.contains(link.authorisationStatus.toUpperCase) =>
         Some(link.copy(agents = link.agents.filter(onlyPendingAndApproved).map(withoutPermissionEndDate).filter(mustHaveAPermission)))
       case None => None

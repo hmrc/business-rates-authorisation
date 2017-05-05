@@ -331,6 +331,8 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     agents = Seq(Party(permissions = Seq(Permission(checkPermission = "START_AND_CONTINUE", challengePermission = "START_AND_CONTINUE", endDate = None)), authorisedPartyStatus = "APPROVED", organisationId = 2000000002)),
     authorisationStatus = "APPROVED")
 
+  private val declinedPropertyLink = validPropertyLink.copy(authorisationStatus = "DECLINED")
+
   private val validOrg = Organisation(id = 1000000003, groupId = "stub-group-3", companyName = "Automated Stub 3",
     addressId = 1000000000, email = "stub3@voa.gov.uk", phone = "0123456783",
     isSmallBusiness = true, isAgent = false, agentCode = 990551132)
@@ -363,12 +365,20 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
   when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+    s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    .thenReturn(Future.successful(Some(declinedPropertyLink)))
+
+  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
     s"?listYear=2017&authorisationId=$nonExistentAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
     .thenReturn(Future.successful(None))
 
   when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
     s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
     .thenReturn(Future.successful(Some(validPropertyLink)))
+
+  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+    s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    .thenReturn(Future.successful(Some(declinedPropertyLink)))
 
   private val connector = new BackendConnector(mockWsHttp, "http://localhost", 2017)
 
@@ -436,9 +446,19 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     "for a found PropertyLink in the AGENT's delegated properties return a 'Some(PropertyLink)'" in {
       await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(validPropertyLink)
     }
+
+    "for a found PropertyLink in the USER's properties that is DECLINED, return None" in {
+      await(connector.getLink(1000000001, directlyLinkedDeclinedAuthId)) mustBe None
+    }
+
+    "for a found PropertyLink in the AGENT's properties that is DECLINED, return None" in {
+      await(connector.getLink(2000000002, indirectlyLinkedDeclinedAuthId)) mustBe None
+    }
   }
 
   lazy val nonExistentAuthId: Long = randomPositiveLong
   lazy val directlyLinkedAuthId: Long = randomPositiveLong
   lazy val indirectlyLinkedAuthId: Long = randomPositiveLong
+  lazy val directlyLinkedDeclinedAuthId: Long = randomPositiveLong
+  lazy val indirectlyLinkedDeclinedAuthId: Long = randomPositiveLong
 }
