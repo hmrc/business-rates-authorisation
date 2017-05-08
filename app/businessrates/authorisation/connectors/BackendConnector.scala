@@ -75,7 +75,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
     http.GET[Option[PropertyLink]](s"$authorisationsUrl?listYear=$listYear&authorisationId=$authorisationId") map {
       case Some(link) if !declinedStatuses.contains(link.authorisationStatus.toUpperCase) =>
         Some(link.copy(agents = link.agents.filter(onlyPendingAndApproved).map(withoutPermissionEndDate).filter(mustHaveAPermission)))
-      case None => None
+      case _ => None
     } recover NotFound[PropertyLink]
   }
 }
