@@ -307,7 +307,7 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
       |          "currentFromDate": "2017-04-01",
       |          "deletedIndicator": false,
       |          "description": "INDEPENDENT DISTRIBUTION NETWORK OPERATOR",
-      |          "effectiveDate": "2017-03-31T23:00:00.000+0000",
+      |          "effectiveDate": "2017-03-31",
       |          "listYear": "2017",
       |          "numberOfPreviousProposals": 0,
       |          "origCasenoSeq": 24730691212,
