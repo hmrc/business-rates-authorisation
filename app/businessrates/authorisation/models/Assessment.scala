@@ -22,18 +22,16 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 case class Assessment(assessmentRef: Long,
-                       listYear: String,
-                       uarn:Long,
-                       effectiveDate:LocalDate)
+                      listYear: String,
+                      uarn: Long,
+                      effectiveDate: LocalDate)
 
 object Assessment {
-  implicit val yourJodaDateTimeReads: Reads[LocalDate] = Reads.jodaLocalDateReads("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-
   private val readsBuilder =
     (__ \ "asstRef").read[Long] and
-    (__ \ "listYear").read[String] and
-    (__ \ "uarn").read[Long] and
-    (__ \ "effectiveDate").read[LocalDate]
+      (__ \ "listYear").read[String] and
+      (__ \ "uarn").read[Long] and
+      (__ \ "effectiveDate").read[LocalDate]
 
   implicit val formats: OFormat[Assessment] = OFormat(readsBuilder.apply(Assessment.apply _), Json.writes[Assessment])
 }
