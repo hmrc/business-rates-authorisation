@@ -88,7 +88,6 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
       |"addressId":1000000000,
       |"email":"stub3@voa.gov.uk",
       |"phone":"0123456783",
-      |"isSmallBusiness":true,
       |"isAgent":false,
       |"agentCode":990551132
       |}""".stripMargin.replaceAll("\n", "")
@@ -335,7 +334,7 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
 
   private val validOrg = Organisation(id = 1000000003, groupId = "stub-group-3", companyName = "Automated Stub 3",
     addressId = 1000000000, email = "stub3@voa.gov.uk", phone = "0123456783",
-    isSmallBusiness = true, isAgent = false, agentCode = 990551132)
+    isAgent = false, agentCode = 990551132)
 
   private val validOrgNoPhone = validOrg.copy(phone = "not set")
 

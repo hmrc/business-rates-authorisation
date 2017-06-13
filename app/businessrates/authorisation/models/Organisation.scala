@@ -20,7 +20,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 case class Organisation(id: Int, groupId: String, companyName: String, addressId: Int, email: String, phone: String,
-                        isSmallBusiness: Boolean, isAgent: Boolean, agentCode: Long)
+                        isAgent: Boolean, agentCode: Long)
 
 object Organisation {
   private val readsBuilder =
@@ -30,7 +30,6 @@ object Organisation {
     (__ \ "organisationLatestDetail" \ "addressUnitId").read[Int] and
     (__ \ "organisationLatestDetail" \ "organisationEmailAddress").read[String] and
     (__ \ "organisationLatestDetail" \ "organisationTelephoneNumber").read[String] | Reads.pure[String]("not set") and
-    (__ \ "organisationLatestDetail" \ "smallBusinessFlag").read[Boolean] and
     (__ \ "organisationLatestDetail" \ "representativeFlag").read[Boolean] and
     (__ \ "representativeCode").read[Long]
 
