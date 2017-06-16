@@ -20,6 +20,7 @@ import javax.inject.Inject
 
 import businessrates.authorisation.connectors._
 import businessrates.authorisation.models.{AccountIds, Accounts, GovernmentGatewayDetails, SubmissionIds}
+import businessrates.authorisation.services.AccountsService
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJson
@@ -31,9 +32,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AuthorisationController @Inject()(val authConnector: AuthConnector,
-                                        val groupAccounts: GroupAccounts,
                                         val propertyLinking: PropertyLinking,
-                                        val individualAccounts: IndividualAccounts
+                                        val accounts: AccountsService
                                        ) extends BaseController {
 
   def authenticate = Action.async { implicit request =>
@@ -63,8 +63,11 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
   def getIds(authorisationId: Long) = Action.async { implicit request =>
     withIds { case Accounts(oid, pid, _, _) =>
       propertyLinking.getLink(oid, authorisationId).map {
-        case Some(link) => Ok(toJson(SubmissionIds(caseCreator = AccountIds(oid, pid),
-                                                   interestedParty = AccountIds(link.organisationId, link.personId))))
+        case Some(link) => Ok(toJson(
+          SubmissionIds(
+            caseCreator = AccountIds(oid, pid),
+            interestedParty = AccountIds(link.organisationId, link.personId)
+          )))
         case None => Forbidden
       }.recover { case _ => Forbidden }
     }
@@ -73,19 +76,9 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
   private def withIds(default: Accounts => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
     authConnector.getGovernmentGatewayDetails flatMap {
       case Some(GovernmentGatewayDetails(externalId, groupId, "Organisation")) =>
-
-        val eventualOrganisation = groupAccounts.getOrganisationByGGId(groupId)
-        val eventualPerson = individualAccounts.getPerson(externalId)
-
-        for {
-          organisationId <- eventualOrganisation
-          personId <- eventualPerson
-          res <- (organisationId, personId) match {
-            case (Some(o), Some(p)) => default(Accounts(o.id, p.individualId, o, p))
-            case _ => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
-          }
-        } yield {
-          res
+        accounts.get(externalId, groupId) flatMap {
+          case Some(accs) => default(accs)
+          case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
         }
 
       case Some(GovernmentGatewayDetails(_, _, affinityGroup)) =>

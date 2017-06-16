@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 
-package businessrates.authorisation.connectors
+package businessrates.authorisation.utils
 
-import businessrates.authorisation.models.Organisation
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.{ExecutionContext, Future}
-
-trait GroupAccounts {
-  def getOrganisationByGGId(ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]]
-  def getOrganisationByOrgId(orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]]
-}
+object StubOrganisationAccounts extends StubBackendConnector

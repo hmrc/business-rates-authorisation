@@ -21,14 +21,15 @@ import javax.inject.Inject
 import businessrates.authorisation.models._
 import com.google.inject.name.Named
 import uk.gov.hmrc.play.http.ws.WSHttp
-import uk.gov.hmrc.play.http.{HeaderCarrier, NotFoundException}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpReads, NotFoundException}
+import HttpReads._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
                                  @Named("dataPlatformUrl") val backendUrl: String,
                                  @Named("ratesListYear") val listYear: Int)
-  extends GroupAccounts with IndividualAccounts with PropertyLinking {
+  extends OrganisationAccounts with PersonAccounts with PropertyLinking {
 
   type AgentFilter = Party => Boolean
 
@@ -52,8 +53,10 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
   def getOrganisationByOrgId(orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     getOrganisation(s"$orgId", "organisationId")
 
-  def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
+  def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
+    implicit val apiFormat = Person.apiFormat
     http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
+  }
 
   def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
     getAuthorisation(authorisationId).map(_.find(l => l.organisationId == organisationId || l.agents.exists(_.organisationId == organisationId)))
@@ -68,8 +71,10 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
     }
   }
 
-  private def getOrganisation(id: String, paramName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
+  private def getOrganisation(id: String, paramName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] = {
+    implicit val apiFormat = Organisation.apiFormat
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
+  }
 
   protected def getAuthorisation(authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
     val url = s"$authorisationsUrl" +

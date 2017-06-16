@@ -19,7 +19,7 @@ package businessrates.authorisation.connectors
 import businessrates.authorisation.ArbitraryDataGeneration
 import businessrates.authorisation.models._
 import org.joda.time.LocalDate
-import org.joda.time.format.{DateTimeFormatter, ISODateTimeFormat}
+import org.joda.time.format.ISODateTimeFormat
 import org.mockito.ArgumentMatchers.{eq => isEqual, _}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -371,6 +371,9 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
   private val connector = new BackendConnector(mockWsHttp, "http://localhost", 2017)
+
+  implicit val organisationApiFormat = Organisation.apiFormat
+  implicit val personApiFormat = Person.apiFormat
 
   "Json parsing from backend structures [Reads]" should {
     "Correctly parse an Organisation" in {

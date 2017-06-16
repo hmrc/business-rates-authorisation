@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-package businessrates.authorisation.connectors
+package businessrates.authorisation.utils
 
-import businessrates.authorisation.models.Person
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.{ExecutionContext, Future}
-
-trait IndividualAccounts {
-  def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]]
-}
+object StubPersonAccounts extends StubBackendConnector

@@ -23,7 +23,7 @@ case class Organisation(id: Int, groupId: String, companyName: String, addressId
                         isSmallBusiness: Boolean, isAgent: Boolean, agentCode: Long)
 
 object Organisation {
-  private val readsBuilder =
+  val apiFormat: Reads[Organisation] = (
     (__ \ "id").read[Int] and
     (__ \ "governmentGatewayGroupId").read[String] and
     (__ \ "organisationLatestDetail" \ "organisationName").read[String] and
@@ -33,6 +33,7 @@ object Organisation {
     (__ \ "organisationLatestDetail" \ "smallBusinessFlag").read[Boolean] and
     (__ \ "organisationLatestDetail" \ "representativeFlag").read[Boolean] and
     (__ \ "representativeCode").read[Long]
+    )(Organisation.apply _)
 
-  implicit val format: OFormat[Organisation] = OFormat(readsBuilder.apply(Organisation.apply _), Json.writes[Organisation])
+  implicit val format: OFormat[Organisation] = Json.format[Organisation]
 }
