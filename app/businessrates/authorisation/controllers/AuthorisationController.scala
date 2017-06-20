@@ -45,7 +45,7 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
   def authoriseToViewAssessment(authorisationId: Long, assessmentRef: Long) = Action.async { implicit request =>
     withIds { accounts =>
       propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef).map {
-        case Some(assessment) => Ok(toJson(accounts))
+        case Some(_) => Ok(toJson(accounts))
         case _ => Forbidden
       }.recover { case _ => Forbidden }
     }
