@@ -193,24 +193,6 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
        |"authorisationStatus":"APPROVED"
        |}""".stripMargin.replaceAll("\n", "")
 
-  private val representationRequest =
-    """{
-      | "requests": [
-      |   {
-      |     "address":"INDEPENDENT POWER NETWORKS LTD INDEPENDENT DISTRIBUTION NETWORK OPERATOR, PINN HILL, EXETER, EX1 3TH",
-      |     "authorisationOwnerOrganisationId":42,
-      |     "challengePermission":"START_AND_CONTINUE",
-      |     "checkPermission":"START_AND_CONTINUE",
-      |     "createDatetime":"2017-03-28",
-      |     "organisationName":"name",
-      |     "representationId":43,
-      |     "status":"APPROVED",
-      |     "submissionId":"a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-      |   }
-      | ],
-      | "totalPendingRequests":1
-      |}""".stripMargin
-
   private val inputPropertyLink =
     """{
       |  "authorisations": [
