@@ -16,12 +16,14 @@
 
 package businessrates.authorisation.config
 
-import businessrates.authorisation.connectors.{BackendConnector, GroupAccounts, IndividualAccounts, PropertyLinking}
-import com.google.inject.AbstractModule
+import businessrates.authorisation.connectors.{BackendConnector, OrganisationAccounts, PersonAccounts, PropertyLinking}
+import com.google.inject.{AbstractModule, Inject, Provider}
 import com.google.inject.name.Names
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import play.api._
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.DB
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
@@ -44,10 +46,15 @@ class GuiceModule(override val environment: Environment, configuration: Configur
     bind(classOf[WSHttp]).annotatedWith(Names.named("voaBackendWSHttp")).to(classOf[VOABackendWSHttp])
     bind(classOf[WSHttp]).annotatedWith(Names.named("simpleWSHttp")).to(classOf[SimpleWSHttp])
     bind(classOf[ServicesConfig]).to(classOf[DefaultServicesConfig])
-    bind(classOf[GroupAccounts]).to(classOf[BackendConnector])
-    bind(classOf[IndividualAccounts]).to(classOf[BackendConnector])
+    bind(classOf[OrganisationAccounts]).to(classOf[BackendConnector])
+    bind(classOf[PersonAccounts]).to(classOf[BackendConnector])
     bind(classOf[PropertyLinking]).to(classOf[BackendConnector])
+    bind(classOf[DB]).toProvider(classOf[MongoProvider]).asEagerSingleton()
   }
+}
+
+class MongoProvider @Inject()(reactiveMongoComponent: ReactiveMongoComponent) extends Provider[DB] {
+  override def get(): DB = reactiveMongoComponent.mongoConnector.db()
 }
 
 object ControllerConfiguration extends ControllerConfig {

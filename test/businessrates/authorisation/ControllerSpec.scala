@@ -16,7 +16,7 @@
 
 package businessrates.authorisation
 
-import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts, StubPropertyLinking}
+import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
 import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
@@ -24,8 +24,8 @@ class ControllerSpec extends WordSpec with MustMatchers with BeforeAndAfterEach 
 
   override protected def beforeEach() = {
     StubAuthConnector.reset()
-    StubGroupAccounts.reset()
-    StubIndividualAccounts.reset()
+    StubOrganisationAccounts.reset()
+    StubPersonAccounts.reset()
     StubPropertyLinking.reset()
   }
 }

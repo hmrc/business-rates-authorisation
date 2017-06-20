@@ -17,15 +17,38 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.models.{GovernmentGatewayDetails, Organisation, Person, PropertyLink}
-import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts, StubPropertyLinking}
+import businessrates.authorisation.models._
+import businessrates.authorisation.services.AccountsService
+import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
+import org.mockito.ArgumentMatchers.{eq => matching, _}
+import org.mockito.Mockito.when
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-class PropertyLinkAuthorisationSpec extends ControllerSpec {
+import scala.concurrent.Future
 
-  private object TestAuthController extends AuthorisationController(StubAuthConnector, StubGroupAccounts, StubPropertyLinking, StubIndividualAccounts)
+class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar with BeforeAndAfterEach {
+
+  override protected def afterEach(): Unit = {
+    //reset to initial state
+    when(mockAccountsService.get(anyString, anyString)(any[HeaderCarrier])).thenReturn(Future.successful(None))
+  }
+
+  lazy val mockAccountsService = {
+    val m = mock[AccountsService]
+    when(m.get(anyString, anyString)(any[HeaderCarrier])).thenReturn(Future.successful(None))
+    m
+  }
+
+  private def stubAccounts(p: Person, o: Organisation) = {
+    when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
+  }
+
+  private object TestAuthController extends AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService)
 
   "Calling the property link authorisation endpoint" when {
     "the user is not logged in to government gateway" must {
@@ -53,8 +76,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec {
           val organisation: Organisation = randomOrganisation
 
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
-          StubGroupAccounts.stubOrganisation(organisation)
-          StubIndividualAccounts.stubPerson(person)
+          stubAccounts(person, organisation)
 
           val res = TestAuthController.authorise(randomPositiveLong)(FakeRequest())
           status(res) mustBe FORBIDDEN
@@ -67,8 +89,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec {
           val organisation: Organisation = randomOrganisation
 
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
-          StubGroupAccounts.stubOrganisation(organisation)
-          StubIndividualAccounts.stubPerson(person)
+          stubAccounts(person, organisation)
 
           val propertyLink: PropertyLink = randomPropertyLink.copy(organisationId = organisation.id, pending = true)
           StubPropertyLinking.stubLink(propertyLink)
@@ -85,8 +106,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec {
           val organisation: Organisation = randomOrganisation
 
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
-          StubGroupAccounts.stubOrganisation(organisation)
-          StubIndividualAccounts.stubPerson(person)
+          stubAccounts(person, organisation)
 
           val propertyLink: PropertyLink = randomPropertyLink.copy(organisationId = organisation.id, pending = false)
           StubPropertyLinking.stubLink(propertyLink)
@@ -103,8 +123,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec {
           val agentOrganisation: Organisation = randomOrganisation
 
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(anAgent.externalId, agentOrganisation.groupId, "Organisation"))
-          StubGroupAccounts.stubOrganisation(agentOrganisation)
-          StubIndividualAccounts.stubPerson(anAgent)
+          stubAccounts(anAgent, agentOrganisation)
 
           val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(pending = false, agents = Seq(randomParty.copy(organisationId = agentOrganisation.id)))
           StubPropertyLinking.stubLink(propertyLink)

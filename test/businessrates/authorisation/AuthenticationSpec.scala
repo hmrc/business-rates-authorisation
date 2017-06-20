@@ -17,15 +17,28 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts, StubPropertyLinking}
+import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
 import businessrates.authorisation.models._
+import businessrates.authorisation.services.AccountsService
+import org.mockito.ArgumentMatchers.{eq => matching, _}
+import org.mockito.Mockito.when
+import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-class AuthenticationSpec extends ControllerSpec {
+import scala.concurrent.Future
 
-  val testController = new AuthorisationController(StubAuthConnector, StubGroupAccounts, StubPropertyLinking, StubIndividualAccounts)
+class AuthenticationSpec extends ControllerSpec with MockitoSugar {
+
+  lazy val mockAccountsService = {
+    val m = mock[AccountsService]
+    when(m.get(anyString, anyString)(any[HeaderCarrier])).thenReturn(Future.successful(None))
+    m
+  }
+
+  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService)
 
   "Calling the authentication endpoint" when {
     "the user is not logged in to Government Gateway" must {
@@ -70,8 +83,10 @@ class AuthenticationSpec extends ControllerSpec {
         val stubPerson: Person = randomPerson
 
         StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, stubOrganisation.groupId, "Organisation"))
-        StubGroupAccounts.stubOrganisation(stubOrganisation)
-        StubIndividualAccounts.stubPerson(stubPerson)
+        when(mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
+        
+        StubOrganisationAccounts.stubOrganisation(stubOrganisation)
+        StubPersonAccounts.stubPerson(stubPerson)
         val res = testController.authenticate()(FakeRequest())
         status(res) mustBe OK
         contentAsJson(res) mustBe Json.obj(

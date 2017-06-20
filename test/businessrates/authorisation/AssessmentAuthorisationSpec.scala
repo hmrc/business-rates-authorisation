@@ -18,15 +18,38 @@ package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
 import businessrates.authorisation.models._
-import businessrates.authorisation.utils.{StubAuthConnector, StubGroupAccounts, StubIndividualAccounts, StubPropertyLinking}
-import org.joda.time.{DateTime, LocalDate}
+import businessrates.authorisation.services.AccountsService
+import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
+import org.joda.time.LocalDate
+import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.{eq => matching, _}
+import org.scalatest.BeforeAndAfterEach
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-class AssessmentAuthorisationSpec extends ControllerSpec {
+import scala.concurrent.Future
 
-  val testController = new AuthorisationController(StubAuthConnector, StubGroupAccounts, StubPropertyLinking, StubIndividualAccounts)
+class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with BeforeAndAfterEach {
+
+  override protected def afterEach(): Unit = {
+    //reset to initial state
+    when(mockAccountsService.get(anyString, anyString)(any[HeaderCarrier])).thenReturn(Future.successful(None))
+  }
+
+  lazy val mockAccountsService = {
+    val m = mock[AccountsService]
+    when(m.get(anyString, anyString)(any[HeaderCarrier])).thenReturn(Future.successful(None))
+    m
+  }
+
+  private def stubAccounts(p: Person = person, o: Organisation = organisation) = {
+    when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
+  }
+
+  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService)
 
   private val organisation: Organisation = randomOrganisation
 
@@ -54,8 +77,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec {
       "the account does not have a link to the property" must {
         "return a 403 response" in {
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
-          StubGroupAccounts.stubOrganisation(organisation)
-          StubIndividualAccounts.stubPerson(person)
+          stubAccounts()
           val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }
@@ -67,8 +89,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec {
           val assessmentRef = 9012
 
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
-          StubGroupAccounts.stubOrganisation(organisation)
-          StubIndividualAccounts.stubPerson(person)
+          stubAccounts()
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
@@ -81,8 +102,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec {
           val assessmentRef = 1234
 
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
-          StubGroupAccounts.stubOrganisation(organisation)
-          StubIndividualAccounts.stubPerson(person)
+          stubAccounts()
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, LocalDate.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)), Seq(), "PENDING"))
 
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
@@ -96,8 +116,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec {
           val assessmentRef = 9012
 
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
-          StubGroupAccounts.stubOrganisation(organisation)
-          StubIndividualAccounts.stubPerson(person)
+          stubAccounts()
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe OK
@@ -111,8 +130,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec {
           val agentOrganisation: Organisation = randomOrganisation
 
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(anAgent.externalId, agentOrganisation.groupId, "Organisation"))
-          StubGroupAccounts.stubOrganisation(agentOrganisation)
-          StubIndividualAccounts.stubPerson(anAgent)
+          stubAccounts(anAgent, agentOrganisation)
 
           val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(pending = false, agents = Seq(randomParty.copy(organisationId = agentOrganisation.id)))
           StubPropertyLinking.stubLink(propertyLink)

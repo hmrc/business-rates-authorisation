@@ -23,24 +23,26 @@ case class PersonDetails(firstName: String, lastName: String, email: String, pho
 case class Person(externalId: String, trustId: String, organisationId: Long, individualId: Long, details: PersonDetails)
 
 object PersonDetails {
-  private val readsBuilder =
+  val apiFormat: Reads[PersonDetails] = (
     (__ \ "firstName").read[String] and
     (__ \ "lastName").read[String] and
     (__ \ "emailAddress").read[String] and
     (__ \ "telephoneNumber").read[String] | Reads.pure("not set") and
     (__ \ "mobileNumber").readNullable[String] and
     (__ \ "addressUnitId").read[Int]
+    )(PersonDetails.apply _)
 
-  implicit val format: OFormat[PersonDetails] = OFormat(readsBuilder.apply(PersonDetails.apply _), Json.writes[PersonDetails])
+  implicit val format: OFormat[PersonDetails] = Json.format[PersonDetails]
 }
 
 object Person {
-  private val readsBuilder =
+  val apiFormat: Reads[Person] = (
     (__ \ "governmentGatewayExternalId").read[String] and
     (__ \ "personLatestDetail" \ "identifyVerificationId").read[String] | Reads.pure("") and
     (__ \ "organisationId").read[Long] and
     (__ \ "id").read[Long] and
-    (__ \ "personLatestDetail").read[PersonDetails]
+    (__ \ "personLatestDetail").read[PersonDetails](PersonDetails.apiFormat)
+    )(Person.apply _)
 
-  implicit val format: OFormat[Person] = OFormat(readsBuilder.apply(Person.apply _), Json.writes[Person])
+  implicit val format: OFormat[Person] = Json.format[Person]
 }
