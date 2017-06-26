@@ -32,6 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AccountsCache {
   def cache(sessionId: String, accounts: Accounts): Future[Unit]
   def get(sessionId: String): Future[Option[Accounts]]
+  def drop(sessionId: String): Future[Unit]
 }
 
 class AccountsMongoCache @Inject()(db: DB)(implicit ec: ExecutionContext) extends ReactiveRepository[Record, String]("accountsCache", () => db, Record.mongoFormat, implicitly) with AccountsCache {
@@ -44,6 +45,10 @@ class AccountsMongoCache @Inject()(db: DB)(implicit ec: ExecutionContext) extend
 
   override def get(sessionId: String): Future[Option[Accounts]] = {
     findById(sessionId) map { _.map(_.data) }
+  }
+
+  override def drop(sessionId: String): Future[Unit] = {
+    removeById(sessionId) map { _ => () }
   }
 }
 
