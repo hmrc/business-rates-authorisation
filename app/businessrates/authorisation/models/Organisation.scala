@@ -19,7 +19,8 @@ package businessrates.authorisation.models
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class Organisation(id: Int, groupId: String, companyName: String, addressId: Int, email: String, phone: String, isAgent: Boolean, agentCode: Long)
+case class Organisation(id: Int, groupId: String, companyName: String, addressId: Int, email: String, phone: String,
+                         isAgent: Boolean, agentCode: Long)
 
 object Organisation {
   val apiFormat: Reads[Organisation] = (
