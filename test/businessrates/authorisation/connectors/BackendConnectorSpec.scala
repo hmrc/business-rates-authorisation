@@ -17,7 +17,7 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.ArbitraryDataGeneration
-import businessrates.authorisation.models._
+import businessrates.authorisation.models.{any => anyPT, _}
 import org.joda.time.LocalDate
 import org.joda.time.format.ISODateTimeFormat
 import org.mockito.ArgumentMatchers.{eq => isEqual, _}
@@ -165,7 +165,7 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
      |}""".stripMargin.replaceAll("\n", "")
 
   private val outputPropertyLink =
-    """{
+    s"""{
        |"authorisationId":42,
        |"uarn":9342442000,
        |"organisationId":1000000001,
@@ -188,12 +188,48 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
        |}],
        |"authorisedPartyStatus":"APPROVED",
        |"organisationId":2000000002
+       |},
+       |{
+       |"permissions":[
+       |{
+       |"checkPermission":"START_AND_CONTINUE",
+       |"challengePermission":"START_AND_CONTINUE"
+       |}],
+       |"authorisedPartyStatus":"APPROVED",
+       |"organisationId":$agentWithBoth
+       |},
+       |{
+       |"permissions":[
+       |{
+       |"checkPermission":"START_AND_CONTINUE",
+       |"challengePermission":"NOT_PERMITTED"
+       |}],
+       |"authorisedPartyStatus":"APPROVED",
+       |"organisationId":$agentWithCheckOnly
+       |},
+       |{
+       |"permissions":[
+       |{
+       |"checkPermission":"NOT_PERMITTED",
+       |"challengePermission":"START_AND_CONTINUE"
+       |}],
+       |"authorisedPartyStatus":"APPROVED",
+       |"organisationId":$agentWithChallengeOnly
+       |},
+       |{
+       |"permissions":[
+       |{
+       |"checkPermission":"NOT_PERMITTED",
+       |"challengePermission":"NOT_PERMITTED"
+       |}],
+       |"authorisedPartyStatus":"APPROVED",
+       |"organisationId":$agentWithNeither
        |}],
        |"authorisationStatus":"APPROVED"
        |}""".stripMargin.replaceAll("\n", "")
 
   private val inputPropertyLink =
-    """{
+    s"""{
       |  "authorisations": [
       |    {
       |      "authorisationId": 42,
@@ -210,14 +246,76 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
       |          "authorisedPartyCapacity": "AGENT",
       |          "authorisedPartyOrganisationId": 2000000002,
       |          "authorisedPartyStatus": "APPROVED",
-      |          "caseLinks": [
-      |
-      |          ],
+      |          "caseLinks": [],
       |          "id": 12,
       |          "permissions": [
       |            {
       |              "challengePermission": "START_AND_CONTINUE",
       |              "checkPermission": "START_AND_CONTINUE",
+      |              "id": 13
+      |            }
+      |          ],
+      |          "startDate": "2017-03-28",
+      |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+      |        },
+      |        {
+      |          "authorisedPartyCapacity": "AGENT",
+      |          "authorisedPartyOrganisationId": $agentWithBoth,
+      |          "authorisedPartyStatus": "APPROVED",
+      |          "caseLinks": [],
+      |          "id": 12,
+      |          "permissions": [
+      |            {
+      |              "challengePermission": "START_AND_CONTINUE",
+      |              "checkPermission": "START_AND_CONTINUE",
+      |              "id": 13
+      |            }
+      |          ],
+      |          "startDate": "2017-03-28",
+      |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+      |        },
+      |        {
+      |          "authorisedPartyCapacity": "AGENT",
+      |          "authorisedPartyOrganisationId": $agentWithCheckOnly,
+      |          "authorisedPartyStatus": "APPROVED",
+      |          "caseLinks": [],
+      |          "id": 12,
+      |          "permissions": [
+      |            {
+      |              "challengePermission": "NOT_PERMITTED",
+      |              "checkPermission": "START_AND_CONTINUE",
+      |              "id": 13
+      |            }
+      |          ],
+      |          "startDate": "2017-03-28",
+      |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+      |        },
+      |        {
+      |          "authorisedPartyCapacity": "AGENT",
+      |          "authorisedPartyOrganisationId": $agentWithChallengeOnly,
+      |          "authorisedPartyStatus": "APPROVED",
+      |          "caseLinks": [],
+      |          "id": 12,
+      |          "permissions": [
+      |            {
+      |              "challengePermission": "START_AND_CONTINUE",
+      |              "checkPermission": "NOT_PERMITTED",
+      |              "id": 13
+      |            }
+      |          ],
+      |          "startDate": "2017-03-28",
+      |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+      |        },
+      |        {
+      |          "authorisedPartyCapacity": "AGENT",
+      |          "authorisedPartyOrganisationId": $agentWithNeither,
+      |          "authorisedPartyStatus": "APPROVED",
+      |          "caseLinks": [],
+      |          "id": 12,
+      |          "permissions": [
+      |            {
+      |              "challengePermission": "NOT_PERMITTED",
+      |              "checkPermission": "NOT_PERMITTED",
       |              "id": 13
       |            }
       |          ],
@@ -302,6 +400,13 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
       |  ]
       |}""".stripMargin
 
+  private val agentsWithPermission = Seq(
+    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = 2000000002),
+    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = agentWithBoth),
+    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = NotPermitted, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = agentWithCheckOnly),
+    Party(permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = agentWithChallengeOnly)
+  )
+
   private val validPropertyLink = PropertyLink(authorisationId = 42,
     organisationId = 1000000001,
     uarn = 9342442000L,
@@ -309,7 +414,7 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     personId = 46,
     pending = false,
     assessment = Seq(Assessment(assessmentRef = 18630583000L, listYear = "2017", uarn = 9342442000L, effectiveDate = LocalDate.parse("2017-03-31", ISODateTimeFormat.dateTimeParser().withZoneUTC()))),
-    agents = Seq(Party(permissions = Seq(Permission(checkPermission = "START_AND_CONTINUE", challengePermission = "START_AND_CONTINUE", endDate = None)), authorisedPartyStatus = "APPROVED", organisationId = 2000000002)),
+    agents = agentsWithPermission :+ Party(permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = NotPermitted, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = agentWithNeither),
     authorisationStatus = "APPROVED")
 
   private val declinedPropertyLink = validPropertyLink.copy(authorisationStatus = "DECLINED")
@@ -424,11 +529,11 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     }
 
     "for a found PropertyLink in the USER's properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(validPropertyLink)
+      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(validPropertyLink.copy(agents = agentsWithPermission))
     }
 
     "for a found PropertyLink in the AGENT's delegated properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(validPropertyLink)
+      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(validPropertyLink.copy(agents = agentsWithPermission))
     }
 
     "for a found PropertyLink in the USER's properties that is DECLINED, return None" in {
@@ -438,7 +543,65 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     "for a found PropertyLink in the AGENT's properties that is DECLINED, return None" in {
       await(connector.getLink(2000000002, indirectlyLinkedDeclinedAuthId)) mustBe None
     }
+
+    "for a found Assessment on one of the USER's properties return a 'Some(Assessment)'" in {
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(validPropertyLink.assessment.head)
+    }
+
+    "for a found Assessment on one of the USER's properties return a 'Some(Assessment)' irrespective of the role param (agent applicable only)" in {
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, check)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(validPropertyLink.assessment.head)
+    }
+
+    "for a not found Assessment on one of the USER's properties return a 'None'" in {
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L + 1, anyPT)) mustBe None
+    }
+
+    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)'" in {
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(validPropertyLink.assessment.head)
+    }
+
+    "for a not found Assessment on one of the AGENT's properties return a 'None'" in {
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L + 1, anyPT)) mustBe None
+    }
+
+    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = check and AGENT is permitted to do a check" in {
+      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, check)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, check)) mustBe Some(validPropertyLink.assessment.head)
+    }
+
+    "for a found Assessment on one of the AGENT's properties return a 'None' if role = check and AGENT is NOT permitted to do a check" in {
+      await(connector.getAssessment(agentWithNeither, indirectlyLinkedAuthId, 18630583000L, check)) mustBe None
+      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, check)) mustBe None
+    }
+
+    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = challenge and AGENT is permitted to do a challenge" in {
+      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(validPropertyLink.assessment.head)
+    }
+
+    "for a found Assessment on one of the AGENT's properties return a 'None' if role = challenge and AGENT is NOT permitted to do a challenge" in {
+      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe None
+      await(connector.getAssessment(agentWithNeither, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe None
+    }
+
+    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = any and AGENT is permitted to do a challenge" in {
+      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(validPropertyLink.assessment.head)
+    }
+
+    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = any and AGENT is permitted to do a check" in {
+      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(validPropertyLink.assessment.head)
+    }
+
+    "for a found Assessment on one of the AGENT's properties return a 'None' if role = any and AGENT is NOT permitted to do a challenge OR check" in {
+      await(connector.getAssessment(agentWithNeither, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe None
+    }
   }
+
+  lazy val agentWithBoth: Long = randomPositiveLong
+  lazy val agentWithCheckOnly: Long = randomPositiveLong
+  lazy val agentWithChallengeOnly: Long = randomPositiveLong
+  lazy val agentWithNeither: Long = randomPositiveLong
 
   lazy val nonExistentAuthId: Long = randomPositiveLong
   lazy val directlyLinkedAuthId: Long = randomPositiveLong

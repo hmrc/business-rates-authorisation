@@ -19,7 +19,7 @@ package businessrates.authorisation.controllers
 import javax.inject.Inject
 
 import businessrates.authorisation.connectors._
-import businessrates.authorisation.models.{AccountIds, Accounts, GovernmentGatewayDetails, SubmissionIds}
+import businessrates.authorisation.models._
 import businessrates.authorisation.services.AccountsService
 import play.api.Logger
 import play.api.libs.json.Json
@@ -42,9 +42,10 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
     }
   }
 
-  def authoriseToViewAssessment(authorisationId: Long, assessmentRef: Long) = Action.async { implicit request =>
+
+  def authoriseToViewAssessment(authorisationId: Long, assessmentRef: Long, role: Option[PermissionType] = None) = Action.async { implicit request =>
     withIds { accounts =>
-      propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef).map {
+      propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef, role.getOrElse(any)).map {
         case Some(_) => Ok(toJson(accounts))
         case _ => Forbidden
       }.recover { case _ => Forbidden }
