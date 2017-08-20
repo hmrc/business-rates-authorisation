@@ -17,7 +17,7 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.models._
+import businessrates.authorisation.models.{any => anyPT, _}
 import businessrates.authorisation.services.AccountsService
 import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
 import org.joda.time.LocalDate
@@ -33,6 +33,13 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
 
 class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with BeforeAndAfterEach {
+
+  override protected def beforeEach(): Unit = {
+    StubPropertyLinking.reset()
+    StubAuthConnector.reset()
+    StubOrganisationAccounts.reset()
+    StubPersonAccounts.reset()
+  }
 
   override protected def afterEach(): Unit = {
     //reset to initial state

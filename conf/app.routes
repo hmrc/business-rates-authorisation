@@ -3,6 +3,7 @@
 GET        /authenticate                                                    businessrates.authorisation.controllers.AuthorisationController.authenticate
 GET        /property-link/:authorisationId                                  businessrates.authorisation.controllers.AuthorisationController.authorise(authorisationId: Long)
 GET        /property-link/:authorisationId/assessment/:assessmentRef        businessrates.authorisation.controllers.AuthorisationController.authoriseToViewAssessment(authorisationId: Long, assessmentRef: Long)
+GET        /property-link/:authorisationId/assessment/:assessmentRef/:role  businessrates.authorisation.controllers.AuthorisationController.authoriseToViewAssessmentWithRole(authorisationId: Long, assessmentRef: Long, role: businessrates.authorisation.models.PermissionType)
 GET        /:authorisationId/ids                                            businessrates.authorisation.controllers.AuthorisationController.getIds(authorisationId: Long)
 
 DELETE     /cache                                                           businessrates.authorisation.controllers.CacheController.clearCache
