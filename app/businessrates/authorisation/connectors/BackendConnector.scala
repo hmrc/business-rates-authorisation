@@ -23,6 +23,8 @@ import com.google.inject.name.Named
 import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpReads, NotFoundException}
 import HttpReads._
+import org.joda.time.LocalDate
+import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,9 +41,10 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
 
   val declinedStatuses = Seq("REVOKED", "DECLINED")
 
-  private val onlyPendingAndApproved: AgentFilter = agent => List("APPROVED", "PENDING").contains(agent.authorisedPartyStatus)
-  private val mustHaveAPermission: AgentFilter = _.permissions.nonEmpty
-  private val withoutPermissionEndDate: Party => Party = agent => agent.copy(permissions = agent.permissions.filterNot(_.endDate.isDefined))
+  private val onlyPendingAndApproved: AgentFilter = agent => Seq(RepresentationApproved, RepresentationPending).contains(agent.authorisedPartyStatus)
+  private val mustHaveAPermission: AgentFilter = _.permissions.exists(p => p.values.exists { case (_, a) => a != NotPermitted })
+  private val withoutPermissionEndDateOrAfterNow: Party => Party =
+    agent => agent.copy(permissions = agent.permissions.filter(p => p.endDate.forall(ed => ed.isAfter(LocalDate.now))))
 
   private def NotFound[T]: PartialFunction[Throwable, Option[T]] = {
     case _: NotFoundException => None
@@ -62,12 +65,22 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
     getAuthorisation(authorisationId).map(_.find(l => l.organisationId == organisationId || l.agents.exists(_.organisationId == organisationId)))
   }
 
-  override def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long)
+  override def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long, role: PermissionType)
                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Assessment]] = {
-
     getLink(organisationId, authorisationId) map {
-      case Some(link) if !link.pending => link.assessment.find(_.assessmentRef == assessmentRef)
-      case None => None
+      case Some(PropertyLink(_, _, _, _, _, pending @ true, _, _, _)) =>
+        None
+      case Some(PropertyLink(_, _, owner @ `organisationId`, _, _, _, assessments, _, _)) =>
+        assessments.find(_.assessmentRef == assessmentRef)
+      case Some(PropertyLink(_, _, _, _, _, _, assessments, agents, _)) =>
+        agents.find(_.organisationId == organisationId).map {
+          case Party(permissions, `RepresentationApproved`, _) =>
+            permissions.find { p => role == any || p.values.get(role).exists(_ != NotPermitted) }
+        }.flatMap {
+          case Some(_) => assessments.find(_.assessmentRef == assessmentRef)
+          case _ => None
+        }
+      case _ => None
     }
   }
 
@@ -79,7 +92,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
   protected def getAuthorisation(authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = {
     http.GET[Option[PropertyLink]](s"$authorisationsUrl?listYear=$listYear&authorisationId=$authorisationId") map {
       case Some(link) if !declinedStatuses.contains(link.authorisationStatus.toUpperCase) =>
-        Some(link.copy(agents = link.agents.filter(onlyPendingAndApproved).map(withoutPermissionEndDate).filter(mustHaveAPermission)))
+        Some(link.copy(agents = link.agents.filter(onlyPendingAndApproved).map(withoutPermissionEndDateOrAfterNow).filter(mustHaveAPermission)))
       case _ => None
     } recover NotFound[PropertyLink]
   }

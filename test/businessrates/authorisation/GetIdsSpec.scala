@@ -17,7 +17,7 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.models._
+import businessrates.authorisation.models.{any => anyPT, _}
 import businessrates.authorisation.services.AccountsService
 import businessrates.authorisation.utils.{StubAuthConnector, StubPropertyLinking}
 import org.joda.time.LocalDate
