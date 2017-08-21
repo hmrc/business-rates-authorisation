@@ -16,12 +16,12 @@
 
 package businessrates.authorisation.connectors
 
-import businessrates.authorisation.models.{Assessment, PropertyLink}
+import businessrates.authorisation.models.{Assessment, PermissionType, PropertyLink}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PropertyLinking {
   def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]]
-  def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Assessment]]
+  def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long, role: PermissionType)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Assessment]]
 }

@@ -18,7 +18,7 @@ package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
 import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
-import businessrates.authorisation.models._
+import businessrates.authorisation.models.{any => anyPT, _}
 import businessrates.authorisation.services.AccountsService
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito.when

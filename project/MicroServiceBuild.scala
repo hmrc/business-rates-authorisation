@@ -2,12 +2,17 @@ import sbt._
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.versioning.SbtGitVersioning
+import play.sbt.routes.RoutesKeys._
 
 object MicroServiceBuild extends Build with MicroService {
 
   val appName = "business-rates-authorisation"
 
   override lazy val appDependencies: Seq[ModuleID] = AppDependencies()
+
+  override lazy val playSettings = Seq(
+    routesImport ++= Seq("businessrates.authorisation.models.PermissionType")
+  )
 }
 
 private object AppDependencies {

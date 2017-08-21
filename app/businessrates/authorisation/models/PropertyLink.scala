@@ -20,23 +20,36 @@ import org.joda.time.{DateTimeZone, LocalDate}
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class Permission(checkPermission: String, challengePermission: String, endDate:Option[LocalDate])
+sealed trait PermissionType extends NamedEnum { override def key = "permissionType" }
+
+case object any extends PermissionType { override def name = "any" }
+case object check extends PermissionType { override def name = "check" }
+case object challenge extends PermissionType { override def name = "challenge" }
+
+object PermissionType extends NamedEnumSupport[PermissionType] {
+  implicit val format = EnumFormat(PermissionType)
+  override def all = Seq(check, challenge, any)
+}
+
+case class Permission(checkPermission: AgentPermission, challengePermission: AgentPermission, endDate:Option[LocalDate]) {
+  val values: Map[PermissionType, AgentPermission] = Map(check -> checkPermission, challenge -> challengePermission)
+}
 
 object Permission {
   private val readsBuilder =
-    (__ \ "checkPermission").read[String] and
-    (__ \ "challengePermission").read[String] and
+    (__ \ "checkPermission").read[AgentPermission] and
+    (__ \ "challengePermission").read[AgentPermission] and
     (__ \ "endDate").readNullable[LocalDate]
 
   implicit val format: OFormat[Permission] = OFormat(readsBuilder.apply(Permission.apply _), Json.writes[Permission])
 }
 
-case class Party(permissions: Seq[Permission], authorisedPartyStatus: String, organisationId: Long)
+case class Party(permissions: Seq[Permission], authorisedPartyStatus: RepresentationStatus, organisationId: Long)
 
 object Party {
   private val readsBuilder =
     (__ \ "permissions").read[Seq[Permission]] and
-    (__ \ "authorisedPartyStatus").read[String] and
+    (__ \ "authorisedPartyStatus").read[RepresentationStatus] and
     (__ \ "authorisedPartyOrganisationId").read[Long]
 
   implicit val format: OFormat[Party] = OFormat(readsBuilder.apply(Party.apply _), Json.writes[Party])
@@ -73,6 +86,18 @@ object PropertyLink {
     (__ \ "authorisationStatus").read[String]
 
   implicit val format: OFormat[PropertyLink] = OFormat(readsBuilder.apply(PropertyLink.apply _), Json.writes[PropertyLink])
+}
+
+object PropertyLinkOwnerAndAssessments {
+  def unapply(link: Some[PropertyLink]): Option[(Long, Seq[Assessment])] = link.map { l => (l.organisationId, l.assessment) }
+}
+
+object PropertyLinkAssessmentsAndAgents {
+  def unapply(link: Some[PropertyLink]): Option[(Seq[Assessment], Seq[Party])] = link.map { l => (l.assessment, l.agents) }
+}
+
+object PendingLink {
+  def unapply(link: Some[PropertyLink]): Boolean = link.get.pending
 }
 
 case class Authorisations(authorisations: Seq[PropertyLink])

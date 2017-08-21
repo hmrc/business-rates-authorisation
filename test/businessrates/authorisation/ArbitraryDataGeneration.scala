@@ -16,10 +16,10 @@
 
 package businessrates.authorisation
 
-import businessrates.authorisation.models._
+import businessrates.authorisation.models.{any => anyPT, _}
 import org.joda.time.{DateTime, LocalDate}
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Gen
 
 trait ArbitraryDataGeneration {
 
@@ -85,12 +85,12 @@ trait ArbitraryDataGeneration {
 
   def randomParty: Gen[Party] = for {
     permissions <- randomPermissions
-    authorisedPartyStatus <- Gen.oneOf("APPROVED", "PENDING")
+    authorisedPartyStatus <- Gen.oneOf(RepresentationApproved, RepresentationPending)
     organisationId <- randomPositiveLong
   } yield Party(permissions, authorisedPartyStatus, organisationId)
 
   def randomPermissions: Gen[Seq[Permission]] = for {
-    checkPermission <- Gen.oneOf("START_AND_CONTINUE", "NOT_PERMITTED")
-    challengePermission <- Gen.oneOf("START_AND_CONTINUE", "NOT_PERMITTED")
+    checkPermission <- Gen.oneOf(StartAndContinue, NotPermitted)
+    challengePermission <- Gen.oneOf(StartAndContinue, NotPermitted)
   } yield Seq(Permission(checkPermission, challengePermission, None))
 }
