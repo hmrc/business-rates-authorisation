@@ -141,7 +141,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
 
           val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(pending = false,
             agents = Seq(randomParty.copy(organisationId = agentOrganisation.id,
-              authorisedPartyStatus = RepresentationApproved,
+              authorisedPartyStatus = RepresentationStatus.approved,
               permissions = Seq(Permission(StartAndContinue, StartAndContinue, None)))))
           StubPropertyLinking.stubLink(propertyLink)
 

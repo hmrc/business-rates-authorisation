@@ -41,7 +41,8 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
 
   val declinedStatuses = Seq("REVOKED", "DECLINED")
 
-  private val onlyPendingAndApproved: AgentFilter = agent => Seq(RepresentationApproved, RepresentationPending).contains(agent.authorisedPartyStatus)
+  private val onlyPendingAndApproved: AgentFilter = agent => Seq(RepresentationStatus.approved, RepresentationStatus.pending)
+    .contains(agent.authorisedPartyStatus)
   private val mustHaveAPermission: AgentFilter = _.permissions.exists(p => p.values.exists { case (_, a) => a != NotPermitted })
   private val withoutPermissionEndDateOrAfterNow: Party => Party =
     agent => agent.copy(permissions = agent.permissions.filter(p => p.endDate.forall(ed => ed.isAfter(LocalDate.now))))
@@ -74,7 +75,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
       case PropertyLinkOwnerAndAssessments(`organisationId`, assessments) => assessments.find(_.assessmentRef == assessmentRef)
       case PropertyLinkAssessmentsAndAgents(assessments, agents) =>
         agents.find(_.organisationId == organisationId).flatMap {
-          case Party(permissions, `RepresentationApproved`, _) if permissions exists withRole(role) =>
+          case Party(permissions, RepresentationStatus.approved, _) if permissions exists withRole(role) =>
             assessments.find(_.assessmentRef == assessmentRef)
           case _ => None
         }

@@ -16,30 +16,22 @@
 
 package businessrates.authorisation.models
 
+import play.api.libs.json.Format
+
 sealed trait RepresentationStatus extends NamedEnum {
   val name: String
   val key = "propReprStatus"
-  override def toString = name
-}
-
-case object RepresentationApproved extends RepresentationStatus {
-  val name = "APPROVED"
-}
-
-case object RepresentationPending extends RepresentationStatus {
-  val name = "PENDING"
-}
-
-case object RepresentationRevoked extends RepresentationStatus {
-  override val name = "REVOKED"
-}
-
-case object RepresentationDeclined extends RepresentationStatus {
-  override val name = "DECLINED"
+  override def toString: String = name
 }
 
 object RepresentationStatus extends NamedEnumSupport[RepresentationStatus] {
-  implicit val format = EnumFormat(RepresentationStatus)
+  case object approved extends RepresentationStatus { val name = "APPROVED" }
+  case object pending extends RepresentationStatus { val name = "PENDING" }
+  case object revoked extends RepresentationStatus { val name = "REVOKED" }
+  case object declined extends RepresentationStatus { val name = "DECLINED" }
+  case object timedOut extends RepresentationStatus { val name = "TIMED_OUT" }
 
-  override def all: List[RepresentationStatus] = List(RepresentationApproved, RepresentationPending, RepresentationRevoked, RepresentationDeclined)
+  implicit val format: Format[RepresentationStatus] = EnumFormat(RepresentationStatus)
+
+  override def all: List[RepresentationStatus] = List(approved, pending, revoked, declined, timedOut)
 }
