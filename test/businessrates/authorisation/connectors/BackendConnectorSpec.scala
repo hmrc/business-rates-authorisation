@@ -17,6 +17,7 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.ArbitraryDataGeneration
+import businessrates.authorisation.models.RepresentationStatus.approved
 import businessrates.authorisation.models.{any => anyPT, _}
 import org.joda.time.LocalDate
 import org.joda.time.format.ISODateTimeFormat
@@ -400,11 +401,96 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
       |  ]
       |}""".stripMargin
 
+  private val agentsByPermission: String = s"""{
+    |  "agents" : [
+    |    {
+    |      "authorisedPartyCapacity": "AGENT",
+    |      "authorisedPartyOrganisationId": $agentWithNeither,
+    |      "authorisedPartyStatus": "APPROVED",
+    |      "caseLinks": [],
+    |      "id": 12,
+    |      "permissions": [
+    |        {
+    |          "challengePermission": "NOT_PERMITTED",
+    |          "checkPermission": "NOT_PERMITTED",
+    |          "id": 13
+    |        }
+    |      ],
+    |      "startDate": "2017-03-28",
+    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+    |    },
+    |    {
+    |      "authorisedPartyCapacity": "AGENT",
+    |      "authorisedPartyOrganisationId": $agentWithNeither,
+    |      "authorisedPartyStatus": "DECLINED",
+    |      "caseLinks": [],
+    |      "id": 12,
+    |      "permissions": [
+    |        {
+    |          "challengePermission": "NOT_PERMITTED",
+    |          "checkPermission": "NOT_PERMITTED",
+    |          "id": 13
+    |        }
+    |      ],
+    |      "startDate": "2017-03-28",
+    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+    |    },
+    |    {
+    |      "authorisedPartyCapacity": "AGENT",
+    |      "authorisedPartyOrganisationId": $agentWithNeither,
+    |      "authorisedPartyStatus": "PENDING",
+    |      "caseLinks": [],
+    |      "id": 12,
+    |      "permissions": [
+    |        {
+    |          "challengePermission": "NOT_PERMITTED",
+    |          "checkPermission": "NOT_PERMITTED",
+    |          "id": 13
+    |        }
+    |      ],
+    |      "startDate": "2017-03-28",
+    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+    |    },
+    |    {
+    |      "authorisedPartyCapacity": "AGENT",
+    |      "authorisedPartyOrganisationId": $agentWithNeither,
+    |      "authorisedPartyStatus": "TIMED_OUT",
+    |      "caseLinks": [],
+    |      "id": 12,
+    |      "permissions": [
+    |        {
+    |          "challengePermission": "NOT_PERMITTED",
+    |          "checkPermission": "NOT_PERMITTED",
+    |          "id": 13
+    |        }
+    |      ],
+    |      "startDate": "2017-03-28",
+    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+    |    },
+    |    {
+    |      "authorisedPartyCapacity": "AGENT",
+    |      "authorisedPartyOrganisationId": $agentWithNeither,
+    |      "authorisedPartyStatus": "REVOKED",
+    |      "caseLinks": [],
+    |      "id": 12,
+    |      "permissions": [
+    |        {
+    |          "challengePermission": "NOT_PERMITTED",
+    |          "checkPermission": "NOT_PERMITTED",
+    |          "id": 13
+    |        }
+    |      ],
+    |      "startDate": "2017-03-28",
+    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+    |    }
+    |  ]
+    |}""".stripMargin
+
   private val agentsWithPermission = Seq(
-    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = 2000000002),
-    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = agentWithBoth),
-    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = NotPermitted, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = agentWithCheckOnly),
-    Party(permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = agentWithChallengeOnly)
+    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = 2000000002),
+    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = agentWithBoth),
+    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = NotPermitted, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = agentWithCheckOnly),
+    Party(permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = agentWithChallengeOnly)
   )
 
   private val validPropertyLink = PropertyLink(authorisationId = 42,
@@ -414,7 +500,7 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     personId = 46,
     pending = false,
     assessment = Seq(Assessment(assessmentRef = 18630583000L, listYear = "2017", uarn = 9342442000L, effectiveDate = LocalDate.parse("2017-03-31", ISODateTimeFormat.dateTimeParser().withZoneUTC()))),
-    agents = agentsWithPermission :+ Party(permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = NotPermitted, endDate = None)), authorisedPartyStatus = RepresentationApproved, organisationId = agentWithNeither),
+    agents = agentsWithPermission :+ Party(permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = NotPermitted, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = agentWithNeither),
     authorisationStatus = "APPROVED")
 
   private val declinedPropertyLink = validPropertyLink.copy(authorisationStatus = "DECLINED")
@@ -490,6 +576,14 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
 
     "Correctly parse a PropertyLink" in {
       (Json.parse(inputPropertyLink) \ "authorisations" \ 0).validate[PropertyLink] mustBe JsSuccess(validPropertyLink)
+    }
+
+    "Correctly parse all types of representation" in {
+      (Json.parse(agentsByPermission) \ "agents" \ 0).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.approved
+      (Json.parse(agentsByPermission) \ "agents" \ 1).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.declined
+      (Json.parse(agentsByPermission) \ "agents" \ 2).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.pending
+      (Json.parse(agentsByPermission) \ "agents" \ 3).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.timedOut
+      (Json.parse(agentsByPermission) \ "agents" \ 4).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.revoked
     }
   }
 

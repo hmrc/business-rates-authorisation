@@ -85,7 +85,7 @@ trait ArbitraryDataGeneration {
 
   def randomParty: Gen[Party] = for {
     permissions <- randomPermissions
-    authorisedPartyStatus <- Gen.oneOf(RepresentationApproved, RepresentationPending)
+    authorisedPartyStatus <- Gen.oneOf(RepresentationStatus.approved, RepresentationStatus.pending)
     organisationId <- randomPositiveLong
   } yield Party(permissions, authorisedPartyStatus, organisationId)
 
