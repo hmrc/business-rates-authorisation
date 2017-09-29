@@ -1,3 +1,4 @@
+import org.scalastyle.sbt.ScalastylePlugin
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
 import sbt._
@@ -42,6 +43,7 @@ trait MicroService {
     .settings(publishingSettings: _*)
     .settings(defaultSettings(): _*)
     .settings(PlayKeys.playDefaultPort := 9525)
+    .settings(ScalastylePlugin.scalastyleFailOnError := false)
     .settings(
       libraryDependencies ++= appDependencies,
       retrieveManaged := true,
