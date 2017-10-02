@@ -19,14 +19,14 @@ package businessrates.authorisation.models
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class Organisation(id: Int, groupId: String, companyName: String, addressId: Int, email: String, phone: String, isAgent: Boolean, agentCode: Long)
+case class Organisation(id: Long, groupId: String, companyName: String, addressId: Long, email: String, phone: String, isAgent: Boolean, agentCode: Long)
 
 object Organisation {
   val apiFormat: Reads[Organisation] = (
-    (__ \ "id").read[Int] and
+    (__ \ "id").read[Long] and
     (__ \ "governmentGatewayGroupId").read[String] and
     (__ \ "organisationLatestDetail" \ "organisationName").read[String] and
-    (__ \ "organisationLatestDetail" \ "addressUnitId").read[Int] and
+    (__ \ "organisationLatestDetail" \ "addressUnitId").read[Long] and
     (__ \ "organisationLatestDetail" \ "organisationEmailAddress").read[String] and
     (__ \ "organisationLatestDetail" \ "organisationTelephoneNumber").read[String] | Reads.pure[String]("not set") and
     (__ \ "organisationLatestDetail" \ "representativeFlag").read[Boolean] and
