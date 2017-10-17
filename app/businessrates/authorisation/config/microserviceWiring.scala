@@ -19,7 +19,6 @@ package businessrates.authorisation.config
 import javax.inject.Inject
 
 import businessrates.authorisation.metrics.HasMetrics
-import com.google.inject.name.Named
 import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json.Writes
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
@@ -36,9 +35,7 @@ class SimpleWSHttp extends WSHttp {
   override val hooks: Seq[HttpHook] = NoneRequired
 }
 
-class VOABackendWSHttp @Inject()(val metrics: Metrics,
-                                 @Named("voaApiSubscriptionHeader") val voaApiSubscriptionHeader: String,
-                                 @Named("voaApiTraceHeader") val voaApiTraceHeader: String) extends WSHttp with HasMetrics with AzureHeaders {
+class VOABackendWSHttp @Inject()(val metrics: Metrics) extends WSHttp with HasMetrics with AzureHeaders {
   override val hooks: Seq[HttpHook] = NoneRequired
 }
 
@@ -51,14 +48,7 @@ object MicroserviceAuthConnector extends AuthConnector with ServicesConfig {
 }
 
 trait AzureHeaders extends WSHttp {
-  val voaApiSubscriptionHeader: String
-  val voaApiTraceHeader: String
-
-  val baseModernizerHC = HeaderCarrier(extraHeaders = Seq("Ocp-Apim-Subscription-Key" -> voaApiSubscriptionHeader,
-    "Ocp-Apim-Trace" -> voaApiTraceHeader))
-
-  def buildHeaderCarrier(hc: HeaderCarrier): HeaderCarrier = baseModernizerHC
-    .copy(requestId = hc.requestId, sessionId = hc.sessionId)
+  def buildHeaderCarrier(hc: HeaderCarrier): HeaderCarrier = HeaderCarrier(requestId = hc.requestId, sessionId = hc.sessionId)
     .withExtraHeaders(hc.extraHeaders: _*)
 
   override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
