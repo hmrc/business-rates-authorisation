@@ -39,8 +39,6 @@ class GuiceModule(override val environment: Environment, configuration: Configur
   override val runModeConfiguration = configuration
 
   def configure(): Unit = {
-    bindConstant().annotatedWith(Names.named("voaApiSubscriptionHeader")).to(configuration.getString("voaApi.subscriptionKeyHeader").get)
-    bindConstant().annotatedWith(Names.named("voaApiTraceHeader")).to(configuration.getString("voaApi.subscriptionKeyHeader").get)
     bindConstant().annotatedWith(Names.named("dataPlatformUrl")).to(baseUrl("data-platform"))
     bindConstant().annotatedWith(Names.named("ratesListYear")).to(getConfInt("rates.list.year", 2017))
     bind(classOf[WSHttp]).annotatedWith(Names.named("voaBackendWSHttp")).to(classOf[VOABackendWSHttp])

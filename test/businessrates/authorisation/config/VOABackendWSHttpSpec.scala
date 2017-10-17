@@ -24,13 +24,13 @@ import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.ws
 import play.api.libs.ws.WSResponse
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.ws.WSRequest
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.Future
 
-class VOABackendWSHttpTest extends UnitSpec with WireMockSpec with MockitoSugar {
+class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar {
 
   val metricsMock = mock[Metrics]
   val metricRegistry = mock[MetricRegistry]
@@ -46,8 +46,8 @@ class VOABackendWSHttpTest extends UnitSpec with WireMockSpec with MockitoSugar 
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val wsHttp = new VOABackendWSHttp(metricsMock, "subKey", "true") with MockWsRequest { val status = 200 }
-  val failHttp = new VOABackendWSHttp(metricsMock, "subKey", "true") with MockWsRequest { val status = 400 }
+  val wsHttp = new VOABackendWSHttp(metricsMock) with MockWsRequest { val status = 200 }
+  val failHttp = new VOABackendWSHttp(metricsMock) with MockWsRequest { val status = 400 }
 
   "Invoking a method on the VOABackendWSHttp connection" should {
     "trigger metrics success logging for the customer-management-api endpoint" in {
