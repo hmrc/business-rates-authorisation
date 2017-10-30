@@ -48,7 +48,7 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
       propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef, role.getOrElse(any)).map {
         case Some(_) => Ok(toJson(accounts))
         case _ => Forbidden
-      }.recover { case _ => Forbidden }
+      }
     }
   }
 
@@ -70,7 +70,7 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
             interestedParty = AccountIds(link.organisationId, link.personId)
           )))
         case None => Forbidden
-      }.recover { case _ => Forbidden }
+      }
     }
   }
 
