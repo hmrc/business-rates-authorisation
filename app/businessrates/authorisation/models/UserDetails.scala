@@ -18,7 +18,7 @@ package businessrates.authorisation.models
 
 import play.api.libs.json.Json
 
-case class UserDetails(groupIdentifier: String, affinityGroup: String)
+case class UserDetails(groupIdentifier: Option[String], affinityGroup: Option[String])
 
 object UserDetails {
   implicit val format = Json.format[UserDetails]
