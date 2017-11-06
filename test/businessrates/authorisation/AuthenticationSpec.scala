@@ -51,7 +51,7 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
     "the user is logged in to Government Gateway with an individual account" must {
       "return a 401 status and the NON_ORGANISATION_ACCOUNT error code" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", "aGroupId", "Individual"))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", Some("aGroupId"), Some("Individual")))
         val res = testController.authenticate()(FakeRequest())
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")
@@ -60,7 +60,7 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
     "the user is logged in to Government Gateway with an agent account" must {
       "return a 401 status and the NON_ORGANISATION_ACCOUNT error code" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", "aGroupId", "Agent"))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", Some("aGroupId"), Some("Agent")))
         val res = testController.authenticate()(FakeRequest())
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")
@@ -69,7 +69,7 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
     "the user is logged in to Government Gateway with an organisation account but has not registered a CCA account" must {
       "return a 401 status and the NO_CUSTOMER_RECORD error code" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", "aGroupId", "Organisation"))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", Some("aGroupId"), Some("Organisation")))
         val res = testController.authenticate()(FakeRequest())
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
@@ -82,9 +82,9 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
         val stubPerson: Person = randomPerson
 
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, stubOrganisation.groupId, "Organisation"))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, Some(stubOrganisation.groupId), Some("Organisation")))
         when(mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
-        
+
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)
         StubPersonAccounts.stubPerson(stubPerson)
         val res = testController.authenticate()(FakeRequest())
@@ -96,6 +96,34 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
           "person" -> Json.toJson(stubPerson)
         )
       }
+    }
+
+    "return a 401 status and fail when group id is missing" in {
+      val stubOrganisation: Organisation = randomOrganisation
+
+      val stubPerson: Person = randomPerson
+
+      StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, None, Some("Organisation")))
+      when(mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
+
+      StubOrganisationAccounts.stubOrganisation(stubOrganisation)
+      StubPersonAccounts.stubPerson(stubPerson)
+      val res = testController.authenticate()(FakeRequest())
+      status(res) mustBe UNAUTHORIZED
+    }
+
+    "return a 401 status when the affinity group is missing from the user." in {
+      val stubOrganisation: Organisation = randomOrganisation
+
+      val stubPerson: Person = randomPerson
+
+      StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, Some(stubOrganisation.groupId), None))
+      when(mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
+
+      StubOrganisationAccounts.stubOrganisation(stubOrganisation)
+      StubPersonAccounts.stubPerson(stubPerson)
+      val res = testController.authenticate()(FakeRequest())
+      status(res) mustBe UNAUTHORIZED
     }
   }
 }

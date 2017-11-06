@@ -16,4 +16,29 @@
 
 package businessrates.authorisation.models
 
-case class GovernmentGatewayDetails(externalId: String, groupId: String, affinityGroup: String)
+import play.api.libs.json._
+
+case class GovernmentGatewayDetails(externalId: String, groupId: Option[String], affinityGroup: Option[String]) //TODO make type safe this would allow removal of option and have a default type.
+
+//sealed trait AffinityGroup
+//object Organisation extends AffinityGroup
+//object Agent extends AffinityGroup
+//object Individual extends AffinityGroup
+//
+//object AffinityGroup {
+//
+//  val reads: Reads[AffinityGroup] = Reads[AffinityGroup] {
+//    case JsString("Organisation") => JsSuccess(Organisation)
+//    case JsString("Individual") => JsSuccess(Individual)
+//    case JsString("Agent") => JsSuccess(Agent)
+//    case value => JsError(s"Affinity group must be a string, of either Organisation, Individual or Agent. $value was provided.")
+//  }
+//
+//  val writes: Writes[AffinityGroup] = Writes[AffinityGroup] {
+//    case Organisation => JsString("Organisation")
+//    case Individual => JsString("Individual")
+//    case Agent => JsString("Agent")
+//  }
+//
+//  implicit val format: Format[AffinityGroup] = Format[AffinityGroup](reads, writes) //Perhaps use this instead of OPtion String
+//}

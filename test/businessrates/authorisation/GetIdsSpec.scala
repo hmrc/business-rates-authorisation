@@ -55,9 +55,9 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
   "Getting the IDs" when {
     "a user is submitting a check on their own property link" must {
       "return the same IDs for the case creator's IDs and the link owner's IDs" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(client.externalId, clientOrganisation.groupId, "Organisation"))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(client.externalId, Some(clientOrganisation.groupId), Some("Organisation")))
         stubAccounts(client, clientOrganisation)
-        StubPropertyLinking.stubLink(PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
+        StubPropertyLinking.stubLink(PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, pending = false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
 
         val res = testController.getIds(authorisationId)(FakeRequest())
         status(res) mustBe OK
@@ -71,14 +71,14 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
 
     "an agent is submitting a check on behalf of a client" must {
       "return the agent's IDs as the case creator's IDs, and the client's IDs as the link owner's IDs" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(agent.externalId, agentOrganisation.groupId, "Organisation"))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(agent.externalId, Some(agentOrganisation.groupId), Some("Organisation")))
         stubAccounts(agent, agentOrganisation)
 
         val party = randomParty.copy(organisationId = agentOrganisation.id)
         StubPropertyLinking.stubLink(
           PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(party), "APPROVED")
         )
-        
+
         val res = testController.getIds(authorisationId)(FakeRequest())
         status(res) mustBe OK
 

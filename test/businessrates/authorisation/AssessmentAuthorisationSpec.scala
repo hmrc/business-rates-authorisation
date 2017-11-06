@@ -34,6 +34,7 @@ import scala.concurrent.Future
 
 class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with BeforeAndAfterEach {
 
+  val maybeOrg = Some("Organisation")
   override protected def beforeEach(): Unit = {
     StubPropertyLinking.reset()
     StubAuthConnector.reset()
@@ -73,7 +74,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
 
     "the user is logged in to government gateway but has not registered a VOA account" must {
       "return a 401 response and the NO_CUSTOMER_RECORD error code" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
+        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, Some(organisation.groupId), maybeOrg))
         val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
@@ -83,7 +84,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
     "the user is logged in to government gateway and has a VOA account" when {
       "the account does not have a link to the property" must {
         "return a 403 response" in {
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, Some(organisation.groupId), maybeOrg))
           stubAccounts()
           val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
           status(res) mustBe FORBIDDEN
@@ -95,7 +96,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val linkId = 1234
           val assessmentRef = 9012
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, Some(organisation.groupId), maybeOrg))
           stubAccounts()
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
@@ -108,7 +109,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val linkId = 2345
           val assessmentRef = 1234
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, Some(organisation.groupId), maybeOrg))
           stubAccounts()
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, LocalDate.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)), Seq(), "PENDING"))
 
@@ -116,13 +117,13 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           status(res) mustBe FORBIDDEN
         }
       }
-      
+
       "the account has a valid link to the assessment" must {
         "return a 200 response and the organisation and person IDs" in {
           val linkId = 1234
           val assessmentRef = 9012
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, organisation.groupId, "Organisation"))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, Some(organisation.groupId), maybeOrg))
           stubAccounts()
           StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
@@ -136,18 +137,67 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val anAgent: Person = randomPerson
           val agentOrganisation: Organisation = randomOrganisation
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(anAgent.externalId, agentOrganisation.groupId, "Organisation"))
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(anAgent.externalId, Some(agentOrganisation.groupId), maybeOrg))
           stubAccounts(anAgent, agentOrganisation)
 
-          val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(pending = false,
-            agents = Seq(randomParty.copy(organisationId = agentOrganisation.id,
+          val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(
+            pending = false,
+            agents = Seq(randomParty.copy(
+              organisationId = agentOrganisation.id,
               authorisedPartyStatus = RepresentationStatus.approved,
-              permissions = Seq(Permission(StartAndContinue, StartAndContinue, None)))))
+              permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
+            ))
+          )
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = testController.authoriseToViewAssessment(propertyLink.authorisationId, propertyLink.assessment.head.assessmentRef)(FakeRequest())
           status(res) mustBe OK
           contentAsJson(res) mustBe Json.obj("organisationId" -> agentOrganisation.id, "personId" -> anAgent.individualId, "organisation" -> Json.toJson(agentOrganisation), "person" -> Json.toJson(anAgent))
+        }
+      }
+    }
+
+    "the user logs in and has an invalid government gateway OR VOA account " when {
+      "auth service" must {
+        "return a 401 without group id" in {
+          val anAgent: Person = randomPerson
+          val agentOrganisation: Organisation = randomOrganisation
+
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(anAgent.externalId, None, maybeOrg))
+          stubAccounts(anAgent, agentOrganisation)
+
+          val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(
+            pending = false,
+            agents = Seq(randomParty.copy(
+              organisationId = agentOrganisation.id,
+              authorisedPartyStatus = RepresentationStatus.approved,
+              permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
+            ))
+          )
+          StubPropertyLinking.stubLink(propertyLink)
+
+          val res = testController.authoriseToViewAssessment(propertyLink.authorisationId, propertyLink.assessment.head.assessmentRef)(FakeRequest())
+          status(res) mustBe UNAUTHORIZED
+        }
+        "return a 401 without affinity group" in {
+          val anAgent: Person = randomPerson
+          val agentOrganisation: Organisation = randomOrganisation
+
+          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(anAgent.externalId, Some(organisation.groupId), None))
+          stubAccounts(anAgent, agentOrganisation)
+
+          val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(
+            pending = false,
+            agents = Seq(randomParty.copy(
+              organisationId = agentOrganisation.id,
+              authorisedPartyStatus = RepresentationStatus.approved,
+              permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
+            ))
+          )
+          StubPropertyLinking.stubLink(propertyLink)
+
+          val res = testController.authoriseToViewAssessment(propertyLink.authorisationId, propertyLink.assessment.head.assessmentRef)(FakeRequest())
+          status(res) mustBe UNAUTHORIZED
         }
       }
     }
