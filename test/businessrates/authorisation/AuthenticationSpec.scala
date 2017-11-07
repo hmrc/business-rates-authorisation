@@ -110,6 +110,22 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
       StubPersonAccounts.stubPerson(stubPerson)
       val res = testController.authenticate()(FakeRequest())
       status(res) mustBe UNAUTHORIZED
+      println(contentAsJson(res))
+    }
+
+    "return a 401 status and fail when group id is missing and is not Organisation" in {
+      val stubOrganisation: Organisation = randomOrganisation
+
+      val stubPerson: Person = randomPerson
+
+      StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, None, Some("Agent")))
+      when(mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
+
+      StubOrganisationAccounts.stubOrganisation(stubOrganisation)
+      StubPersonAccounts.stubPerson(stubPerson)
+      val res = testController.authenticate()(FakeRequest())
+      status(res) mustBe UNAUTHORIZED
+      println(contentAsJson(res))
     }
 
     "return a 401 status when the affinity group is missing from the user." in {
