@@ -81,12 +81,10 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
           case Some(accs) => default(accs)
           case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
         }
-      case Some(GovernmentGatewayDetails(_, _, Some(affinityGroup))) =>
+
+      case Some(GovernmentGatewayDetails(_, _, affinityGroup)) =>
         Logger.info(s"User has logged in with non-permitted affinityGroup $affinityGroup")
         Future.successful(Unauthorized(Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")))
-      case Some(GovernmentGatewayDetails(_, _, None)) =>
-        Logger.info(s"User has logged in with no affinityGroup")
-        Future.successful(Unauthorized(Json.obj("errorCode" -> "NON_AFFINITY_ACCOUNT")))
       case Some(GovernmentGatewayDetails(_, None, _)) =>
         Logger.info(s"User has logged in with no groupId")
         Future.successful(Unauthorized(Json.obj("errorCode" -> "NON_GROUPID_ACCOUNT")))
