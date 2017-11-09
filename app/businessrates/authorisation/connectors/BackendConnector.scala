@@ -67,7 +67,7 @@ class BackendConnector @Inject()(@Named("voaBackendWSHttp") val http: WSHttp,
   }
 
   private def withRole(role: PermissionType): Permission => Boolean = { p => role == any || p.values.get(role).exists(_ != NotPermitted) }
-  
+
   override def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long, role: PermissionType)
                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Assessment]] = {
     getLink(organisationId, authorisationId) map {

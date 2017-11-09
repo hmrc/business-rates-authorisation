@@ -16,4 +16,6 @@
 
 package businessrates.authorisation.models
 
-case class GovernmentGatewayDetails(externalId: String, groupId: String, affinityGroup: String)
+import play.api.libs.json._
+
+case class GovernmentGatewayDetails(externalId: String, groupId: Option[String], affinityGroup: Option[String])
