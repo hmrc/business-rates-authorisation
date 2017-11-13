@@ -17,9 +17,9 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.models.{Assessment, PermissionType, PropertyLink}
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait PropertyLinking {
   def getLink(organisationId: Long, authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]]

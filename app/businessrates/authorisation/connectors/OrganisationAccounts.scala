@@ -17,9 +17,9 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.models.Organisation
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait OrganisationAccounts {
   def getOrganisationByGGId(ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]]

@@ -46,6 +46,7 @@ trait MicroService {
     .settings(ScalastylePlugin.scalastyleFailOnError := false)
     .settings(
       libraryDependencies ++= appDependencies,
+      scalaVersion := "2.11.11",
       retrieveManaged := true,
       evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false)
     )

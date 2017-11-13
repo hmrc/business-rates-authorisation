@@ -18,9 +18,9 @@ package businessrates.authorisation.utils
 
 import businessrates.authorisation.connectors.BackendConnector
 import businessrates.authorisation.models.{Organisation, Person, PropertyLink}
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HeaderCarrier
 
 class StubBackendConnector extends BackendConnector(StubHttp, "http://locahost:9536", 2017) {
   private var stubbedOrganisation: Option[Organisation] = None

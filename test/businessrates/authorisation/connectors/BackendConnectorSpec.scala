@@ -17,7 +17,7 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.ArbitraryDataGeneration
-import businessrates.authorisation.models.RepresentationStatus.approved
+import businessrates.authorisation.config.WSHttp
 import businessrates.authorisation.models.{any => anyPT, _}
 import org.joda.time.LocalDate
 import org.joda.time.format.ISODateTimeFormat
@@ -27,8 +27,7 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
-import uk.gov.hmrc.play.http.ws.WSHttp
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpReads}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -518,36 +517,36 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
 
   private val mockWsHttp = mock[WSHttp]
 
-  when(mockWsHttp.GET[Option[Organisation]](contains("?governmentGatewayGroupId=NOT_FOUND"))(any[HttpReads[Option[Organisation]]], refEq(hc)))
+  when(mockWsHttp.GET[Option[Organisation]](contains("?governmentGatewayGroupId=NOT_FOUND"))(any[HttpReads[Option[Organisation]]], refEq(hc), any()))
     .thenReturn(Future.successful(None))
 
-  when(mockWsHttp.GET[Option[Organisation]](contains("?governmentGatewayGroupId=stub-group-3"))(any[HttpReads[Option[Organisation]]], refEq(hc)))
+  when(mockWsHttp.GET[Option[Organisation]](contains("?governmentGatewayGroupId=stub-group-3"))(any[HttpReads[Option[Organisation]]], refEq(hc), any()))
     .thenReturn(Future.successful(Some(validOrg)))
 
-  when(mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=NO_PERSON"))(any[HttpReads[Option[Person]]], refEq(hc)))
+  when(mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=NO_PERSON"))(any[HttpReads[Option[Person]]], refEq(hc), any()))
     .thenReturn(Future.successful(None))
 
-  when(mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=extId"))(any[HttpReads[Option[Person]]], refEq(hc)))
+  when(mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=extId"))(any[HttpReads[Option[Person]]], refEq(hc), any()))
     .thenReturn(Future.successful(Some(validPerson)))
 
   when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$directlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    s"?listYear=2017&authorisationId=$directlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
   when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(Some(declinedPropertyLink)))
 
   when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$nonExistentAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    s"?listYear=2017&authorisationId=$nonExistentAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(None))
 
   when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
   when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc)))
+    s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(Some(declinedPropertyLink)))
 
   private val connector = new BackendConnector(mockWsHttp, "http://localhost", 2017)

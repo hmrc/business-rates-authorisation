@@ -17,9 +17,9 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.models.Person
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait PersonAccounts {
   def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]]

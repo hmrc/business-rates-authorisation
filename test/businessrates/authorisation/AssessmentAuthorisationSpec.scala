@@ -28,9 +28,9 @@ import play.api.test.Helpers._
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.scalatest.BeforeAndAfterEach
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with BeforeAndAfterEach {
 

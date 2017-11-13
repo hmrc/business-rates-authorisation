@@ -18,17 +18,17 @@ package businessrates.authorisation.connectors
 
 import javax.inject.Inject
 
+import businessrates.authorisation.config.WSHttp
 import businessrates.authorisation.models.{Authority, GovernmentGatewayDetails, UserDetails}
 import cats.data.OptionT
 import cats.implicits._
 import com.google.inject.name.Named
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.play.config.inject.ServicesConfig
-import uk.gov.hmrc.play.http.ws.WSHttp
-import uk.gov.hmrc.play.http.{HeaderCarrier, Upstream4xxResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{HeaderCarrier, Upstream4xxResponse}
 
 class AuthConnector @Inject() (@Named("simpleWSHttp") http: WSHttp, val config: ServicesConfig) {
   lazy val url = config.baseUrl("auth")
