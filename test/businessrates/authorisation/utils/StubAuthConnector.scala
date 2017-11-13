@@ -19,9 +19,9 @@ package businessrates.authorisation.utils
 import businessrates.authorisation.connectors.AuthConnector
 import businessrates.authorisation.models.GovernmentGatewayDetails
 import uk.gov.hmrc.play.config.inject.ServicesConfig
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 object Mock {
   import org.scalatest.mock.MockitoSugar._

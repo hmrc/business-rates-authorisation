@@ -27,9 +27,9 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar with BeforeAndAfterEach {
 

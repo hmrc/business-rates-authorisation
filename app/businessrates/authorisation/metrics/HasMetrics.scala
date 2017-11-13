@@ -21,11 +21,11 @@ import java.net.URL
 import com.codahale.metrics._
 import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json.Writes
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.http.ws.WSHttp
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 trait HasMetrics extends WSHttp {
 

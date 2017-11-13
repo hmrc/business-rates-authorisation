@@ -23,9 +23,9 @@ import businessrates.authorisation.models.Accounts
 import businessrates.authorisation.repositories.AccountsCache
 import cats.data.OptionT
 import cats.implicits._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AccountsService @Inject()(groupAccounts: OrganisationAccounts, individualAccounts: PersonAccounts, cache: AccountsCache)(implicit ec: ExecutionContext) {
 

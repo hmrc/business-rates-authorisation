@@ -16,9 +16,9 @@
 
 package businessrates.authorisation.utils
 
+import businessrates.authorisation.config.WSHttp
 import play.api.libs.json.Writes
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.ws.WSHttp
+import uk.gov.hmrc.http.HeaderCarrier
 
 object StubHttp extends WSHttp {
   override def doGet(url: String)(implicit hc: HeaderCarrier) = ???
@@ -30,6 +30,4 @@ object StubHttp extends WSHttp {
   override def doEmptyPost[A](url: String)(implicit hc: HeaderCarrier) = ???
 
   override def doFormPost(url: String, body: Map[String, Seq[String]])(implicit hc: HeaderCarrier) = ???
-
-  override val hooks = NoneRequired
 }

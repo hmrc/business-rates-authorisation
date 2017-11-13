@@ -24,11 +24,11 @@ import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.ws
 import play.api.libs.ws.WSResponse
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.ws.WSRequest
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar {
 
