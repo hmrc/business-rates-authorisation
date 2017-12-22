@@ -16,12 +16,12 @@
 
 package businessrates.authorisation.connectors
 
+import java.time.LocalDate
 import javax.inject.Inject
 
 import businessrates.authorisation.config.WSHttp
 import businessrates.authorisation.models._
 import com.google.inject.name.Named
-import org.joda.time.LocalDate
 import uk.gov.hmrc.http.HttpReads._
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 

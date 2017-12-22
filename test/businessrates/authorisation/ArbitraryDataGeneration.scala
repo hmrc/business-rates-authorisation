@@ -17,7 +17,8 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.models.{any => anyPT, _}
-import org.joda.time.{DateTime, LocalDate}
+import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
+
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 
@@ -28,8 +29,9 @@ trait ArbitraryDataGeneration {
   def randomShortString: Gen[String] = Gen.listOfN(20, Gen.alphaNumChar).map(_.mkString)
   def randomNumericString: Gen[String] = Gen.listOfN(20, Gen.numChar).map(_.mkString)
   def randomPositiveLong: Gen[Long] = Gen.choose(0L, Long.MaxValue)
-  def randomDate: Gen[DateTime] = Gen.choose(0L, 32472144000000L /* 1/1/2999 */).map(new DateTime(_))
-  def randomLocalDate: Gen[LocalDate] = Gen.choose(0L, 32472144000000L /* 1/1/2999 */).map(new DateTime(_).toLocalDate)
+  def randomInstant:Gen[Instant] = Gen.choose(0L, 32472144000000L /* 1/1/2999 */).map(Instant.ofEpochMilli(_))
+  def randomDate: Gen[ZonedDateTime] = randomInstant.map(ZonedDateTime.ofInstant(_, ZoneId.of("UTC")))
+  def randomLocalDate: Gen[LocalDate] = randomDate.map(_.toLocalDate)
 
   def randomEmail: Gen[String] = for {
     mailbox <- randomShortString
