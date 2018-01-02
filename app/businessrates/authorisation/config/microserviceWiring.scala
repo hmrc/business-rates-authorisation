@@ -23,6 +23,7 @@ import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json.Writes
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.hooks.HttpHooks
+import uk.gov.hmrc.http.logging.LoggingDetails
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -32,11 +33,17 @@ import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.play.microservice.config.LoadAuditingConfig
 
 import scala.concurrent.Future
+import scala.util.{Failure, Try}
 
 trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpPatch with WSPatch with HttpDelete with WSDelete with Hooks with AppName
 object WSHttp extends WSHttp
 
-class SimpleWSHttp extends WSHttp
+class SimpleWSHttp extends WSHttp {
+  override def logResult[A](ld: LoggingDetails, method: String, uri: String, startAge: Long)(result: Try[A]) = result match {
+    case Failure(ex: Upstream4xxResponse) if ex.upstreamResponseCode == 401 => {}
+    case _ => super.logResult[A](ld, method, uri, startAge)(result)
+  }
+}
 
 class VOABackendWSHttp @Inject()(val metrics: Metrics) extends WSHttp with HasMetrics with AzureHeaders
 
