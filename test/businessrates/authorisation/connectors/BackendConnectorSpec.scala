@@ -16,11 +16,10 @@
 
 package businessrates.authorisation.connectors
 
+import java.time.LocalDate
 import businessrates.authorisation.ArbitraryDataGeneration
 import businessrates.authorisation.config.WSHttp
 import businessrates.authorisation.models.{any => anyPT, _}
-import org.joda.time.LocalDate
-import org.joda.time.format.ISODateTimeFormat
 import org.mockito.ArgumentMatchers.{eq => isEqual, _}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -495,10 +494,10 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
   private val validPropertyLink = PropertyLink(authorisationId = 42,
     organisationId = 1000000001,
     uarn = 9342442000L,
-    linkedDate = LocalDate.parse("2017-04-01", ISODateTimeFormat.dateTimeParser().withZoneUTC()),
+    linkedDate = LocalDate.parse("2017-04-01"),
     personId = 46,
     pending = false,
-    assessment = Seq(Assessment(assessmentRef = 18630583000L, listYear = "2017", uarn = 9342442000L, effectiveDate = LocalDate.parse("2017-03-31", ISODateTimeFormat.dateTimeParser().withZoneUTC()))),
+    assessment = Seq(Assessment(assessmentRef = 18630583000L, listYear = "2017", uarn = 9342442000L, effectiveDate = LocalDate.parse("2017-03-31"))),
     agents = agentsWithPermission :+ Party(permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = NotPermitted, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = agentWithNeither),
     authorisationStatus = "APPROVED")
 

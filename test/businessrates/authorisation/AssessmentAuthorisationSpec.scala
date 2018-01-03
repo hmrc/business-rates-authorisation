@@ -16,11 +16,11 @@
 
 package businessrates.authorisation
 
+import java.time.LocalDate
 import businessrates.authorisation.controllers.AuthorisationController
 import businessrates.authorisation.models.{any => anyPT, _}
 import businessrates.authorisation.services.AccountsService
 import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
-import org.joda.time.LocalDate
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
