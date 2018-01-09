@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package businessrates.authorisation.config
 
 import businessrates.authorisation.connectors.{BackendConnector, OrganisationAccounts, PersonAccounts, PropertyLinking}
+import businessrates.authorisation.controllers.{EnrolmentIds, NonEnrolment, WithIds}
 import com.google.inject.{AbstractModule, Inject, Provider}
 import com.google.inject.name.Names
 import com.typesafe.config.Config
@@ -30,11 +31,19 @@ import uk.gov.hmrc.play.config.inject.{DefaultServicesConfig, ServicesConfig}
 import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
 import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
-import uk.gov.hmrc.play.microservice.filters.{ AuditFilter, LoggingFilter, MicroserviceFilterSupport }
+import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
 
 
 class GuiceModule(override val environment: Environment, configuration: Configuration) extends AbstractModule with ServicesConfig {
   override val runModeConfiguration = configuration
+
+  def enrolment(isEnrolment: Boolean) = {
+    if (isEnrolment) {
+      bind(classOf[WithIds]).to(classOf[EnrolmentIds])
+    } else {
+      bind(classOf[WithIds]).to(classOf[NonEnrolment])
+    }
+  }
 
   def configure(): Unit = {
     bindConstant().annotatedWith(Names.named("dataPlatformUrl")).to(baseUrl("data-platform"))
@@ -45,6 +54,7 @@ class GuiceModule(override val environment: Environment, configuration: Configur
     bind(classOf[OrganisationAccounts]).to(classOf[BackendConnector])
     bind(classOf[PersonAccounts]).to(classOf[BackendConnector])
     bind(classOf[PropertyLinking]).to(classOf[BackendConnector])
+    enrolment(configuration.getString("featureFlags.enrolment").getOrElse(throw ConfigMissing("featureFlags.enrolment")).toBoolean)
     bind(classOf[DB]).toProvider(classOf[MongoProvider]).asEagerSingleton()
   }
 }
@@ -85,3 +95,5 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Mi
 
   override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig(s"microservice.metrics")
 }
+
+private case class ConfigMissing(key: String) extends Exception(s"Missing config for $key")

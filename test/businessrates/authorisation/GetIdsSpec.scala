@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package businessrates.authorisation
 
 import java.time.LocalDate
+
 import businessrates.authorisation.controllers.AuthorisationController
 import businessrates.authorisation.models.{any => anyPT, _}
 import businessrates.authorisation.services.AccountsService
-import businessrates.authorisation.utils.{StubAuthConnector, StubPropertyLinking}
+import businessrates.authorisation.utils.{StubAuthConnector, StubPropertyLinking, StubWithIds}
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
@@ -50,7 +51,7 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
     when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
   }
 
-  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService)
+  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new StubWithIds(mockAccountsService))
 
   "Getting the IDs" when {
     "a user is submitting a check on their own property link" must {
