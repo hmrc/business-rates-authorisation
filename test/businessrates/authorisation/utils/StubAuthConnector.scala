@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package businessrates.authorisation.utils
 
 import businessrates.authorisation.connectors.AuthConnector
+import businessrates.authorisation.controllers.NonEnrolment
 import businessrates.authorisation.models.GovernmentGatewayDetails
+import businessrates.authorisation.services.AccountsService
 import uk.gov.hmrc.play.config.inject.ServicesConfig
 
 import scala.concurrent.Future
@@ -40,3 +42,5 @@ object StubAuthConnector extends AuthConnector(StubHttp, Mock.servicesConfig) {
 
   override def getGovernmentGatewayDetails(implicit hc: HeaderCarrier) = Future.successful(stubGGIds)
 }
+
+class StubWithIds(mockAccountService: AccountsService) extends NonEnrolment(StubAuthConnector, mockAccountService)

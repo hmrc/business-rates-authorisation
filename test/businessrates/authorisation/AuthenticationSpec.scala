@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
+import businessrates.authorisation.utils._
 import businessrates.authorisation.models.{any => anyPT, _}
 import businessrates.authorisation.services.AccountsService
 import org.mockito.ArgumentMatchers.{eq => matching, _}
@@ -38,7 +38,7 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
     m
   }
 
-  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService)
+  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new StubWithIds(mockAccountsService))
 
   "Calling the authentication endpoint" when {
     "the user is not logged in to Government Gateway" must {

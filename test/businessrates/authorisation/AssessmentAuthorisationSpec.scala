@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package businessrates.authorisation
 
 import java.time.LocalDate
+
 import businessrates.authorisation.controllers.AuthorisationController
 import businessrates.authorisation.models.{any => anyPT, _}
 import businessrates.authorisation.services.AccountsService
-import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
+import businessrates.authorisation.utils._
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
@@ -57,7 +58,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
     when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
   }
 
-  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService)
+  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new StubWithIds(mockAccountsService))
 
   private val organisation: Organisation = randomOrganisation
 
@@ -199,6 +200,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val res = testController.authoriseToViewAssessment(propertyLink.authorisationId, propertyLink.assessment.head.assessmentRef)(FakeRequest())
           status(res) mustBe UNAUTHORIZED
         }
+
       }
     }
   }

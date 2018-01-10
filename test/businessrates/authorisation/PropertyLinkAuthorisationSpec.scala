@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package businessrates.authorisation
 import businessrates.authorisation.controllers.AuthorisationController
 import businessrates.authorisation.models.{any => anyPT, _}
 import businessrates.authorisation.services.AccountsService
-import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
+import businessrates.authorisation.utils._
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -48,7 +48,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
     when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
   }
 
-  private object TestAuthController extends AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService)
+  private object TestAuthController extends AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new StubWithIds(mockAccountsService))
 
   "Calling the property link authorisation endpoint" when {
     "the user is not logged in to government gateway" must {

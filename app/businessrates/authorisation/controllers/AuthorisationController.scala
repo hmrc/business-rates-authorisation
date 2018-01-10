@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import javax.inject.Inject
 import businessrates.authorisation.connectors._
 import businessrates.authorisation.models._
 import businessrates.authorisation.services.AccountsService
-import play.api.Logger
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
@@ -29,12 +28,14 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class AuthorisationController @Inject()(val authConnector: AuthConnector,
                                         val propertyLinking: PropertyLinking,
-                                        val accounts: AccountsService
+                                        val accounts: AccountsService,
+                                        val ids: WithIds
                                        ) extends BaseController {
+
+  import ids._
 
   def authenticate = Action.async { implicit request =>
     withIds { accounts =>
@@ -71,23 +72,6 @@ class AuthorisationController @Inject()(val authConnector: AuthConnector,
           )))
         case None => Forbidden
       }
-    }
-  }
-
-  private def withIds(default: Accounts => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
-    authConnector.getGovernmentGatewayDetails flatMap {
-      case Some(GovernmentGatewayDetails(externalId, Some(groupId), Some("Organisation"))) =>
-        accounts.get(externalId, groupId) flatMap {
-          case Some(accs) => default(accs)
-          case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
-        }
-      case Some(GovernmentGatewayDetails(_, None, _)) =>
-        Logger.info(s"User has logged in with no groupId")
-        Future.successful(Unauthorized(Json.obj("errorCode" -> "NON_GROUPID_ACCOUNT")))
-      case Some(GovernmentGatewayDetails(_, _, affinityGroup)) =>
-        Logger.info(s"User has logged in with non-permitted affinityGroup ${affinityGroup.getOrElse("Not provided")}")
-        Future.successful(Unauthorized(Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")))
-      case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
     }
   }
 }
