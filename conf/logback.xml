@@ -45,11 +45,11 @@
 
     <logger name="com.google.inject" level="INFO"/>
 
-    <logger name="uk.gov" level="INFO"/>
+    <logger name="uk.gov" level="DEBUG"/>
 
     <logger name="application" level="DEBUG"/>
 
-    <logger name="connector" level="TRACE" additivity="false">
+    <logger name="connector" level="INFO">
         <appender-ref ref="STDOUT"/>
     </logger>
 
