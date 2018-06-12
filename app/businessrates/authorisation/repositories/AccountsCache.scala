@@ -55,7 +55,7 @@ class AccountsMongoCache @Inject()(db: DB)(implicit ec: ExecutionContext) extend
 private[repositories] case class Record(_id: String, data: Accounts, createdAt: BSONDateTime = BSONDateTime(System.currentTimeMillis))
 
 private[repositories] object Record {
-  private implicit val dateFormat = reactivemongo.json.BSONFormats.BSONDateTimeFormat
+  private implicit val dateFormat = Json.format[BSONDateTime]
 
   val mongoFormat = Json.format[Record]
 }

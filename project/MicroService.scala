@@ -31,8 +31,10 @@ trait MicroService {
     // Semicolon-separated list of regexs matching classes to exclude
     import scoverage.ScoverageKeys
     Seq(
-      ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;views.*;config.*;poc.view.*;poc.config.*;.*(AuthService|BuildInfo|Routes).*",
-      ScoverageKeys.coverageMinimum := 100,
+      ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;views.*;config.*;poc.view.*;" +
+        "poc.config.*;.*(AuthService|BuildInfo|Routes).*;businessrates.authorisation.config.*;" +
+        "businessrates.authorisation.models.*",
+      ScoverageKeys.coverageMinimum := 80,
       ScoverageKeys.coverageFailOnMinimum := false,
       ScoverageKeys.coverageHighlighting := true
     )

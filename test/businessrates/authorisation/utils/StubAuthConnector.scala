@@ -17,7 +17,7 @@
 package businessrates.authorisation.utils
 
 import businessrates.authorisation.connectors.AuthConnector
-import businessrates.authorisation.controllers.NonEnrolment
+import businessrates.authorisation.controllers.{EnrolmentIds, NonEnrolment}
 import businessrates.authorisation.models.GovernmentGatewayDetails
 import businessrates.authorisation.services.AccountsService
 import uk.gov.hmrc.play.config.inject.ServicesConfig
@@ -43,4 +43,5 @@ object StubAuthConnector extends AuthConnector(StubHttp, Mock.servicesConfig) {
   override def getGovernmentGatewayDetails(implicit hc: HeaderCarrier) = Future.successful(stubGGIds)
 }
 
-class StubWithIds(mockAccountService: AccountsService) extends NonEnrolment(StubAuthConnector, mockAccountService)
+class NonEnrolmentStubWithIds(mockAccountService: AccountsService) extends NonEnrolment(StubAuthConnector, mockAccountService)
+class EnrolmentStubWithIds(mockAccountService: AccountsService) extends EnrolmentIds(StubAuthConnector, mockAccountService)

@@ -48,7 +48,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
     when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
   }
 
-  private object TestAuthController extends AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new StubWithIds(mockAccountsService))
+  private object TestAuthController extends AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new NonEnrolmentStubWithIds(mockAccountsService))
 
   "Calling the property link authorisation endpoint" when {
     "the user is not logged in to government gateway" must {

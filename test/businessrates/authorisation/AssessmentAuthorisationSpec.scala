@@ -58,7 +58,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
     when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
   }
 
-  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new StubWithIds(mockAccountsService))
+  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new NonEnrolmentStubWithIds(mockAccountsService))
 
   private val organisation: Organisation = randomOrganisation
 
