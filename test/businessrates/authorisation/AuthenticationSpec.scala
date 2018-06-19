@@ -38,13 +38,13 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
     m
   }
 
-  val enrolmentController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
+  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
 
-  "enrolmentController" should {
-    behave like anAuthenticateEndpoint(enrolmentController, true)
+  "testController" should {
+    behave like anAuthenticateEndpoint(testController)
   }
 
-  def anAuthenticateEndpoint(testController: AuthorisationController, isEnrolmentController: Boolean = false) = {
+  def anAuthenticateEndpoint(testController: AuthorisationController) = {
 
     "Calling the authentication endpoint" when {
       "the user is not logged in to Government Gateway" must {
@@ -61,12 +61,8 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
           val res = testController.authenticate()(FakeRequest())
           status(res) mustBe UNAUTHORIZED
 
-          if (isEnrolmentController) {
             contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
-          }
-          else {
-            contentAsJson(res) mustBe Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")
-          }
+
         }
       }
 
