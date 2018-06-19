@@ -19,9 +19,9 @@ package businessrates.authorisation
 import java.time.LocalDate
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.models.{any => anyPT, _}
+import businessrates.authorisation.models.{any => _, _}
 import businessrates.authorisation.services.AccountsService
-import businessrates.authorisation.utils.{StubAuthConnector, StubPropertyLinking, NonEnrolmentStubWithIds}
+import businessrates.authorisation.utils.{StubAuthConnector, StubPropertyLinking, VoaStubWithIds}
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
@@ -30,9 +30,9 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with MockitoSugar with BeforeAndAfterEach {
 
@@ -51,7 +51,7 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
     when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
   }
 
-  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new NonEnrolmentStubWithIds(mockAccountsService))
+  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
 
   "Getting the IDs" when {
     "a user is submitting a check on their own property link" must {

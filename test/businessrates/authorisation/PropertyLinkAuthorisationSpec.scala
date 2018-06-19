@@ -17,7 +17,7 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.models.{any => anyPT, _}
+import businessrates.authorisation.models.{any => _, _}
 import businessrates.authorisation.services.AccountsService
 import businessrates.authorisation.utils._
 import org.mockito.ArgumentMatchers.{eq => matching, _}
@@ -27,9 +27,9 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar with BeforeAndAfterEach {
 
@@ -48,7 +48,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
     when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
   }
 
-  private object TestAuthController extends AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new NonEnrolmentStubWithIds(mockAccountsService))
+  private object TestAuthController extends AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
 
   "Calling the property link authorisation endpoint" when {
     "the user is not logged in to government gateway" must {

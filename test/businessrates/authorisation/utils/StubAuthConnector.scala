@@ -17,15 +17,16 @@
 package businessrates.authorisation.utils
 
 import businessrates.authorisation.connectors.AuthConnector
-import businessrates.authorisation.controllers.{EnrolmentIds, NonEnrolment}
+import businessrates.authorisation.controllers.VoaIds
 import businessrates.authorisation.models.GovernmentGatewayDetails
 import businessrates.authorisation.services.AccountsService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.config.inject.ServicesConfig
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 object Mock {
+
   import org.scalatest.mock.MockitoSugar._
 
   val servicesConfig = mock[ServicesConfig]
@@ -38,10 +39,11 @@ object StubAuthConnector extends AuthConnector(StubHttp, Mock.servicesConfig) {
     stubGGIds = Some(ids)
   }
 
-  def reset() = { stubGGIds = None }
+  def reset() = {
+    stubGGIds = None
+  }
 
   override def getGovernmentGatewayDetails(implicit hc: HeaderCarrier) = Future.successful(stubGGIds)
 }
 
-class NonEnrolmentStubWithIds(mockAccountService: AccountsService) extends NonEnrolment(StubAuthConnector, mockAccountService)
-class EnrolmentStubWithIds(mockAccountService: AccountsService) extends EnrolmentIds(StubAuthConnector, mockAccountService)
+class VoaStubWithIds(mockAccountService: AccountsService) extends VoaIds(StubAuthConnector, mockAccountService)
