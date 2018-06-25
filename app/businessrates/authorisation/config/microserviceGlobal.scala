@@ -17,9 +17,9 @@
 package businessrates.authorisation.config
 
 import businessrates.authorisation.connectors.{BackendConnector, OrganisationAccounts, PersonAccounts, PropertyLinking}
-import businessrates.authorisation.controllers.{EnrolmentIds, NonEnrolment, WithIds}
-import com.google.inject.{AbstractModule, Inject, Provider}
+import businessrates.authorisation.controllers.{VoaIds, WithIds}
 import com.google.inject.name.Names
+import com.google.inject.{AbstractModule, Inject, Provider}
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import play.api._
@@ -29,21 +29,12 @@ import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
 import uk.gov.hmrc.play.config.inject.{DefaultServicesConfig, ServicesConfig}
 import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
-import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
 
 
 class GuiceModule(override val environment: Environment, configuration: Configuration) extends AbstractModule with ServicesConfig {
   override val runModeConfiguration = configuration
-
-  def enrolment(isEnrolment: Boolean) = {
-    if (isEnrolment) {
-      bind(classOf[WithIds]).to(classOf[EnrolmentIds])
-    } else {
-      bind(classOf[WithIds]).to(classOf[NonEnrolment])
-    }
-  }
 
   def configure(): Unit = {
     bindConstant().annotatedWith(Names.named("dataPlatformUrl")).to(baseUrl("data-platform"))
@@ -54,7 +45,7 @@ class GuiceModule(override val environment: Environment, configuration: Configur
     bind(classOf[OrganisationAccounts]).to(classOf[BackendConnector])
     bind(classOf[PersonAccounts]).to(classOf[BackendConnector])
     bind(classOf[PropertyLinking]).to(classOf[BackendConnector])
-    enrolment(configuration.getString("featureFlags.enrolment").getOrElse(throw ConfigMissing("featureFlags.enrolment")).toBoolean)
+    bind(classOf[WithIds]).to(classOf[VoaIds])
     bind(classOf[DB]).toProvider(classOf[MongoProvider]).asEagerSingleton()
   }
 }
@@ -73,6 +64,7 @@ object AuthParamsControllerConfiguration extends AuthParamsControllerConfig {
 
 object MicroserviceAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport {
   override val auditConnector = MicroserviceAuditConnector
+
   override def controllerNeedsAuditing(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuditing
 }
 

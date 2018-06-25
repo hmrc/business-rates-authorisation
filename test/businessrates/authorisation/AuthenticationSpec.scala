@@ -17,18 +17,18 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.utils._
-import businessrates.authorisation.models.{any => anyPT, _}
+import businessrates.authorisation.models.{Accounts, GovernmentGatewayDetails, Organisation, Person}
 import businessrates.authorisation.services.AccountsService
+import businessrates.authorisation.utils._
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito.when
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
@@ -38,20 +38,13 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
     m
   }
 
-  val nonEnrolmentController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new NonEnrolmentStubWithIds(mockAccountsService))
-  val enrolmentController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new EnrolmentStubWithIds(mockAccountsService))
+  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
 
-
-  "nonEnrolmentController" should {
-    behave like anAuthenticateEndpoint(nonEnrolmentController)
+  "testController" should {
+    behave like anAuthenticateEndpoint(testController)
   }
 
-  "enrolmentController" should {
-    behave like anAuthenticateEndpoint(enrolmentController, true)
-  }
-
-
-  def anAuthenticateEndpoint(testController: AuthorisationController, isEnrolmentController: Boolean = false) = {
+  def anAuthenticateEndpoint(testController: AuthorisationController) = {
 
     "Calling the authentication endpoint" when {
       "the user is not logged in to Government Gateway" must {
@@ -68,12 +61,8 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
           val res = testController.authenticate()(FakeRequest())
           status(res) mustBe UNAUTHORIZED
 
-          if(isEnrolmentController){
             contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
-          }
-          else {
-            contentAsJson(res) mustBe Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")
-          }
+
         }
       }
 
