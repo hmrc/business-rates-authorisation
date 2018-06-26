@@ -55,23 +55,12 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
         }
       }
 
-      "the user is logged in to Government Gateway with an individual account" must {
-        "return a 401 status and the NON_ORGANISATION_ACCOUNT error code" in {
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", Some("aGroupId"), Some("Individual")))
-          val res = testController.authenticate()(FakeRequest())
-          status(res) mustBe UNAUTHORIZED
-
-            contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
-
-        }
-      }
-
       "the user is logged in to Government Gateway with an agent account" must {
-        "return a 401 status and the NON_ORGANISATION_ACCOUNT error code" in {
+        "return a 401 status and the INVALID_ACCOUNT_TYPE error code" in {
           StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", Some("aGroupId"), Some("Agent")))
           val res = testController.authenticate()(FakeRequest())
           status(res) mustBe UNAUTHORIZED
-          contentAsJson(res) mustBe Json.obj("errorCode" -> "NON_ORGANISATION_ACCOUNT")
+          contentAsJson(res) mustBe Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")
         }
       }
 
