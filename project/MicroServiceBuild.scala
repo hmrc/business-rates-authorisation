@@ -13,21 +13,19 @@ object MicroServiceBuild extends Build with MicroService {
 }
 
 private object AppDependencies {
+
   import play.core.PlayVersion
   import play.sbt.PlayImport._
 
   private val microserviceBootstrapVersion = "6.13.0"
-  private val playUrlBindersVersion = "2.1.0"
   private val domainVersion = "4.1.0"
   private val hmrcTestVersion = "2.3.0"
   private val scalaTestVersion = "2.2.6"
   private val pegdownVersion = "1.6.0"
 
-
   val compile = Seq(
     ws,
     "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
-    "uk.gov.hmrc" %% "play-url-binders" % playUrlBindersVersion,
     "uk.gov.hmrc" %% "domain" % domainVersion,
     "org.typelevel" %% "cats-core" % "0.8.1",
     "uk.gov.hmrc" %% "play-reactivemongo" % "5.2.0"
@@ -35,7 +33,7 @@ private object AppDependencies {
 
   trait TestDependencies {
     lazy val scope: String = "test"
-    lazy val test : Seq[ModuleID] = ???
+    lazy val test: Seq[ModuleID] = ???
   }
 
   object Test {
