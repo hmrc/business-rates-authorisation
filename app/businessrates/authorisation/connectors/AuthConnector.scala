@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,22 @@
 package businessrates.authorisation.connectors
 
 import javax.inject.Inject
-
 import businessrates.authorisation.config.WSHttp
 import businessrates.authorisation.models.{Authority, GovernmentGatewayDetails, UserDetails}
 import cats.data.OptionT
 import cats.implicits._
 import com.google.inject.name.Named
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.play.config.inject.ServicesConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.http.{HeaderCarrier, Upstream4xxResponse}
+import uk.gov.hmrc.play.config.ServicesConfig
 
-class AuthConnector @Inject() (@Named("simpleWSHttp") http: WSHttp, val config: ServicesConfig) {
+class AuthConnector @Inject() (
+                                @Named("simpleWSHttp") http: WSHttp,
+                                val config: ServicesConfig
+                              ) {
   lazy val url = config.baseUrl("auth")
 
   def getGovernmentGatewayDetails(implicit hc: HeaderCarrier): Future[Option[GovernmentGatewayDetails]] = {

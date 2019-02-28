@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 package businessrates.authorisation.config
 
 import javax.inject.Inject
-
 import businessrates.authorisation.metrics.HasMetrics
 import com.kenshoo.play.metrics.Metrics
+import com.typesafe.config.Config
+import play.api.Mode.Mode
+import play.api.{Configuration, Play}
 import play.api.libs.json.Writes
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.hooks.HttpHooks
@@ -36,16 +38,28 @@ import scala.concurrent.Future
 import scala.util.{Failure, Try}
 
 trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpPatch with WSPatch with HttpDelete with WSDelete with Hooks with AppName
-object WSHttp extends WSHttp
+object WSHttp extends WSHttp {
+  override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
+
+  override protected def appNameConfiguration: Configuration = Play.current.configuration
+}
 
 class SimpleWSHttp extends WSHttp {
   override def logResult[A](ld: LoggingDetails, method: String, uri: String, startAge: Long)(result: Try[A]) = result match {
     case Failure(ex: Upstream4xxResponse) if ex.upstreamResponseCode == 401 => {}
     case _ => super.logResult[A](ld, method, uri, startAge)(result)
   }
+
+  override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
+
+  override protected def appNameConfiguration: Configuration = Play.current.configuration
 }
 
-class VOABackendWSHttp @Inject()(val metrics: Metrics) extends WSHttp with HasMetrics with AzureHeaders
+class VOABackendWSHttp @Inject()(val metrics: Metrics) extends WSHttp with HasMetrics with AzureHeaders {
+  override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
+
+  override protected def appNameConfiguration: Configuration = Play.current.configuration
+}
 
 object MicroserviceAuditConnector extends AuditConnector {
   lazy val auditingConfig: AuditingConfig = LoadAuditingConfig(s"auditing")
@@ -58,6 +72,14 @@ trait Hooks extends HttpHooks with HttpAuditing {
 
 object MicroserviceAuthConnector extends AuthConnector with ServicesConfig with WSHttp {
   override val authBaseUrl: String = baseUrl("auth")
+
+  override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
+
+  override protected def appNameConfiguration: Configuration = Play.current.configuration
+
+  override protected def mode: Mode = Play.current.mode
+
+  override protected def runModeConfiguration: Configuration = Play.current.configuration
 }
 
 trait AzureHeaders extends WSHttp {

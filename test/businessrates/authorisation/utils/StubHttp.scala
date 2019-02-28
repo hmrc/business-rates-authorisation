@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package businessrates.authorisation.utils
 
 import businessrates.authorisation.config.WSHttp
+import com.typesafe.config.Config
+import play.api.{Configuration, Play}
 import play.api.libs.json.Writes
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -30,4 +32,8 @@ object StubHttp extends WSHttp {
   override def doEmptyPost[A](url: String)(implicit hc: HeaderCarrier) = ???
 
   override def doFormPost(url: String, body: Map[String, Seq[String]])(implicit hc: HeaderCarrier) = ???
+
+  override protected def configuration: Option[Config] = ???
+
+  override protected def appNameConfiguration: Configuration = ???
 }

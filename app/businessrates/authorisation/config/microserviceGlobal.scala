@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,26 +22,33 @@ import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Inject, Provider}
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
-import play.api._
+import play.api.Mode.Mode
+import play.api.{Application, Configuration, Environment, Play}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
-import uk.gov.hmrc.play.config.inject.{DefaultServicesConfig, ServicesConfig}
-import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
+import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode, ServicesConfig}
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
 
 
-class GuiceModule(override val environment: Environment, configuration: Configuration) extends AbstractModule with ServicesConfig {
-  override val runModeConfiguration = configuration
+class GuiceModule(
+                   environment: Environment,
+                   configuration: Configuration
+                 ) extends AbstractModule {
 
+  private val servicesConfig = new ServicesConfig {
+    override protected def mode: Mode = environment.mode
+
+    override protected def runModeConfiguration: Configuration = configuration
+  }
   def configure(): Unit = {
-    bindConstant().annotatedWith(Names.named("dataPlatformUrl")).to(baseUrl("data-platform"))
-    bindConstant().annotatedWith(Names.named("ratesListYear")).to(getConfInt("rates.list.year", 2017))
+    bindConstant().annotatedWith(Names.named("dataPlatformUrl")).to(servicesConfig.baseUrl("data-platform"))
+    bindConstant().annotatedWith(Names.named("ratesListYear")).to(servicesConfig.getConfInt("rates.list.year", 2017))
     bind(classOf[WSHttp]).annotatedWith(Names.named("voaBackendWSHttp")).to(classOf[VOABackendWSHttp])
     bind(classOf[WSHttp]).annotatedWith(Names.named("simpleWSHttp")).to(classOf[SimpleWSHttp])
-    bind(classOf[ServicesConfig]).to(classOf[DefaultServicesConfig])
+    bind(classOf[ServicesConfig]).toInstance(servicesConfig)
     bind(classOf[OrganisationAccounts]).to(classOf[BackendConnector])
     bind(classOf[PersonAccounts]).to(classOf[BackendConnector])
     bind(classOf[PropertyLinking]).to(classOf[BackendConnector])
@@ -66,6 +73,8 @@ object MicroserviceAuditFilter extends AuditFilter with AppName with Microservic
   override val auditConnector = MicroserviceAuditConnector
 
   override def controllerNeedsAuditing(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuditing
+
+  override protected def appNameConfiguration: Configuration = Play.current.configuration
 }
 
 object MicroserviceLoggingFilter extends LoggingFilter with MicroserviceFilterSupport {
@@ -86,6 +95,10 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Mi
   override val authFilter = Some(MicroserviceAuthFilter)
 
   override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig(s"microservice.metrics")
+
+  override protected def mode: Mode = Play.current.mode
+
+  override protected def runModeConfiguration: Configuration = Play.current.configuration
 }
 
 private case class ConfigMissing(key: String) extends Exception(s"Missing config for $key")

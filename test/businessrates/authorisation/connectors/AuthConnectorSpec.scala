@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package businessrates.authorisation.connectors
 
-import java.time.LocalDate
-
 import businessrates.authorisation.ArbitraryDataGeneration
 import businessrates.authorisation.config.WSHttp
-import businessrates.authorisation.models.{Authority, UserDetails, any}
+import businessrates.authorisation.models.{Authority, UserDetails}
 import org.mockito.ArgumentMatchers.{any => anyT, eq => isEqual, _}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -28,9 +26,8 @@ import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
-import uk.gov.hmrc.play.config.inject.ServicesConfig
+import uk.gov.hmrc.play.config.ServicesConfig
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthConnectorSpec extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach
