@@ -25,7 +25,6 @@ import reactivemongo.api.DB
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.{BSONDateTime, BSONDocument}
 import uk.gov.hmrc.mongo.ReactiveRepository
-
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[AccountsMongoCache])
@@ -55,7 +54,8 @@ class AccountsMongoCache @Inject()(db: DB)(implicit ec: ExecutionContext) extend
 private[repositories] case class Record(_id: String, data: Accounts, createdAt: BSONDateTime = BSONDateTime(System.currentTimeMillis))
 
 private[repositories] object Record {
-  private implicit val dateFormat = reactivemongo.json.BSONFormats.BSONDateTimeFormat
+
+  private implicit val dateFormat = reactivemongo.play.json.BSONFormats.BSONDateTimeFormat
 
   val mongoFormat = Json.format[Record]
 }
