@@ -28,7 +28,7 @@ private object AppDependencies {
     "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
     "uk.gov.hmrc" %% "domain" % domainVersion,
     "org.typelevel" %% "cats-core" % "0.8.1",
-    "uk.gov.hmrc" %% "play-reactivemongo" % "5.2.0"
+    "uk.gov.hmrc" %% "play-reactivemongo" % "6.4.0"
   )
 
   trait TestDependencies {
