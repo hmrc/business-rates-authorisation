@@ -20,9 +20,10 @@ import businessrates.authorisation.models.{Accounts, Organisation, Person, Perso
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
-import uk.gov.hmrc.mongo.MongoSpecSupport
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.play.test.UnitSpec
 import play.api.inject.guice.GuiceApplicationBuilder
+import reactivemongo.api.DB
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson._
 
@@ -30,11 +31,13 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationDouble
 
-class AccountsMongoCacheSpec extends UnitSpec with MongoSpecSupport with ScalaFutures {
+class AccountsMongoCacheSpec extends UnitSpec with ScalaFutures with GuiceOneAppPerSuite {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(5, Millis))
 
-  private val accountsMongoCache = new AccountsMongoCache(mongo()){
+  val db: DB = app.injector.instanceOf[DB]
+
+  private val accountsMongoCache = new AccountsMongoCache(db){
     override def indexes = Seq.empty
   }
 
@@ -52,8 +55,6 @@ class AccountsMongoCacheSpec extends UnitSpec with MongoSpecSupport with ScalaFu
   private val person = Person("govGatewayId","trustId",organisationId, individualId, personDetails)
   private val organisation = Organisation(organisationId, "groupId","companyName",addressId,"email@test.com","0213456788",isAgent,agentCode)
   private val accounts = Accounts(organisationId, 57654,organisation,person)
-
-  def dropMongoDb()(implicit ec: ExecutionContext = global): Unit = Await.result(mongo().drop(), 10 seconds)
 
   "AccountsMongoCacheSpec" should {
 

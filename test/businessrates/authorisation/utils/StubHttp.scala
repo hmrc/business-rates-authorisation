@@ -16,6 +16,7 @@
 
 package businessrates.authorisation.utils
 
+import akka.actor.ActorSystem
 import businessrates.authorisation.config.WSHttp
 import com.typesafe.config.Config
 import play.api.{Configuration, Play}
@@ -36,4 +37,6 @@ object StubHttp extends WSHttp {
   override protected def configuration: Option[Config] = ???
 
   override protected def appNameConfiguration: Configuration = ???
+
+  override protected def actorSystem: ActorSystem = ???
 }
