@@ -16,6 +16,7 @@
 
 package businessrates.authorisation.config
 
+import akka.actor.ActorSystem
 import javax.inject.Inject
 import businessrates.authorisation.metrics.HasMetrics
 import com.kenshoo.play.metrics.Metrics
@@ -42,6 +43,8 @@ object WSHttp extends WSHttp {
   override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
 
   override protected def appNameConfiguration: Configuration = Play.current.configuration
+
+  override protected def actorSystem: ActorSystem = Play.current.actorSystem
 }
 
 class SimpleWSHttp extends WSHttp {
@@ -53,12 +56,17 @@ class SimpleWSHttp extends WSHttp {
   override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
 
   override protected def appNameConfiguration: Configuration = Play.current.configuration
+
+  override protected def actorSystem: ActorSystem = Play.current.actorSystem
+
 }
 
 class VOABackendWSHttp @Inject()(val metrics: Metrics) extends WSHttp with HasMetrics with AzureHeaders {
   override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
 
   override protected def appNameConfiguration: Configuration = Play.current.configuration
+
+  override protected def actorSystem: ActorSystem = Play.current.actorSystem
 }
 
 object MicroserviceAuditConnector extends AuditConnector {
@@ -80,6 +88,8 @@ object MicroserviceAuthConnector extends AuthConnector with ServicesConfig with 
   override protected def mode: Mode = Play.current.mode
 
   override protected def runModeConfiguration: Configuration = Play.current.configuration
+
+  override protected def actorSystem: ActorSystem = Play.current.actorSystem
 }
 
 trait AzureHeaders extends WSHttp {
