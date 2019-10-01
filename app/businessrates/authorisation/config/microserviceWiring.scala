@@ -30,7 +30,6 @@ import uk.gov.hmrc.http.logging.LoggingDetails
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.auth.microservice.connectors.AuthConnector
 import uk.gov.hmrc.play.config.{AppName, ServicesConfig}
 import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.play.microservice.config.LoadAuditingConfig
@@ -76,20 +75,6 @@ object MicroserviceAuditConnector extends AuditConnector {
 trait Hooks extends HttpHooks with HttpAuditing {
   override val hooks = Seq(AuditingHook)
   override lazy val auditConnector: AuditConnector = MicroserviceAuditConnector
-}
-
-object MicroserviceAuthConnector extends AuthConnector with ServicesConfig with WSHttp {
-  override val authBaseUrl: String = baseUrl("auth")
-
-  override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
-
-  override protected def appNameConfiguration: Configuration = Play.current.configuration
-
-  override protected def mode: Mode = Play.current.mode
-
-  override protected def runModeConfiguration: Configuration = Play.current.configuration
-
-  override protected def actorSystem: ActorSystem = Play.current.actorSystem
 }
 
 trait AzureHeaders extends WSHttp {

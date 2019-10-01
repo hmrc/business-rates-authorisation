@@ -16,9 +16,19 @@
 
 package businessrates.authorisation
 
+import businessrates.authorisation.action.AuthenticatedActionBuilder
 import businessrates.authorisation.utils.{StubAuthConnector, StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
 import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import uk.gov.hmrc.auth.core.AuthConnector
+import businessrates.authorisation.auth.{Principal, RequestWithPrincipal}
+import play.api.mvc._
+import play.api.test.FakeRequest
+import scala.concurrent.Future
+import org.scalatest.mock.MockitoSugar._
+
+import scala.concurrent.ExecutionContext.Implicits.global
+
 
 class ControllerSpec extends WordSpec with MustMatchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout with ArbitraryDataGeneration {
 
@@ -28,4 +38,17 @@ class ControllerSpec extends WordSpec with MustMatchers with BeforeAndAfterEach 
     StubPersonAccounts.reset()
     StubPropertyLinking.reset()
   }
+
+  implicit val request = FakeRequest()
+
+  def preAuthenticatedActionBuilders(
+                                      externalId: String = "gg_external_id",
+                                      groupId: String = "gg_group_id"
+                                    ): AuthenticatedActionBuilder =
+    new AuthenticatedActionBuilder(mock[AuthConnector]) {
+
+      override def invokeBlock[A](request: Request[A], block: RequestWithPrincipal[A] => Future[Result]): Future[Result] = {
+        block(RequestWithPrincipal(request, Principal(externalId, groupId)))
+      }
+    }
 }

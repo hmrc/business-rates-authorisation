@@ -38,7 +38,7 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
     m
   }
 
-  val testController = new AuthorisationController(StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
+  val testController = new AuthorisationController(preAuthenticatedActionBuilders(), StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
 
   "testController" should {
     behave like anAuthenticateEndpoint(testController)
