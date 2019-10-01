@@ -17,6 +17,7 @@
 package businessrates.authorisation.action
 
 import businessrates.authorisation.ControllerSpec
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Result, Results}
@@ -27,6 +28,7 @@ import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.libs.concurrent.Futures
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -76,7 +78,9 @@ class AuthenticatedActionBuilderSpec extends MockitoSugar with UnitSpec {
 
       val result: Future[Result] = action(FakeRequest())
 
-      //Futures.whenReady(result.failed)(_ shouldBe a[MissingBearerToken])
+      ScalaFutures.whenReady(result.failed) { e =>
+        e shouldBe a [MissingBearerToken]
+      }
     }
 
     "return an unauthorised exception if the user does not have either a group ID or a external ID" in new Setup {
