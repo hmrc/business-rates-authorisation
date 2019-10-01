@@ -16,9 +16,7 @@
 
 package businessrates.authorisation.auth
 
-import java.net.URL
-
-import javax.inject.{Inject, Named}
+import javax.inject.Inject
 import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.http.HttpPost
 import uk.gov.hmrc.play.config.ServicesConfig

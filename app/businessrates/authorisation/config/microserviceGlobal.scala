@@ -16,7 +16,6 @@
 
 package businessrates.authorisation.config
 
-import businessrates.authorisation.action.AuthenticatedActionBuilder
 import businessrates.authorisation.auth.DefaultAuthConnector
 import businessrates.authorisation.connectors.{BackendConnector, OrganisationAccounts, PersonAccounts, PropertyLinking}
 import businessrates.authorisation.controllers.{VoaIds, WithIds}
@@ -30,8 +29,6 @@ import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.HttpPost
-//import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
-//import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
 import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode, ServicesConfig}
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
