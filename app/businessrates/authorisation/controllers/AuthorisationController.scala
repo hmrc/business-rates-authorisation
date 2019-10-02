@@ -21,6 +21,7 @@ import javax.inject.Inject
 import businessrates.authorisation.connectors._
 import businessrates.authorisation.models._
 import businessrates.authorisation.services.AccountsService
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
@@ -38,7 +39,15 @@ class AuthorisationController @Inject()(authenticated: AuthenticatedActionBuilde
 
   import ids._
 
+  val logger = Logger(this.getClass.getName)
+
   def authenticate = authenticated.async { implicit request =>
+    logger.debug(s"    content-type: ${request.contentType}")
+    logger.debug(s"    headers: ${request.headers}")
+    logger.debug(s"    body: ${request.body}")
+    logger.debug(s"    session is empty: ${request.session.isEmpty}")
+    logger.debug(s"    session: ${request.session}")
+    logger.debug(s"    session auth: ${request.session.get("Authorization")}")
     withIds { accounts =>
       Future successful Ok(toJson(accounts))
     }

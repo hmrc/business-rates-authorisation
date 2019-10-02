@@ -24,6 +24,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import businessrates.authorisation.auth.{Principal, RequestWithPrincipal}
+import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,11 +35,21 @@ class AuthenticatedActionBuilder @Inject()(
     with AuthorisedFunctions
     with Results {
 
+  val logger = Logger(this.getClass.getName)
+
+
   def invokeBlock[A](request: Request[A], block: RequestWithPrincipal[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
+    logger.debug(s"    content-type: ${request.contentType}")
+    logger.debug(s"    headers: ${request.headers}")
+    logger.debug(s"    body: ${request.body}")
+    logger.debug(s"    session is empty: ${request.session.isEmpty}")
+    logger.debug(s"    session: ${request.session}")
+    logger.debug(s"    session auth: ${request.session.get("Authorization")}")
 
-    authorised().retrieve(Retrievals.externalId and Retrievals.groupIdentifier) {
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session).filter(_.get("Authorization").isDefined))
+
+    authorised().retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier) {
       case externalId ~ groupIdentifier =>
         (externalId, groupIdentifier) match {
           case (Some(exId), Some(grpId)) => block(RequestWithPrincipal(request, Principal(exId, grpId)))
