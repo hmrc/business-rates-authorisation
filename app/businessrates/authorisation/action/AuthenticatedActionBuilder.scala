@@ -36,7 +36,7 @@ class AuthenticatedActionBuilder @Inject()(
 
   def invokeBlock[A](request: Request[A], block: RequestWithPrincipal[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, None, Some(request))
 
     authorised().retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier) {
       case externalId ~ groupIdentifier =>
