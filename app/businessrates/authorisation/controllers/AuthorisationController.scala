@@ -47,7 +47,7 @@ class AuthorisationController @Inject()(authenticated: AuthenticatedActionBuilde
     logger.debug(s"    body: ${request.body}")
     logger.debug(s"    session is empty: ${request.session.isEmpty}")
     logger.debug(s"    session: ${request.session}")
-    logger.debug(s"    session auth: ${request.session.get("Authorization")}")
+    logger.debug(s"    session auth: ${request.session.get("authToken")}")
     withIds { accounts =>
       Future successful Ok(toJson(accounts))
     }

@@ -45,9 +45,9 @@ class AuthenticatedActionBuilder @Inject()(
     logger.debug(s"    body: ${request.body}")
     logger.debug(s"    session is empty: ${request.session.isEmpty}")
     logger.debug(s"    session: ${request.session}")
-    logger.debug(s"    session auth: ${request.session.get("Authorization")}")
+    logger.debug(s"    session auth: ${request.session.get("authToken")}")
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session).filter(_.get("Authorization").isDefined))
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session).filter(_.get("authToken").isDefined))
 
     authorised().retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier) {
       case externalId ~ groupIdentifier =>
