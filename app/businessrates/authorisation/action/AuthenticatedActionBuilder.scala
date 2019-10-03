@@ -21,9 +21,10 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.retrieve._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import businessrates.authorisation.auth.{Principal, RequestWithPrincipal}
+import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,9 +35,18 @@ class AuthenticatedActionBuilder @Inject()(
     with AuthorisedFunctions
     with Results {
 
+  val logger = Logger(this.getClass.getName)
+
   def invokeBlock[A](request: Request[A], block: RequestWithPrincipal[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+
+    logger.debug(s"    headers: ${request.headers}")
+    logger.debug(s"    session is empty: ${request.session.isEmpty}")
+    logger.debug(s"    session: ${request.session}")
+    logger.debug(s"    session auth: ${request.session.get(SessionKeys.authToken)}")
+
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers,
+      Some(request.session).filter(_.get(SessionKeys.authToken).isDefined))
 
     authorised().retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier) {
       case externalId ~ groupIdentifier =>
