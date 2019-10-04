@@ -16,6 +16,7 @@
 
 package businessrates.authorisation.action
 
+import businessrates.authorisation.auth.{Principal, RequestWithPrincipal}
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -23,7 +24,6 @@ import uk.gov.hmrc.auth.core.retrieve._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
-import businessrates.authorisation.auth.{Principal, RequestWithPrincipal}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,7 +36,7 @@ class AuthenticatedActionBuilder @Inject()(
 
   def invokeBlock[A](request: Request[A], block: RequestWithPrincipal[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
 
     authorised().retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier) {
       case externalId ~ groupIdentifier =>
