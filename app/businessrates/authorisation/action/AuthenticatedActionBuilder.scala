@@ -39,13 +39,6 @@ class AuthenticatedActionBuilder @Inject()(
 
   def invokeBlock[A](request: Request[A], block: RequestWithPrincipal[A] => Future[Result]): Future[Result] = {
 
-
-    logger.debug(s"    headers: ${request.headers}")
-    logger.debug(s"    session is empty: ${request.session.isEmpty}")
-    logger.debug(s"    session: ${request.session}")
-    logger.debug(s"    session auth: ${request.session.get(SessionKeys.authToken)}")
-    logger.debug(s" ${Some(request.session).filter(_.get(SessionKeys.authToken).isDefined)}")
-
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
 
     authorised().retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier) {
