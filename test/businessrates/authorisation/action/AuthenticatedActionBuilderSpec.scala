@@ -22,7 +22,7 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Result, Results}
 import play.api.test.FakeRequest
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, MissingBearerToken}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, MissingBearerToken, InternalError}
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -78,8 +78,19 @@ class AuthenticatedActionBuilderSpec extends MockitoSugar with UnitSpec {
 
       val result: Future[Result] = action(FakeRequest())
 
+      status(result) shouldBe UNAUTHORIZED
+    }
+
+    "throw an internal exception if the authorisation fails due to a internal exception" in new Setup {
+
+      override def exception = Some(new InternalError())
+
+      val action = authenticatedAction.async(_ => Future.successful(Results.Ok("")))
+
+      val result: Future[Result] = action(FakeRequest())
+
       ScalaFutures.whenReady(result.failed) { e =>
-        e shouldBe a [MissingBearerToken]
+        e shouldBe a [InternalError]
       }
     }
 
