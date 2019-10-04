@@ -18,12 +18,11 @@ package businessrates.authorisation.action
 
 import businessrates.authorisation.auth.{Principal, RequestWithPrincipal}
 import javax.inject.Inject
-import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.retrieve._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
-import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,8 +33,6 @@ class AuthenticatedActionBuilder @Inject()(
   extends ActionBuilder[RequestWithPrincipal]
     with AuthorisedFunctions
     with Results {
-
-  val logger = Logger(this.getClass.getName)
 
   def invokeBlock[A](request: Request[A], block: RequestWithPrincipal[A] => Future[Result]): Future[Result] = {
 
