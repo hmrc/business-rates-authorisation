@@ -27,11 +27,16 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar with BeforeAndAfterEach {
+
+  val mockAuthConnector = mock[AuthConnector]
 
   override protected def afterEach(): Unit = {
     //reset to initial state
@@ -48,22 +53,17 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
     when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
   }
 
-  private object TestAuthController extends AuthorisationController(preAuthenticatedActionBuilders(), StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
+  private object TestAuthController extends AuthorisationController(StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAuthConnector, mockAccountsService))
 
   "Calling the property link authorisation endpoint" when {
-    "the user is not logged in to government gateway" must {
-      "return a 401 response and the INVALID_GATEWAY_SESSION error code" in {
-        val res = TestAuthController.authorise(randomPositiveLong)(FakeRequest())
-        status(res) mustBe UNAUTHORIZED
-        contentAsJson(res) mustBe Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")
-      }
-    }
 
     "the user is logged in to government gateway but has not registered a VOA account" must {
       "return a 401 response and the NO_CUSTOMER_RECORD error code" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(randomShortString, Some(randomShortString), Some("Organisation")))
+        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(Future.successful(new ~(new ~(Some(randomShortString.sample.get), Some(randomShortString.sample.get)), Some(AffinityGroup.Organisation))))
 
         val res = TestAuthController.authorise(randomPositiveLong)(FakeRequest())
+
         status(res) mustBe UNAUTHORIZED
         contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
       }
@@ -75,7 +75,8 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           val person: Person = randomPerson
           val organisation: Organisation = randomOrganisation
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, Some(organisation.groupId), Some("Organisation")))
+          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts(person, organisation)
 
           val res = TestAuthController.authorise(randomPositiveLong)(FakeRequest())
@@ -88,7 +89,8 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           val person: Person = randomPerson
           val organisation: Organisation = randomOrganisation
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, Some(organisation.groupId), Some("Organisation")))
+          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts(person, organisation)
 
           val propertyLink: PropertyLink = randomPropertyLink.copy(organisationId = organisation.id, pending = true)
@@ -105,7 +107,8 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           val person: Person = randomPerson
           val organisation: Organisation = randomOrganisation
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(person.externalId, Some(organisation.groupId), Some("Organisation")))
+          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts(person, organisation)
 
           val propertyLink: PropertyLink = randomPropertyLink.copy(organisationId = organisation.id, pending = false)
@@ -122,7 +125,8 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           val anAgent: Person = randomPerson
           val agentOrganisation: Organisation = randomOrganisation
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(anAgent.externalId, Some(agentOrganisation.groupId), Some("Organisation")))
+          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(new ~(new ~(Some(anAgent.externalId), Some(agentOrganisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts(anAgent, agentOrganisation)
 
           val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(pending = false, agents = Seq(randomParty.copy(organisationId = agentOrganisation.id)))

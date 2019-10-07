@@ -16,6 +16,6 @@
 
 package businessrates.authorisation.models
 
-import play.api.libs.json._
+import uk.gov.hmrc.auth.core.AffinityGroup
 
-case class GovernmentGatewayDetails(externalId: String, groupId: Option[String], affinityGroup: Option[String])
+case class GovernmentGatewayDetails(externalId: String, groupId: Option[String], affinityGroup: Option[AffinityGroup])

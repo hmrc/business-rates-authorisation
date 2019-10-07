@@ -16,11 +16,10 @@
 
 package businessrates.authorisation.controllers
 
-import businessrates.authorisation.action.AuthenticatedActionBuilder
-import javax.inject.Inject
 import businessrates.authorisation.connectors._
 import businessrates.authorisation.models._
 import businessrates.authorisation.services.AccountsService
+import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
@@ -29,23 +28,22 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthorisationController @Inject()(authenticated: AuthenticatedActionBuilder,
-                                         val authConnector: AuthConnector,
-                                        val propertyLinking: PropertyLinking,
-                                        val accounts: AccountsService,
-                                        val ids: WithIds
+class AuthorisationController @Inject()(
+                                         val propertyLinking: PropertyLinking,
+                                         val accounts: AccountsService,
+                                         val ids: WithIds
                                        ) extends BaseController {
 
   import ids._
 
-  def authenticate = authenticated.async { implicit request =>
+  def authenticate: Action[AnyContent] = Action.async { implicit request =>
     withIds { accounts =>
       Future successful Ok(toJson(accounts))
     }
   }
 
 
-  def authoriseToViewAssessment(authorisationId: Long, assessmentRef: Long, role: Option[PermissionType] = None) = authenticated.async { implicit request =>
+  def authoriseToViewAssessment(authorisationId: Long, assessmentRef: Long, role: Option[PermissionType] = None): Action[AnyContent] = Action.async { implicit request =>
     withIds { accounts =>
       propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef, role.getOrElse(any)).map {
         case Some(_) => Ok(toJson(accounts))
@@ -54,7 +52,7 @@ class AuthorisationController @Inject()(authenticated: AuthenticatedActionBuilde
     }
   }
 
-  def authorise(authorisationId: Long) = authenticated.async { implicit request =>
+  def authorise(authorisationId: Long): Action[AnyContent] = Action.async { implicit request =>
     withIds { case a@Accounts(oid, _, _, _) =>
       propertyLinking.getLink(oid, authorisationId) map {
         case Some(_) => Ok(Json.toJson(a))
@@ -63,7 +61,7 @@ class AuthorisationController @Inject()(authenticated: AuthenticatedActionBuilde
     }
   }
 
-  def getIds(authorisationId: Long) = authenticated.async { implicit request =>
+  def getIds(authorisationId: Long): Action[AnyContent] = Action.async { implicit request =>
     withIds { case Accounts(oid, pid, _, _) =>
       propertyLinking.getLink(oid, authorisationId).map {
         case Some(link) => Ok(toJson(
