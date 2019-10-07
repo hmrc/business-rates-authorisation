@@ -25,7 +25,7 @@ private object AppDependencies {
   val compile = Seq(
     ws,
     "uk.gov.hmrc" %% "auth-client" % "2.16.0-play-25",
-  "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
+    "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion exclude("uk.gov.hmrc", "play-authorisation_2.11"),
     "org.typelevel" %% "cats-core" % "0.8.1",
     "uk.gov.hmrc" %% "play-reactivemongo" % "6.4.0"
   )

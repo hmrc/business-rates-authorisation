@@ -26,7 +26,10 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.auth.core.retrieve.{CompositeRetrieval, SimpleRetrieval, ~}
 
 import scala.concurrent.Future
 
@@ -38,7 +41,9 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
     m
   }
 
-  val testController = new AuthorisationController(preAuthenticatedActionBuilders(), StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
+  val mockAuthConnector = mock[AuthConnector]
+
+  val testController = new AuthorisationController(StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAuthConnector, mockAccountsService))
 
   "testController" should {
     behave like anAuthenticateEndpoint(testController)
@@ -47,17 +52,10 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
   def anAuthenticateEndpoint(testController: AuthorisationController) = {
 
     "Calling the authentication endpoint" when {
-      "the user is not logged in to Government Gateway" must {
-        "return a 401 status and the INVALID_GATEWAY_SESSION error code" in {
-          val res = testController.authenticate()(FakeRequest())
-          status(res) mustBe UNAUTHORIZED
-          contentAsJson(res) mustBe Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")
-        }
-      }
-
       "the user is logged in to Government Gateway with an agent account" must {
         "return a 401 status and the INVALID_ACCOUNT_TYPE error code" in {
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", Some("aGroupId"), Some("Agent")))
+          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(new ~( new ~(Some("anExternalId"), Some("aGroupId")), Some(AffinityGroup.Agent))))
           val res = testController.authenticate()(FakeRequest())
           status(res) mustBe UNAUTHORIZED
           contentAsJson(res) mustBe Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")
@@ -66,7 +64,8 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
       "the user is logged in to Government Gateway with an organisation account but has not registered a CCA account" must {
         "return a 401 status and the NO_CUSTOMER_RECORD error code" in {
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails("anExternalId", Some("aGroupId"), Some("Organisation")))
+          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(new ~( new ~(Some("anExternalId"), Some("aGroupId")), Some(AffinityGroup.Organisation))))
           val res = testController.authenticate()(FakeRequest())
           status(res) mustBe UNAUTHORIZED
           contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
@@ -79,7 +78,9 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
           val stubPerson: Person = randomPerson
 
-          StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, Some(stubOrganisation.groupId), Some("Organisation")))
+          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(new ~( new ~(Some(stubPerson.externalId), Some(stubOrganisation.groupId)), Some(AffinityGroup.Organisation))))
+
           when(mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
 
           StubOrganisationAccounts.stubOrganisation(stubOrganisation)
@@ -100,7 +101,9 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
         val stubPerson: Person = randomPerson
 
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, None, Some("Organisation")))
+        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(Future.successful(new ~( new ~(Some(stubPerson.externalId), None), Some(AffinityGroup.Organisation))))
+
         when(mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
 
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)
@@ -115,7 +118,9 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
         val stubPerson: Person = randomPerson
 
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, None, Some("Agent")))
+        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(Future.successful(new ~( new ~(Some(stubPerson.externalId), None), Some(AffinityGroup.Agent))))
+
         when(mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
 
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)
@@ -130,7 +135,9 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
         val stubPerson: Person = randomPerson
 
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(stubPerson.externalId, Some(stubOrganisation.groupId), None))
+        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(Future.successful(new ~( new ~(Some(stubPerson.externalId), Some(stubOrganisation.groupId)), None)
+          ))
         when(mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
 
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)

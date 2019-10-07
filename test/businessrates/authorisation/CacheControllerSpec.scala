@@ -34,7 +34,7 @@ class CacheControllerSpec extends ControllerSpec with MockitoSugar with BeforeAn
 
   val accountsCache = mock[AccountsCache]
 
-  val controller = new CacheController(preAuthenticatedActionBuilders(),accountsCache)
+  val controller = new CacheController(accountsCache)
 
   val sessionId = "session-id-1"
 

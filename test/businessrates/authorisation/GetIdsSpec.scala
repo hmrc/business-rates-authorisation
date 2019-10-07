@@ -21,7 +21,7 @@ import java.time.LocalDate
 import businessrates.authorisation.controllers.AuthorisationController
 import businessrates.authorisation.models.{any => _, _}
 import businessrates.authorisation.services.AccountsService
-import businessrates.authorisation.utils.{StubAuthConnector, StubPropertyLinking, VoaStubWithIds}
+import businessrates.authorisation.utils.{StubPropertyLinking, VoaStubWithIds}
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
@@ -30,11 +30,16 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with MockitoSugar with BeforeAndAfterEach {
+
+  val mockAuthConnector = mock[AuthConnector]
 
   override protected def afterEach(): Unit = {
     //reset to initial state
@@ -51,12 +56,13 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
     when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
   }
 
-  val testController = new AuthorisationController(preAuthenticatedActionBuilders(), StubAuthConnector, StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAccountsService))
+  val testController = new AuthorisationController(StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAuthConnector, mockAccountsService))
 
   "Getting the IDs" when {
     "a user is submitting a check on their own property link" must {
       "return the same IDs for the case creator's IDs and the link owner's IDs" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(client.externalId, Some(clientOrganisation.groupId), Some("Organisation")))
+        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(Future.successful(new ~(new ~(Some(client.externalId), Some(clientOrganisation.groupId)), Some(AffinityGroup.Organisation))))
         stubAccounts(client, clientOrganisation)
         StubPropertyLinking.stubLink(PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, pending = false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
 
@@ -72,7 +78,8 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
 
     "an agent is submitting a check on behalf of a client" must {
       "return the agent's IDs as the case creator's IDs, and the client's IDs as the link owner's IDs" in {
-        StubAuthConnector.stubAuthentication(GovernmentGatewayDetails(agent.externalId, Some(agentOrganisation.groupId), Some("Organisation")))
+        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(Future.successful(new ~(new ~(Some(agent.externalId), Some(agentOrganisation.groupId)), Some(AffinityGroup.Organisation))))
         stubAccounts(agent, agentOrganisation)
 
         val party = randomParty.copy(organisationId = agentOrganisation.id)
