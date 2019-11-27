@@ -45,7 +45,7 @@ class AccountsService @Inject()(groupAccounts: OrganisationAccounts, individualA
       organisation <- OptionT(groupAccounts.getOrganisationByGGId(groupId))
       person <- eventualPerson
     } yield {
-      Accounts(organisation.id, person.individualId, organisation, person)
+      Accounts(organisation.id, person.individualId, organisation.copy(agentCode = organisation.agentCode.filter(_ => organisation.isAgent)), person)
     }).value
   }
 
