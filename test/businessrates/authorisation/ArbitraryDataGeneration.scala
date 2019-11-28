@@ -48,7 +48,7 @@ trait ArbitraryDataGeneration {
     phone <- randomNumericString
     isAgent <- arbitrary[Boolean]
     agentCode <- randomPositiveLong
-  } yield Organisation(id, groupId, companyName, addressId, email, phone, isAgent, agentCode)
+  } yield Organisation(id, groupId, companyName, addressId, email, phone, isAgent, Some(agentCode).filter(_ => isAgent))
 
   def randomPersonDetails: Gen[PersonDetails] = for {
     firstName <- randomShortString
