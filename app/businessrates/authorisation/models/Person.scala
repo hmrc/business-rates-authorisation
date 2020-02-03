@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,29 @@ package businessrates.authorisation.models
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class PersonDetails(firstName: String, lastName: String, email: String, phone1: String, phone2: Option[String], addressId: Int)
-case class Person(externalId: String, trustId: String, organisationId: Long, individualId: Long, details: PersonDetails)
+case class PersonDetails(
+      firstName: String,
+      lastName: String,
+      email: String,
+      phone1: String,
+      phone2: Option[String],
+      addressId: Int)
+case class Person(
+      externalId: String,
+      trustId: String,
+      organisationId: Long,
+      individualId: Long,
+      details: PersonDetails)
 
 object PersonDetails {
   val apiFormat: Reads[PersonDetails] = (
     (__ \ "firstName").read[String] and
-    (__ \ "lastName").read[String] and
-    (__ \ "emailAddress").read[String] and
-    (__ \ "telephoneNumber").read[String] | Reads.pure("not set") and
-    (__ \ "mobileNumber").readNullable[String] and
-    (__ \ "addressUnitId").read[Int]
-    )(PersonDetails.apply _)
+      (__ \ "lastName").read[String] and
+      (__ \ "emailAddress").read[String] and
+      (__ \ "telephoneNumber").read[String] | Reads.pure("not set") and
+      (__ \ "mobileNumber").readNullable[String] and
+      (__ \ "addressUnitId").read[Int]
+  )(PersonDetails.apply _)
 
   implicit val format: OFormat[PersonDetails] = Json.format[PersonDetails]
 }
@@ -38,11 +49,11 @@ object PersonDetails {
 object Person {
   val apiFormat: Reads[Person] = (
     (__ \ "governmentGatewayExternalId").read[String] and
-    (__ \ "personLatestDetail" \ "identifyVerificationId").read[String] | Reads.pure("") and
-    (__ \ "organisationId").read[Long] and
-    (__ \ "id").read[Long] and
-    (__ \ "personLatestDetail").read[PersonDetails](PersonDetails.apiFormat)
-    )(Person.apply _)
+      (__ \ "personLatestDetail" \ "identifyVerificationId").read[String] | Reads.pure("") and
+      (__ \ "organisationId").read[Long] and
+      (__ \ "id").read[Long] and
+      (__ \ "personLatestDetail").read[PersonDetails](PersonDetails.apiFormat)
+  )(Person.apply _)
 
   implicit val format: OFormat[Person] = Json.format[Person]
 }

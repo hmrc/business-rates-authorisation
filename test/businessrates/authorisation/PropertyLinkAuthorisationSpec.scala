@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,10 +38,9 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
 
   val mockAuthConnector = mock[AuthConnector]
 
-  override protected def afterEach(): Unit = {
+  override protected def afterEach(): Unit =
     //reset to initial state
     when(mockAccountsService.get(anyString, anyString)(any[HeaderCarrier])).thenReturn(Future.successful(None))
-  }
 
   lazy val mockAccountsService = {
     val m = mock[AccountsService]
@@ -49,18 +48,29 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
     m
   }
 
-  private def stubAccounts(p: Person, o: Organisation) = {
-    when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
-  }
+  private def stubAccounts(p: Person, o: Organisation) =
+    when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier]))
+      .thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
 
-  private object TestAuthController extends AuthorisationController(StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAuthConnector, mockAccountsService))
+  private object TestAuthController
+      extends AuthorisationController(
+        StubPropertyLinking,
+        mockAccountsService,
+        new VoaStubWithIds(mockAuthConnector, mockAccountsService))
 
   "Calling the property link authorisation endpoint" when {
 
     "the user is logged in to government gateway but has not registered a VOA account" must {
       "return a 401 response and the NO_CUSTOMER_RECORD error code" in {
-        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
-          .thenReturn(Future.successful(new ~(new ~(Some(randomShortString.sample.get), Some(randomShortString.sample.get)), Some(AffinityGroup.Organisation))))
+        when(
+          mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(
+            Future.successful(
+              new ~(
+                new ~(Some(randomShortString.sample.get), Some(randomShortString.sample.get)),
+                Some(AffinityGroup.Organisation))))
 
         val res = TestAuthController.authorise(randomPositiveLong)(FakeRequest())
 
@@ -75,8 +85,11 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           val person: Person = randomPerson
           val organisation: Organisation = randomOrganisation
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
-            .thenReturn(Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(
+              new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts(person, organisation)
 
           val res = TestAuthController.authorise(randomPositiveLong)(FakeRequest())
@@ -89,8 +102,11 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           val person: Person = randomPerson
           val organisation: Organisation = randomOrganisation
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
-            .thenReturn(Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(
+              new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts(person, organisation)
 
           val propertyLink: PropertyLink = randomPropertyLink.copy(organisationId = organisation.id, pending = true)
@@ -98,7 +114,11 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
 
           val res = TestAuthController.authorise(propertyLink.authorisationId)(FakeRequest())
           status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj("organisationId" -> organisation.id, "personId" -> person.individualId, "organisation" -> Json.toJson(organisation), "person" -> Json.toJson(person))
+          contentAsJson(res) mustBe Json.obj(
+            "organisationId" -> organisation.id,
+            "personId"       -> person.individualId,
+            "organisation"   -> Json.toJson(organisation),
+            "person"         -> Json.toJson(person))
         }
       }
 
@@ -107,8 +127,11 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           val person: Person = randomPerson
           val organisation: Organisation = randomOrganisation
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
-            .thenReturn(Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(
+              new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts(person, organisation)
 
           val propertyLink: PropertyLink = randomPropertyLink.copy(organisationId = organisation.id, pending = false)
@@ -116,7 +139,11 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
 
           val res = TestAuthController.authorise(propertyLink.authorisationId)(FakeRequest())
           status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj("organisationId" -> organisation.id, "personId" -> person.individualId, "organisation" -> Json.toJson(organisation), "person" -> Json.toJson(person))
+          contentAsJson(res) mustBe Json.obj(
+            "organisationId" -> organisation.id,
+            "personId"       -> person.individualId,
+            "organisation"   -> Json.toJson(organisation),
+            "person"         -> Json.toJson(person))
         }
       }
 
@@ -125,16 +152,28 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           val anAgent: Person = randomPerson
           val agentOrganisation: Organisation = randomOrganisation
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
-            .thenReturn(Future.successful(new ~(new ~(Some(anAgent.externalId), Some(agentOrganisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(
+              Future.successful(
+                new ~(
+                  new ~(Some(anAgent.externalId), Some(agentOrganisation.groupId)),
+                  Some(AffinityGroup.Organisation))))
           stubAccounts(anAgent, agentOrganisation)
 
-          val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(pending = false, agents = Seq(randomParty.copy(organisationId = agentOrganisation.id)))
+          val propertyLink: PropertyLink = randomPropertyLink
+            .retryUntil(_.organisationId != agentOrganisation.id)
+            .copy(pending = false, agents = Seq(randomParty.copy(organisationId = agentOrganisation.id)))
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = TestAuthController.authorise(propertyLink.authorisationId)(FakeRequest())
           status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj("organisationId" -> agentOrganisation.id, "personId" -> anAgent.individualId, "organisation" -> Json.toJson(agentOrganisation), "person" -> Json.toJson(anAgent))
+          contentAsJson(res) mustBe Json.obj(
+            "organisationId" -> agentOrganisation.id,
+            "personId"       -> anAgent.individualId,
+            "organisation"   -> Json.toJson(agentOrganisation),
+            "person"         -> Json.toJson(anAgent))
         }
       }
     }

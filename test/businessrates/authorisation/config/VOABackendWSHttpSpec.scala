@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,8 @@ class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar 
     }
 
     "trigger metrics success logging for the mdtp-dashboard-management-api endpoint - irrespective of query params" in {
-      val url = "http://voa-api-proxy.service:80/mdtp-dashboard-management-api/mdtp_dashboard/properties_view?listYear=2016&organisationId=101"
+      val url =
+        "http://voa-api-proxy.service:80/mdtp-dashboard-management-api/mdtp_dashboard/properties_view?listYear=2016&organisationId=101"
 
       await(wsHttp.doGet(url))
 
@@ -69,7 +70,8 @@ class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar 
     }
 
     "trigger metrics success logging for the address-management-api endpoint with JSON query" in {
-      val url = "http://voa-api-proxy.service:80/address-management-api/address?pageSize=100&startPoint=1&SearchParameters={\"postcode\": \"BN12 6EA\"}"
+      val url =
+        "http://voa-api-proxy.service:80/address-management-api/address?pageSize=100&startPoint=1&SearchParameters={\"postcode\": \"BN12 6EA\"}"
 
       await(wsHttp.doGet(url))
 
@@ -78,7 +80,8 @@ class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar 
     }
 
     "trigger metrics failure logging for the address-management-api endpoint with JSON query" in {
-      val url = "http://voa-api-proxy.service:80/address-management-api/address?pageSize=100&startPoint=1&SearchParameters={\"postcode\": \"BN12 6EA\"}"
+      val url =
+        "http://voa-api-proxy.service:80/address-management-api/address?pageSize=100&startPoint=1&SearchParameters={\"postcode\": \"BN12 6EA\"}"
 
       await(failHttp.doGet(url))
 

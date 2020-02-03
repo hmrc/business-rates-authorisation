@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,27 +29,26 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthenticatedActionBuilder @Inject()(
-                                            override val authConnector: AuthConnector
-                                          )(implicit override val executionContext: ExecutionContext)
-  extends ActionBuilder[RequestWithPrincipal]
-    with AuthorisedFunctions
-    with Results {
+      override val authConnector: AuthConnector
+)(implicit override val executionContext: ExecutionContext)
+    extends ActionBuilder[RequestWithPrincipal] with AuthorisedFunctions with Results {
 
   val logger = Logger(this.getClass.getName)
 
   def invokeBlock[A](request: Request[A], block: RequestWithPrincipal[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
+    implicit val hc: HeaderCarrier =
+      HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
 
     authorised().retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier) {
       case externalId ~ groupIdentifier =>
         (externalId, groupIdentifier) match {
           case (Some(exId), Some(grpId)) => block(RequestWithPrincipal(request, Principal(exId, grpId)))
-          case (Some(_), None) => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_GROUP_ID")))
-          case (None, Some(_)) => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_EXTERNAL_ID")))
-          case (None, None) => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_EXTERNAL_ID_OR_GROUP_ID")))
+          case (Some(_), None)           => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_GROUP_ID")))
+          case (None, Some(_))           => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_EXTERNAL_ID")))
+          case (None, None)              => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_EXTERNAL_ID_OR_GROUP_ID")))
         }
-    }recoverWith {
+    } recoverWith {
       case e: InternalError => {
         logger.warn(e.getMessage)
         throw e

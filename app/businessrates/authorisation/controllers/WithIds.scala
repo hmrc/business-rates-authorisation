@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,36 +34,35 @@ trait WithIds extends Results with AuthorisedFunctions {
   protected val accounts: AccountsService
 
   def withIds(default: Accounts => Future[Result])(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Result] =
-    authorised().retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier and v2.Retrievals.affinityGroup){
-      case Some(externalId) ~ Some(groupId) ~ Some(affinityGroup) =>
-        impl(default)(GovernmentGatewayDetails(externalId, Some(groupId), Some(affinityGroup)))
-      case _                                                      =>
-        Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
-    }.recover {
-      case _: AuthorisationException => Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION"))
-      case e                         => throw e
-    }
+    authorised()
+      .retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier and v2.Retrievals.affinityGroup) {
+        case Some(externalId) ~ Some(groupId) ~ Some(affinityGroup) =>
+          impl(default)(GovernmentGatewayDetails(externalId, Some(groupId), Some(affinityGroup)))
+        case _ =>
+          Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
+      }
+      .recover {
+        case _: AuthorisationException => Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION"))
+        case e                         => throw e
+      }
 
-
-  protected def impl(default: (Accounts) => Future[Result])
-                    (optGGDetails: GovernmentGatewayDetails)
-                    (implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Result]
+  protected def impl(default: (Accounts) => Future[Result])(
+        optGGDetails: GovernmentGatewayDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Result]
 
 }
 
 class VoaIds @Inject()(
-                        val authConnector: AuthConnector,
-                        val accounts: AccountsService
-                      ) extends WithIds {
+      val authConnector: AuthConnector,
+      val accounts: AccountsService
+) extends WithIds {
 
-  override def impl(default: (Accounts) => Future[Result])
-                   (optGGDetails: GovernmentGatewayDetails)
-                   (implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Result] = {
+  override def impl(default: (Accounts) => Future[Result])(
+        optGGDetails: GovernmentGatewayDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Result] =
     optGGDetails match {
       case GovernmentGatewayDetails(externalId, Some(groupId), Some(Organisation) | Some(Individual)) =>
         accounts.get(externalId, groupId) flatMap {
           case Some(accs) => default(accs)
-          case None => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
+          case None       => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
         }
       case GovernmentGatewayDetails(_, None, _) =>
         Logger.info(s"User has logged in with no groupId")
@@ -72,5 +71,4 @@ class VoaIds @Inject()(
         Logger.info(s"User has logged in with non-permitted affinityGroup ${affinityGroup.getOrElse("Not provided")}")
         Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")))
     }
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AuthorisationController @Inject()(
-                                         val propertyLinking: PropertyLinking,
-                                         val accounts: AccountsService,
-                                         val ids: WithIds
-                                       ) extends BaseController {
+      val propertyLinking: PropertyLinking,
+      val accounts: AccountsService,
+      val ids: WithIds
+) extends BaseController {
 
   import ids._
 
@@ -42,35 +42,41 @@ class AuthorisationController @Inject()(
     }
   }
 
-
-  def authoriseToViewAssessment(authorisationId: Long, assessmentRef: Long, role: Option[PermissionType] = None): Action[AnyContent] = Action.async { implicit request =>
+  def authoriseToViewAssessment(
+        authorisationId: Long,
+        assessmentRef: Long,
+        role: Option[PermissionType] = None): Action[AnyContent] = Action.async { implicit request =>
     withIds { accounts =>
       propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef, role.getOrElse(any)).map {
         case Some(_) => Ok(toJson(accounts))
-        case _ => Forbidden
+        case _       => Forbidden
       }
     }
   }
 
   def authorise(authorisationId: Long): Action[AnyContent] = Action.async { implicit request =>
-    withIds { case a@Accounts(oid, _, _, _) =>
-      propertyLinking.getLink(oid, authorisationId) map {
-        case Some(_) => Ok(Json.toJson(a))
-        case None => Forbidden
-      }
+    withIds {
+      case a @ Accounts(oid, _, _, _) =>
+        propertyLinking.getLink(oid, authorisationId) map {
+          case Some(_) => Ok(Json.toJson(a))
+          case None    => Forbidden
+        }
     }
   }
 
   def getIds(authorisationId: Long): Action[AnyContent] = Action.async { implicit request =>
-    withIds { case Accounts(oid, pid, _, _) =>
-      propertyLinking.getLink(oid, authorisationId).map {
-        case Some(link) => Ok(toJson(
-          SubmissionIds(
-            caseCreator = AccountIds(oid, pid),
-            interestedParty = AccountIds(link.organisationId, link.personId)
-          )))
-        case None => Forbidden
-      }
+    withIds {
+      case Accounts(oid, pid, _, _) =>
+        propertyLinking.getLink(oid, authorisationId).map {
+          case Some(link) =>
+            Ok(
+              toJson(
+                SubmissionIds(
+                  caseCreator = AccountIds(oid, pid),
+                  interestedParty = AccountIds(link.organisationId, link.personId)
+                )))
+          case None => Forbidden
+        }
     }
   }
 }

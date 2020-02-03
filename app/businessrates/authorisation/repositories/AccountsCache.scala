@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,24 +34,35 @@ trait AccountsCache {
   def drop(sessionId: String): Future[Unit]
 }
 
-class AccountsMongoCache @Inject()(db: DB)(implicit ec: ExecutionContext) extends ReactiveRepository[Record, String]("accountsCache", () => db, Record.mongoFormat, implicitly) with AccountsCache {
+class AccountsMongoCache @Inject()(db: DB)(implicit ec: ExecutionContext)
+    extends ReactiveRepository[Record, String]("accountsCache", () => db, Record.mongoFormat, implicitly)
+    with AccountsCache {
 
-  override def indexes: Seq[Index] = Seq(Index(key = Seq("createdAt" -> IndexType.Ascending), name = Some("ttl"), options = BSONDocument("expireAfterSeconds" -> 900)))
+  override def indexes: Seq[Index] =
+    Seq(
+      Index(
+        key = Seq("createdAt" -> IndexType.Ascending),
+        name = Some("ttl"),
+        options = BSONDocument("expireAfterSeconds" -> 900)))
 
-  override def cache(sessionId: String, accounts: Accounts): Future[Unit] = {
-    insert(Record(sessionId, accounts)) map { _ => () }
-  }
+  override def cache(sessionId: String, accounts: Accounts): Future[Unit] =
+    insert(Record(sessionId, accounts)) map { _ =>
+      ()
+    }
 
-  override def get(sessionId: String): Future[Option[Accounts]] = {
+  override def get(sessionId: String): Future[Option[Accounts]] =
     findById(sessionId) map { _.map(_.data) }
-  }
 
-  override def drop(sessionId: String): Future[Unit] = {
-    removeById(sessionId) map { _ => () }
-  }
+  override def drop(sessionId: String): Future[Unit] =
+    removeById(sessionId) map { _ =>
+      ()
+    }
 }
 
-private[repositories] case class Record(_id: String, data: Accounts, createdAt: BSONDateTime = BSONDateTime(System.currentTimeMillis))
+private[repositories] case class Record(
+      _id: String,
+      data: Accounts,
+      createdAt: BSONDateTime = BSONDateTime(System.currentTimeMillis))
 
 private[repositories] object Record {
 

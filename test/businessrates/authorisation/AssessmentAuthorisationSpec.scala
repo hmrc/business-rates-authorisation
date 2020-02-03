@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,9 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
     StubPersonAccounts.reset()
   }
 
-  override protected def afterEach(): Unit = {
+  override protected def afterEach(): Unit =
     //reset to initial state
     when(mockAccountsService.get(any(), any())(any())).thenReturn(Future.successful(None))
-  }
 
   lazy val mockAccountsService = {
     val m = mock[AccountsService]
@@ -61,11 +60,14 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
     m
   }
 
-  private def stubAccounts(p: Person = person, o: Organisation = organisation) = {
-    when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
-  }
+  private def stubAccounts(p: Person = person, o: Organisation = organisation) =
+    when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier]))
+      .thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
 
-  val testController = new AuthorisationController(StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAuthConnector, mockAccountsService))
+  val testController = new AuthorisationController(
+    StubPropertyLinking,
+    mockAccountsService,
+    new VoaStubWithIds(mockAuthConnector, mockAccountsService))
 
   private val organisation: Organisation = randomOrganisation
 
@@ -75,8 +77,11 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
 
     "the user is logged in to government gateway but has not registered a VOA account" must {
       "return a 401 response and the NO_CUSTOMER_RECORD error code" in {
-        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any())).thenReturn(
-           Future.successful(new ~(new ~(Some(""), Some("")), Some(AffinityGroup.Organisation))))
+        when(
+          mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(Future.successful(new ~(new ~(Some(""), Some("")), Some(AffinityGroup.Organisation))))
 
         val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
         status(res) mustBe UNAUTHORIZED
@@ -87,8 +92,11 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
     "the user is logged in to government gateway and has a VOA account" when {
       "the account does not have a link to the property" must {
         "return a 403 response" in {
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any())).thenReturn(
-             Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(
+              new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts()
           val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
           status(res) mustBe FORBIDDEN
@@ -100,10 +108,23 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val linkId = 1234
           val assessmentRef = 9012
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any())).thenReturn(
-             Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(
+              new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts()
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
+          StubPropertyLinking.stubLink(
+            PropertyLink(
+              linkId,
+              1111,
+              organisation.id,
+              person.individualId,
+              LocalDate.now,
+              false,
+              Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)),
+              Seq(),
+              "APPROVED"))
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
         }
@@ -114,10 +135,23 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val linkId = 2345
           val assessmentRef = 1234
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any())).thenReturn(
-             Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(
+              new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts()
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, LocalDate.now, true, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)), Seq(), "PENDING"))
+          StubPropertyLinking.stubLink(
+            PropertyLink(
+              linkId,
+              1111,
+              organisation.id,
+              person.individualId,
+              LocalDate.now,
+              true,
+              Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)),
+              Seq(),
+              "PENDING"))
 
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe FORBIDDEN
@@ -129,13 +163,30 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val linkId = 1234
           val assessmentRef = 9012
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any())).thenReturn(
-             Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(
+              new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts()
-          StubPropertyLinking.stubLink(PropertyLink(linkId, 1111, organisation.id, person.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
+          StubPropertyLinking.stubLink(
+            PropertyLink(
+              linkId,
+              1111,
+              organisation.id,
+              person.individualId,
+              LocalDate.now,
+              false,
+              Seq(Assessment(assessmentRef, "2017", 1111, LocalDate.now)),
+              Seq(),
+              "APPROVED"))
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
           status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj("organisationId" -> organisation.id, "personId" -> person.individualId, "organisation" -> Json.toJson(organisation), "person" -> Json.toJson(person))
+          contentAsJson(res) mustBe Json.obj(
+            "organisationId" -> organisation.id,
+            "personId"       -> person.individualId,
+            "organisation"   -> Json.toJson(organisation),
+            "person"         -> Json.toJson(person))
         }
       }
 
@@ -144,23 +195,36 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val anAgent: Person = randomPerson
           val agentOrganisation: Organisation = randomOrganisation
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any())).thenReturn(
-             Future.successful(new ~(new ~(Some(anAgent.externalId), Some(agentOrganisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(
+            mockAuthConnector.authorise(
+              any(),
+              matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(
+              any(),
+              any())).thenReturn(Future.successful(
+            new ~(new ~(Some(anAgent.externalId), Some(agentOrganisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts(anAgent, agentOrganisation)
 
-          val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(
-            pending = false,
-            agents = Seq(randomParty.copy(
-              organisationId = agentOrganisation.id,
-              authorisedPartyStatus = RepresentationStatus.approved,
-              permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
-            ))
-          )
+          val propertyLink: PropertyLink = randomPropertyLink
+            .retryUntil(_.organisationId != agentOrganisation.id)
+            .copy(
+              pending = false,
+              agents = Seq(randomParty.copy(
+                organisationId = agentOrganisation.id,
+                authorisedPartyStatus = RepresentationStatus.approved,
+                permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
+              ))
+            )
           StubPropertyLinking.stubLink(propertyLink)
 
-          val res = testController.authoriseToViewAssessment(propertyLink.authorisationId, propertyLink.assessment.head.assessmentRef)(FakeRequest())
+          val res = testController.authoriseToViewAssessment(
+            propertyLink.authorisationId,
+            propertyLink.assessment.head.assessmentRef)(FakeRequest())
           status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj("organisationId" -> agentOrganisation.id, "personId" -> anAgent.individualId, "organisation" -> Json.toJson(agentOrganisation), "person" -> Json.toJson(anAgent))
+          contentAsJson(res) mustBe Json.obj(
+            "organisationId" -> agentOrganisation.id,
+            "personId"       -> anAgent.individualId,
+            "organisation"   -> Json.toJson(agentOrganisation),
+            "person"         -> Json.toJson(anAgent))
         }
       }
     }
@@ -171,44 +235,58 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val anAgent: Person = randomPerson
           val agentOrganisation: Organisation = randomOrganisation
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any())).thenReturn(
-             Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(
+              new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
 
           stubAccounts(anAgent, agentOrganisation)
 
-          val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(
-            pending = false,
-            agents = Seq(randomParty.copy(
-              organisationId = agentOrganisation.id,
-              authorisedPartyStatus = RepresentationStatus.approved,
-              permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
-            ))
-          )
+          val propertyLink: PropertyLink = randomPropertyLink
+            .retryUntil(_.organisationId != agentOrganisation.id)
+            .copy(
+              pending = false,
+              agents = Seq(randomParty.copy(
+                organisationId = agentOrganisation.id,
+                authorisedPartyStatus = RepresentationStatus.approved,
+                permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
+              ))
+            )
           StubPropertyLinking.stubLink(propertyLink)
 
-          val res = testController.authoriseToViewAssessment(propertyLink.authorisationId, propertyLink.assessment.head.assessmentRef)(FakeRequest())
+          val res = testController.authoriseToViewAssessment(
+            propertyLink.authorisationId,
+            propertyLink.assessment.head.assessmentRef)(FakeRequest())
           status(res) mustBe UNAUTHORIZED
         }
         "return a 401 without affinity group" in {
           val anAgent: Person = randomPerson
           val agentOrganisation: Organisation = randomOrganisation
 
-          when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any())).thenReturn(
-             Future.successful(new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
+          when(mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+            .thenReturn(Future.successful(
+              new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
 
           stubAccounts(anAgent, agentOrganisation)
 
-          val propertyLink: PropertyLink = randomPropertyLink.retryUntil(_.organisationId != agentOrganisation.id).copy(
-            pending = false,
-            agents = Seq(randomParty.copy(
-              organisationId = agentOrganisation.id,
-              authorisedPartyStatus = RepresentationStatus.approved,
-              permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
-            ))
-          )
+          val propertyLink: PropertyLink = randomPropertyLink
+            .retryUntil(_.organisationId != agentOrganisation.id)
+            .copy(
+              pending = false,
+              agents = Seq(randomParty.copy(
+                organisationId = agentOrganisation.id,
+                authorisedPartyStatus = RepresentationStatus.approved,
+                permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
+              ))
+            )
           StubPropertyLinking.stubLink(propertyLink)
 
-          val res = testController.authoriseToViewAssessment(propertyLink.authorisationId, propertyLink.assessment.head.assessmentRef)(FakeRequest())
+          val res = testController.authoriseToViewAssessment(
+            propertyLink.authorisationId,
+            propertyLink.assessment.head.assessmentRef)(FakeRequest())
           status(res) mustBe UNAUTHORIZED
         }
 

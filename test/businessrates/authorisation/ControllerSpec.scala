@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import businessrates.authorisation.utils.{StubOrganisationAccounts, StubPersonAc
 import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 
-
-class ControllerSpec extends WordSpec with MustMatchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout with ArbitraryDataGeneration {
+class ControllerSpec
+    extends WordSpec with MustMatchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout
+    with ArbitraryDataGeneration {
 
   override protected def beforeEach() = {
     StubOrganisationAccounts.reset()

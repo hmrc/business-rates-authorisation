@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package businessrates.authorisation.auth
 import play.api.mvc.{Request, WrappedRequest}
 
 class RequestWithPrincipal[A](
-                               request: Request[A],
-                               val principal: Principal
-                             ) extends WrappedRequest[A](request)
+      request: Request[A],
+      val principal: Principal
+) extends WrappedRequest[A](request)
 
 object RequestWithPrincipal {
   def apply[A](request: Request[A], principal: Principal): RequestWithPrincipal[A] =

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import uk.gov.hmrc.play.http.ws.WSHttp
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 trait HasMetrics extends WSHttp {
 
@@ -35,25 +35,22 @@ trait HasMetrics extends WSHttp {
 
   lazy val registry: MetricRegistry = metrics.defaultRegistry
 
-  override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doGet(url) }
-  }
 
-  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doDelete(url) }
-  }
 
-  override def doPatch[A](url: String, body: A)(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+  override def doPatch[A](url: String, body: A)(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doPatch(url, body) }
-  }
 
-  override def doPut[A](url: String, body: A)(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+  override def doPut[A](url: String, body: A)(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doPut(url, body) }
-  }
 
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] = {
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
+        implicit writes: Writes[A],
+        hc: HeaderCarrier): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doPost(url, body, headers) }
-  }
 
   private def getApiName(url: String): String = new URL(url).getPath.drop(1).split("/").head
 
@@ -74,7 +71,7 @@ trait HasMetrics extends WSHttp {
 
     def complete: Int => Unit = {
       case s if s >= 200 && s <= 399 => success()
-      case _ => fail()
+      case _                         => fail()
     }
 
     def success(): Unit = op("success")

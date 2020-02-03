@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,70 +29,79 @@ trait ArbitraryDataGeneration {
   def randomShortString: Gen[String] = Gen.listOfN(20, Gen.alphaNumChar).map(_.mkString)
   def randomNumericString: Gen[String] = Gen.listOfN(20, Gen.numChar).map(_.mkString)
   def randomPositiveLong: Gen[Long] = Gen.choose(0L, Long.MaxValue)
-  def randomInstant:Gen[Instant] = Gen.choose(0L, 32472144000000L /* 1/1/2999 */).map(Instant.ofEpochMilli(_))
+  def randomInstant: Gen[Instant] = Gen.choose(0L, 32472144000000L /* 1/1/2999 */ ).map(Instant.ofEpochMilli(_))
   def randomDate: Gen[ZonedDateTime] = randomInstant.map(ZonedDateTime.ofInstant(_, ZoneId.of("UTC")))
   def randomLocalDate: Gen[LocalDate] = randomDate.map(_.toLocalDate)
 
-  def randomEmail: Gen[String] = for {
-    mailbox <- randomShortString
-    domain <- randomShortString
-    tld <- randomShortString
-  } yield s"$mailbox@$domain.$tld"
+  def randomEmail: Gen[String] =
+    for {
+      mailbox <- randomShortString
+      domain  <- randomShortString
+      tld     <- randomShortString
+    } yield s"$mailbox@$domain.$tld"
 
-  def randomOrganisation: Gen[Organisation] = for {
-    id <- arbitrary[Int]
-    groupId <- randomShortString
-    companyName <- randomShortString
-    addressId <- arbitrary[Int]
-    email <- randomEmail
-    phone <- randomNumericString
-    isAgent <- arbitrary[Boolean]
-    agentCode <- randomPositiveLong
-  } yield Organisation(id, groupId, companyName, addressId, email, phone, isAgent, Some(agentCode).filter(_ => isAgent))
+  def randomOrganisation: Gen[Organisation] =
+    for {
+      id          <- arbitrary[Int]
+      groupId     <- randomShortString
+      companyName <- randomShortString
+      addressId   <- arbitrary[Int]
+      email       <- randomEmail
+      phone       <- randomNumericString
+      isAgent     <- arbitrary[Boolean]
+      agentCode   <- randomPositiveLong
+    } yield
+      Organisation(id, groupId, companyName, addressId, email, phone, isAgent, Some(agentCode).filter(_ => isAgent))
 
-  def randomPersonDetails: Gen[PersonDetails] = for {
-    firstName <- randomShortString
-    lastName <- randomShortString
-    email <- randomEmail
-    phone1 <- randomNumericString
-    phone2 <- Gen.option(randomNumericString)
-    addressId <- arbitrary[Int]
-  } yield PersonDetails(firstName, lastName, email, phone1, phone2, addressId)
+  def randomPersonDetails: Gen[PersonDetails] =
+    for {
+      firstName <- randomShortString
+      lastName  <- randomShortString
+      email     <- randomEmail
+      phone1    <- randomNumericString
+      phone2    <- Gen.option(randomNumericString)
+      addressId <- arbitrary[Int]
+    } yield PersonDetails(firstName, lastName, email, phone1, phone2, addressId)
 
-  def randomPerson: Gen[Person] = for {
-    externalId <- randomShortString
-    trustId <- randomShortString
-    organisationId <- randomPositiveLong
-    individualId <- randomPositiveLong
-    details <- randomPersonDetails
-  } yield Person(externalId, trustId, organisationId, individualId, details)
+  def randomPerson: Gen[Person] =
+    for {
+      externalId     <- randomShortString
+      trustId        <- randomShortString
+      organisationId <- randomPositiveLong
+      individualId   <- randomPositiveLong
+      details        <- randomPersonDetails
+    } yield Person(externalId, trustId, organisationId, individualId, details)
 
-  def randomAssessment: Gen[Assessment] = for {
-    assessmentRef <- randomPositiveLong
-    listYear = "2017"
-    uarn <- randomPositiveLong
-    effectiveDate <- randomDate.map(_.toLocalDate)
-  } yield Assessment(assessmentRef, listYear, uarn, effectiveDate)
+  def randomAssessment: Gen[Assessment] =
+    for {
+      assessmentRef <- randomPositiveLong
+      listYear = "2017"
+      uarn          <- randomPositiveLong
+      effectiveDate <- randomDate.map(_.toLocalDate)
+    } yield Assessment(assessmentRef, listYear, uarn, effectiveDate)
 
-  def randomPropertyLink: Gen[PropertyLink] = for {
-    authorisationId <- randomPositiveLong
-    uarn <- randomPositiveLong
-    organisationId <- randomPositiveLong
-    personId <- randomPositiveLong
-    linkedDate <- randomLocalDate
-    pending <- arbitrary[Boolean]
-    assessment <- Gen.nonEmptyListOf(randomAssessment).retryUntil(_.size < 10)
-    status <- Gen.oneOf("APPROVED", "PENDING", "REVOKED", "DECLINED")
-  } yield PropertyLink(authorisationId, uarn, organisationId, personId, linkedDate, pending, assessment, Nil, status)
+  def randomPropertyLink: Gen[PropertyLink] =
+    for {
+      authorisationId <- randomPositiveLong
+      uarn            <- randomPositiveLong
+      organisationId  <- randomPositiveLong
+      personId        <- randomPositiveLong
+      linkedDate      <- randomLocalDate
+      pending         <- arbitrary[Boolean]
+      assessment      <- Gen.nonEmptyListOf(randomAssessment).retryUntil(_.size < 10)
+      status          <- Gen.oneOf("APPROVED", "PENDING", "REVOKED", "DECLINED")
+    } yield PropertyLink(authorisationId, uarn, organisationId, personId, linkedDate, pending, assessment, Nil, status)
 
-  def randomParty: Gen[Party] = for {
-    permissions <- randomPermissions
-    authorisedPartyStatus <- Gen.oneOf(RepresentationStatus.approved, RepresentationStatus.pending)
-    organisationId <- randomPositiveLong
-  } yield Party(permissions, authorisedPartyStatus, organisationId)
+  def randomParty: Gen[Party] =
+    for {
+      permissions           <- randomPermissions
+      authorisedPartyStatus <- Gen.oneOf(RepresentationStatus.approved, RepresentationStatus.pending)
+      organisationId        <- randomPositiveLong
+    } yield Party(permissions, authorisedPartyStatus, organisationId)
 
-  def randomPermissions: Gen[Seq[Permission]] = for {
-    checkPermission <- Gen.oneOf(StartAndContinue, NotPermitted)
-    challengePermission <- Gen.oneOf(StartAndContinue, NotPermitted)
-  } yield Seq(Permission(checkPermission, challengePermission, None))
+  def randomPermissions: Gen[Seq[Permission]] =
+    for {
+      checkPermission     <- Gen.oneOf(StartAndContinue, NotPermitted)
+      challengePermission <- Gen.oneOf(StartAndContinue, NotPermitted)
+    } yield Seq(Permission(checkPermission, challengePermission, None))
 }
