@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.http.HttpPost
 import uk.gov.hmrc.play.config.ServicesConfig
 
-class DefaultAuthConnector @Inject()(val http: HttpPost, val config: ServicesConfig)
-  extends PlayAuthConnector {
-  override val serviceUrl =  config.baseUrl("auth")
+class DefaultAuthConnector @Inject()(val http: HttpPost, val config: ServicesConfig) extends PlayAuthConnector {
+  override val serviceUrl = config.baseUrl("auth")
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,9 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
 
   val mockAuthConnector = mock[AuthConnector]
 
-  override protected def afterEach(): Unit = {
+  override protected def afterEach(): Unit =
     //reset to initial state
     when(mockAccountsService.get(anyString, anyString)(any[HeaderCarrier])).thenReturn(Future.successful(None))
-  }
 
   lazy val mockAccountsService = {
     val m = mock[AccountsService]
@@ -52,25 +51,43 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
     m
   }
 
-  private def stubAccounts(p: Person, o: Organisation) = {
-    when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier])).thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
-  }
+  private def stubAccounts(p: Person, o: Organisation) =
+    when(mockAccountsService.get(matching(p.externalId), matching(o.groupId))(any[HeaderCarrier]))
+      .thenReturn(Future.successful(Some(Accounts(o.id, p.individualId, o, p))))
 
-  val testController = new AuthorisationController(StubPropertyLinking, mockAccountsService, new VoaStubWithIds(mockAuthConnector, mockAccountsService))
+  val testController = new AuthorisationController(
+    StubPropertyLinking,
+    mockAccountsService,
+    new VoaStubWithIds(mockAuthConnector, mockAccountsService))
 
   "Getting the IDs" when {
     "a user is submitting a check on their own property link" must {
       "return the same IDs for the case creator's IDs and the link owner's IDs" in {
-        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
-          .thenReturn(Future.successful(new ~(new ~(Some(client.externalId), Some(clientOrganisation.groupId)), Some(AffinityGroup.Organisation))))
+        when(
+          mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(Future.successful(
+            new ~(new ~(Some(client.externalId), Some(clientOrganisation.groupId)), Some(AffinityGroup.Organisation))))
         stubAccounts(client, clientOrganisation)
-        StubPropertyLinking.stubLink(PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, pending = false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(), "APPROVED"))
+        StubPropertyLinking.stubLink(
+          PropertyLink(
+            authorisationId,
+            1111,
+            clientOrganisation.id,
+            client.individualId,
+            LocalDate.now,
+            pending = false,
+            Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)),
+            Seq(),
+            "APPROVED"
+          ))
 
         val res = testController.getIds(authorisationId)(FakeRequest())
         status(res) mustBe OK
 
         contentAsJson(res) mustBe Json.obj(
-          "caseCreator" -> Json.obj("organisationId" -> clientOrganisation.id, "personId" -> client.individualId),
+          "caseCreator"     -> Json.obj("organisationId" -> clientOrganisation.id, "personId" -> client.individualId),
           "interestedParty" -> Json.obj("organisationId" -> clientOrganisation.id, "personId" -> client.individualId)
         )
       }
@@ -78,20 +95,34 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
 
     "an agent is submitting a check on behalf of a client" must {
       "return the agent's IDs as the case creator's IDs, and the client's IDs as the link owner's IDs" in {
-        when(mockAuthConnector.authorise(any(), matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
-          .thenReturn(Future.successful(new ~(new ~(Some(agent.externalId), Some(agentOrganisation.groupId)), Some(AffinityGroup.Organisation))))
+        when(
+          mockAuthConnector.authorise(
+            any(),
+            matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
+          .thenReturn(Future.successful(
+            new ~(new ~(Some(agent.externalId), Some(agentOrganisation.groupId)), Some(AffinityGroup.Organisation))))
         stubAccounts(agent, agentOrganisation)
 
         val party = randomParty.copy(organisationId = agentOrganisation.id)
         StubPropertyLinking.stubLink(
-          PropertyLink(authorisationId, 1111, clientOrganisation.id, client.individualId, LocalDate.now, false, Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)), Seq(party), "APPROVED")
+          PropertyLink(
+            authorisationId,
+            1111,
+            clientOrganisation.id,
+            client.individualId,
+            LocalDate.now,
+            false,
+            Seq(Assessment(assessmentRef + 1, "2017", 1111, LocalDate.now)),
+            Seq(party),
+            "APPROVED"
+          )
         )
 
         val res = testController.getIds(authorisationId)(FakeRequest())
         status(res) mustBe OK
 
         contentAsJson(res) mustBe Json.obj(
-          "caseCreator" -> Json.obj("organisationId" -> agentOrganisation.id, "personId" -> agent.individualId),
+          "caseCreator"     -> Json.obj("organisationId" -> agentOrganisation.id, "personId"  -> agent.individualId),
           "interestedParty" -> Json.obj("organisationId" -> clientOrganisation.id, "personId" -> client.individualId)
         )
       }

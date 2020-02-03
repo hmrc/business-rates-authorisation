@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,9 @@ class CacheController @Inject()(cache: AccountsCache)(implicit ec: ExecutionCont
   def clearCache = Action.async { implicit request =>
     val header = uk.gov.hmrc.play.HeaderCarrierConverter.fromHeadersAndSession(request.headers)
     header.sessionId.fold(Future.successful(Ok(EmptyContent()))) { sid =>
-      cache.drop(sid.value) map { _ => Ok(EmptyContent()) }
+      cache.drop(sid.value) map { _ =>
+        Ok(EmptyContent())
+      }
     }
   }
 }

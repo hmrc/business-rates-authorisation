@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,7 @@ import play.api.libs.json.{Json, OFormat}
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class Assessment(assessmentRef: Long,
-                      listYear: String,
-                      uarn: Long,
-                      effectiveDate: LocalDate)
+case class Assessment(assessmentRef: Long, listYear: String, uarn: Long, effectiveDate: LocalDate)
 
 object Assessment {
   private val readsBuilder =

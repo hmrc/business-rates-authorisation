@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,17 @@ class AccountsServiceSpec extends UnitSpec with MockitoSugar with BeforeAndAfter
         val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
         val expected = Accounts(organisation.id, person.individualId, organisation, person)
 
-        when(mockOrganisations.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext])).thenReturn(Future.successful(Some(organisation)))
-        when(mockPersons.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext])).thenReturn(Future.successful(Some(person)))
+        when(mockOrganisations.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+          .thenReturn(Future.successful(Some(organisation)))
+        when(mockPersons.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+          .thenReturn(Future.successful(Some(person)))
 
         val res = accountsService.get(externalId, groupId)(HeaderCarrier())
         await(res) shouldBe Some(expected)
 
-        verify(mockOrganisations, once).getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
+        verify(mockOrganisations, once).getOrganisationByGGId(matching(groupId))(
+          any[HeaderCarrier],
+          any[ExecutionContext])
         verify(mockPersons, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
         verify(mockCache, never).get(anyString())
         verify(mockCache, never).cache(anyString, matching(expected))
@@ -63,14 +67,18 @@ class AccountsServiceSpec extends UnitSpec with MockitoSugar with BeforeAndAfter
       "the user does not have an account" should {
         "not cache the result" in {
           val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
-          when(mockOrganisations.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext])).thenReturn(Future.successful(None))
-          when(mockPersons.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext])).thenReturn(Future.successful(None))
+          when(mockOrganisations.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(None))
+          when(mockPersons.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(None))
 
           val res = accountsService.get(externalId, groupId)(hc)
           await(res) shouldBe None
 
           verify(mockCache, once).get(sid)
-          verify(mockOrganisations, once).getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockOrganisations, once).getOrganisationByGGId(matching(groupId))(
+            any[HeaderCarrier],
+            any[ExecutionContext])
           verify(mockPersons, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockCache, never).cache(anyString, any[Accounts])
         }
@@ -82,14 +90,18 @@ class AccountsServiceSpec extends UnitSpec with MockitoSugar with BeforeAndAfter
           val (person, organisation): (Person, Organisation) = (randomPerson, randomOrganisation)
           val expected = Accounts(organisation.id, person.individualId, organisation, person)
 
-          when(mockOrganisations.getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])).thenReturn(Future.successful(Some(organisation)))
-          when(mockPersons.getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])).thenReturn(Future.successful(Some(person)))
+          when(mockOrganisations.getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(Some(organisation)))
+          when(mockPersons.getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(Some(person)))
 
           val res = accountsService.get(externalId, groupId)(hc)
           await(res) shouldBe Some(expected)
 
           verify(mockCache, once).get(sid)
-          verify(mockOrganisations, once).getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockOrganisations, once).getOrganisationByGGId(matching(groupId))(
+            any[HeaderCarrier],
+            any[ExecutionContext])
           verify(mockPersons, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockCache, once).cache(sid, expected)
         }
@@ -107,7 +119,9 @@ class AccountsServiceSpec extends UnitSpec with MockitoSugar with BeforeAndAfter
           await(res) shouldBe Some(expected)
 
           verify(mockCache, once).get(sid)
-          verify(mockOrganisations, never).getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockOrganisations, never).getOrganisationByGGId(matching(groupId))(
+            any[HeaderCarrier],
+            any[ExecutionContext])
           verify(mockPersons, never).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockCache, never).cache(anyString, any[Accounts])
         }
@@ -121,7 +135,8 @@ class AccountsServiceSpec extends UnitSpec with MockitoSugar with BeforeAndAfter
     when(mockCache.cache(anyString(), any[Accounts])).thenReturn(Future.successful(()))
   }
 
-  lazy val accountsService = new AccountsService(mockOrganisations, mockPersons, mockCache)(ExecutionContext.Implicits.global)
+  lazy val accountsService =
+    new AccountsService(mockOrganisations, mockPersons, mockCache)(ExecutionContext.Implicits.global)
   lazy val mockOrganisations = mock[OrganisationAccounts]
   lazy val mockPersons = mock[PersonAccounts]
   lazy val mockCache = mock[AccountsCache]

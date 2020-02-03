@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,13 @@ package businessrates.authorisation.models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class Address(addressUnitId: Option[Int], line1: String, line2: String, line3: String, line4: String, postcode: String)
+case class Address(
+      addressUnitId: Option[Int],
+      line1: String,
+      line2: String,
+      line3: String,
+      line4: String,
+      postcode: String)
 
 object Address {
   implicit val format: OFormat[Address] = Json.format[Address]

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,15 +32,18 @@ object PermissionType extends NamedEnumSupport[PermissionType] {
   override def all = Seq(check, challenge, any)
 }
 
-case class Permission(checkPermission: AgentPermission, challengePermission: AgentPermission, endDate:Option[LocalDate]) {
+case class Permission(
+      checkPermission: AgentPermission,
+      challengePermission: AgentPermission,
+      endDate: Option[LocalDate]) {
   val values: Map[PermissionType, AgentPermission] = Map(check -> checkPermission, challenge -> challengePermission)
 }
 
 object Permission {
   private val readsBuilder =
     (__ \ "checkPermission").read[AgentPermission] and
-    (__ \ "challengePermission").read[AgentPermission] and
-    (__ \ "endDate").readNullable[LocalDate]
+      (__ \ "challengePermission").read[AgentPermission] and
+      (__ \ "endDate").readNullable[LocalDate]
 
   implicit val format: OFormat[Permission] = OFormat(readsBuilder.apply(Permission.apply _), Json.writes[Permission])
 }
@@ -50,21 +53,22 @@ case class Party(permissions: Seq[Permission], authorisedPartyStatus: Representa
 object Party {
   private val readsBuilder =
     (__ \ "permissions").read[Seq[Permission]] and
-    (__ \ "authorisedPartyStatus").read[RepresentationStatus] and
-    (__ \ "authorisedPartyOrganisationId").read[Long]
+      (__ \ "authorisedPartyStatus").read[RepresentationStatus] and
+      (__ \ "authorisedPartyOrganisationId").read[Long]
 
   implicit val format: OFormat[Party] = OFormat(readsBuilder.apply(Party.apply _), Json.writes[Party])
 }
 
-case class PropertyLink(authorisationId: Long,
-                        uarn: Long,
-                        organisationId: Long,
-                        personId: Long,
-                        linkedDate: LocalDate,
-                        pending: Boolean,
-                        assessment: Seq[Assessment],
-                        agents: Seq[Party],
-                        authorisationStatus: String)
+case class PropertyLink(
+      authorisationId: Long,
+      uarn: Long,
+      organisationId: Long,
+      personId: Long,
+      linkedDate: LocalDate,
+      pending: Boolean,
+      assessment: Seq[Assessment],
+      agents: Seq[Party],
+      authorisationStatus: String)
 
 object PropertyLink {
   object ReadsIsPending extends Reads[Boolean] {
@@ -77,24 +81,29 @@ object PropertyLink {
 
   private val readsBuilder =
     (__ \ "authorisationId").read[Long] and
-    (__ \ "uarn").read[Long] and
-    (__ \ "authorisationOwnerOrganisationId").read[Long] and
-    (__ \ "authorisationOwnerPersonId").read[Long] and
-    (__ \ "startDate").read[LocalDate] and
-    (__ \ "authorisationStatus").read[Boolean](ReadsIsPending) and
-    (__ \ "NDRListValuationHistoryItems").read[Seq[Assessment]] and
-    (__ \ "parties").read[Seq[Party]] and
-    (__ \ "authorisationStatus").read[String]
+      (__ \ "uarn").read[Long] and
+      (__ \ "authorisationOwnerOrganisationId").read[Long] and
+      (__ \ "authorisationOwnerPersonId").read[Long] and
+      (__ \ "startDate").read[LocalDate] and
+      (__ \ "authorisationStatus").read[Boolean](ReadsIsPending) and
+      (__ \ "NDRListValuationHistoryItems").read[Seq[Assessment]] and
+      (__ \ "parties").read[Seq[Party]] and
+      (__ \ "authorisationStatus").read[String]
 
-  implicit val format: OFormat[PropertyLink] = OFormat(readsBuilder.apply(PropertyLink.apply _), Json.writes[PropertyLink])
+  implicit val format: OFormat[PropertyLink] =
+    OFormat(readsBuilder.apply(PropertyLink.apply _), Json.writes[PropertyLink])
 }
 
 object PropertyLinkOwnerAndAssessments {
-  def unapply(link: Some[PropertyLink]): Option[(Long, Seq[Assessment])] = link.map { l => (l.organisationId, l.assessment) }
+  def unapply(link: Some[PropertyLink]): Option[(Long, Seq[Assessment])] = link.map { l =>
+    (l.organisationId, l.assessment)
+  }
 }
 
 object PropertyLinkAssessmentsAndAgents {
-  def unapply(link: Some[PropertyLink]): Option[(Seq[Assessment], Seq[Party])] = link.map { l => (l.assessment, l.agents) }
+  def unapply(link: Some[PropertyLink]): Option[(Seq[Assessment], Seq[Party])] = link.map { l =>
+    (l.assessment, l.agents)
+  }
 }
 
 object PendingLink {

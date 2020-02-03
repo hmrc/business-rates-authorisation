@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,9 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach
-  with FutureAwaits with DefaultAwaitTimeout with ArbitraryDataGeneration {
+class BackendConnectorSpec
+    extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach with FutureAwaits
+    with DefaultAwaitTimeout with ArbitraryDataGeneration {
 
   implicit val hc = HeaderCarrier()
 
@@ -149,19 +150,19 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
 
   private val outputPersonJson =
     """{
-     |"externalId":"Ext-cbdabe06-a2b7-46c6-8546-39fe9fe1c27d",
-     |"trustId":"9f87e199-c4b8-461e-9498-b4dafc98d4be",
-     |"organisationId":1000000003,
-     |"individualId":956459863,
-     |"details":{
-     |"firstName":"Jim",
-     |"lastName":"James",
-     |"email":"j@example.com",
-     |"phone1":"0123456789",
-     |"phone2":"0123456789",
-     |"addressId":1000000000
-     |}
-     |}""".stripMargin.replaceAll("\n", "")
+      |"externalId":"Ext-cbdabe06-a2b7-46c6-8546-39fe9fe1c27d",
+      |"trustId":"9f87e199-c4b8-461e-9498-b4dafc98d4be",
+      |"organisationId":1000000003,
+      |"individualId":956459863,
+      |"details":{
+      |"firstName":"Jim",
+      |"lastName":"James",
+      |"email":"j@example.com",
+      |"phone1":"0123456789",
+      |"phone2":"0123456789",
+      |"addressId":1000000000
+      |}
+      |}""".stripMargin.replaceAll("\n", "")
 
   private val outputPropertyLink =
     s"""{
@@ -229,323 +230,411 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
 
   private val inputPropertyLink =
     s"""{
-      |  "authorisations": [
-      |    {
-      |      "authorisationId": 42,
-      |      "authorisationMethod": "RATES_BILL",
-      |      "authorisationOwnerCapacity": "OWNER",
-      |      "authorisationOwnerOrganisationId": 1000000001,
-      |      "authorisationOwnerPersonId": 46,
-      |      "authorisationStatus": "APPROVED",
-      |      "createDatetime": "2017-03-28T14:44:54.000+0000",
-      |      "endDate": null,
-      |      "notes": null,
-      |      "parties": [
-      |        {
-      |          "authorisedPartyCapacity": "AGENT",
-      |          "authorisedPartyOrganisationId": 2000000002,
-      |          "authorisedPartyStatus": "APPROVED",
-      |          "caseLinks": [],
-      |          "id": 12,
-      |          "permissions": [
-      |            {
-      |              "challengePermission": "START_AND_CONTINUE",
-      |              "checkPermission": "START_AND_CONTINUE",
-      |              "id": 13
-      |            }
-      |          ],
-      |          "startDate": "2017-03-28",
-      |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-      |        },
-      |        {
-      |          "authorisedPartyCapacity": "AGENT",
-      |          "authorisedPartyOrganisationId": $agentWithBoth,
-      |          "authorisedPartyStatus": "APPROVED",
-      |          "caseLinks": [],
-      |          "id": 12,
-      |          "permissions": [
-      |            {
-      |              "challengePermission": "START_AND_CONTINUE",
-      |              "checkPermission": "START_AND_CONTINUE",
-      |              "id": 13
-      |            }
-      |          ],
-      |          "startDate": "2017-03-28",
-      |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-      |        },
-      |        {
-      |          "authorisedPartyCapacity": "AGENT",
-      |          "authorisedPartyOrganisationId": $agentWithCheckOnly,
-      |          "authorisedPartyStatus": "APPROVED",
-      |          "caseLinks": [],
-      |          "id": 12,
-      |          "permissions": [
-      |            {
-      |              "challengePermission": "NOT_PERMITTED",
-      |              "checkPermission": "START_AND_CONTINUE",
-      |              "id": 13
-      |            }
-      |          ],
-      |          "startDate": "2017-03-28",
-      |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-      |        },
-      |        {
-      |          "authorisedPartyCapacity": "AGENT",
-      |          "authorisedPartyOrganisationId": $agentWithChallengeOnly,
-      |          "authorisedPartyStatus": "APPROVED",
-      |          "caseLinks": [],
-      |          "id": 12,
-      |          "permissions": [
-      |            {
-      |              "challengePermission": "START_AND_CONTINUE",
-      |              "checkPermission": "NOT_PERMITTED",
-      |              "id": 13
-      |            }
-      |          ],
-      |          "startDate": "2017-03-28",
-      |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-      |        },
-      |        {
-      |          "authorisedPartyCapacity": "AGENT",
-      |          "authorisedPartyOrganisationId": $agentWithNeither,
-      |          "authorisedPartyStatus": "APPROVED",
-      |          "caseLinks": [],
-      |          "id": 12,
-      |          "permissions": [
-      |            {
-      |              "challengePermission": "NOT_PERMITTED",
-      |              "checkPermission": "NOT_PERMITTED",
-      |              "id": 13
-      |            }
-      |          ],
-      |          "startDate": "2017-03-28",
-      |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-      |        }
-      |      ],
-      |      "reasonForDecision": null,
-      |      "ruleResults": [
-      |        {
-      |          "executionDatetime": "2017-03-28T14:55:15.000+0000",
-      |          "id": 135,
-      |          "result": "false",
-      |          "ruleName": "CCACheckSelfCertRevokedOrDeclined",
-      |          "ruleResults": {
-      |            "Declined": "false",
-      |            "Description": "Revoked Declined Rule",
-      |            "Outcome": "false",
-      |            "Revoked": "false",
-      |            "Rule": "2"
-      |          },
-      |          "ruleVersion": "8"
-      |        },
-      |        {
-      |          "executionDatetime": "2017-03-28T14:55:14.000+0000",
-      |          "id": 134,
-      |          "result": "True",
-      |          "ruleName": "CCACheckConflict",
-      |          "ruleResults": {
-      |            "Conflicts": "PL1ZRPRZY,PL1ZRPRZP",
-      |            "Description": "Authorisation Conflicts Rule",
-      |            "Outcome": "True",
-      |            "Rule": "1"
-      |          },
-      |          "ruleVersion": "2"
-      |        },
-      |        {
-      |          "executionDatetime": "2017-03-28T14:55:15.000+0000",
-      |          "id": 136,
-      |          "result": "True",
-      |          "ruleName": "CCACheckSuppressedProperties",
-      |          "ruleResults": {
-      |            "Description": "Suppressed Properties Rule",
-      |            "Outcome": "True",
-      |            "Rule": "5"
-      |          },
-      |          "ruleVersion": "10"
-      |        }
-      |      ],
-      |      "selfCertificationDeclarationFlag": false,
-      |      "startDate": "2017-04-01",
-      |      "submissionId": "PL1ZRPD4B",
-      |      "uarn": 9342442000,
-      |      "uploadedFiles": [
-      |        {
-      |          "createDatetime": "2017-03-28T14:43:50.000+0000",
-      |          "evidenceType": "ratesBill",
-      |          "name": "downloadfile.PDF"
-      |        }
-      |      ],
-      |      "NDRListValuationHistoryItems": [
-      |        {
-      |          "address": "INDEPENDENT POWER NETWORKS LTD INDEPENDENT DISTRIBUTION NETWORK OPERATOR, PINN HILL, EXETER, EX1 3TH",
-      |          "asstRef": 18630583000,
-      |          "billingAuthCode": "1105",
-      |          "billingAuthorityReference": "2205402111",
-      |          "compositeProperty": "N",
-      |          "currentFromDate": "2017-04-01",
-      |          "deletedIndicator": false,
-      |          "description": "INDEPENDENT DISTRIBUTION NETWORK OPERATOR",
-      |          "effectiveDate": "2017-03-31",
-      |          "listYear": "2017",
-      |          "numberOfPreviousProposals": 0,
-      |          "origCasenoSeq": 24730691212,
-      |          "rateableValue": 2800,
-      |          "specialCategoryCode": "094U",
-      |          "uarn": 9342442000,
-      |          "valuationDetailsAvailable": false
-      |        }
-      |      ]
-      |    }
-      |  ]
-      |}""".stripMargin
+       |  "authorisations": [
+       |    {
+       |      "authorisationId": 42,
+       |      "authorisationMethod": "RATES_BILL",
+       |      "authorisationOwnerCapacity": "OWNER",
+       |      "authorisationOwnerOrganisationId": 1000000001,
+       |      "authorisationOwnerPersonId": 46,
+       |      "authorisationStatus": "APPROVED",
+       |      "createDatetime": "2017-03-28T14:44:54.000+0000",
+       |      "endDate": null,
+       |      "notes": null,
+       |      "parties": [
+       |        {
+       |          "authorisedPartyCapacity": "AGENT",
+       |          "authorisedPartyOrganisationId": 2000000002,
+       |          "authorisedPartyStatus": "APPROVED",
+       |          "caseLinks": [],
+       |          "id": 12,
+       |          "permissions": [
+       |            {
+       |              "challengePermission": "START_AND_CONTINUE",
+       |              "checkPermission": "START_AND_CONTINUE",
+       |              "id": 13
+       |            }
+       |          ],
+       |          "startDate": "2017-03-28",
+       |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+       |        },
+       |        {
+       |          "authorisedPartyCapacity": "AGENT",
+       |          "authorisedPartyOrganisationId": $agentWithBoth,
+       |          "authorisedPartyStatus": "APPROVED",
+       |          "caseLinks": [],
+       |          "id": 12,
+       |          "permissions": [
+       |            {
+       |              "challengePermission": "START_AND_CONTINUE",
+       |              "checkPermission": "START_AND_CONTINUE",
+       |              "id": 13
+       |            }
+       |          ],
+       |          "startDate": "2017-03-28",
+       |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+       |        },
+       |        {
+       |          "authorisedPartyCapacity": "AGENT",
+       |          "authorisedPartyOrganisationId": $agentWithCheckOnly,
+       |          "authorisedPartyStatus": "APPROVED",
+       |          "caseLinks": [],
+       |          "id": 12,
+       |          "permissions": [
+       |            {
+       |              "challengePermission": "NOT_PERMITTED",
+       |              "checkPermission": "START_AND_CONTINUE",
+       |              "id": 13
+       |            }
+       |          ],
+       |          "startDate": "2017-03-28",
+       |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+       |        },
+       |        {
+       |          "authorisedPartyCapacity": "AGENT",
+       |          "authorisedPartyOrganisationId": $agentWithChallengeOnly,
+       |          "authorisedPartyStatus": "APPROVED",
+       |          "caseLinks": [],
+       |          "id": 12,
+       |          "permissions": [
+       |            {
+       |              "challengePermission": "START_AND_CONTINUE",
+       |              "checkPermission": "NOT_PERMITTED",
+       |              "id": 13
+       |            }
+       |          ],
+       |          "startDate": "2017-03-28",
+       |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+       |        },
+       |        {
+       |          "authorisedPartyCapacity": "AGENT",
+       |          "authorisedPartyOrganisationId": $agentWithNeither,
+       |          "authorisedPartyStatus": "APPROVED",
+       |          "caseLinks": [],
+       |          "id": 12,
+       |          "permissions": [
+       |            {
+       |              "challengePermission": "NOT_PERMITTED",
+       |              "checkPermission": "NOT_PERMITTED",
+       |              "id": 13
+       |            }
+       |          ],
+       |          "startDate": "2017-03-28",
+       |          "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+       |        }
+       |      ],
+       |      "reasonForDecision": null,
+       |      "ruleResults": [
+       |        {
+       |          "executionDatetime": "2017-03-28T14:55:15.000+0000",
+       |          "id": 135,
+       |          "result": "false",
+       |          "ruleName": "CCACheckSelfCertRevokedOrDeclined",
+       |          "ruleResults": {
+       |            "Declined": "false",
+       |            "Description": "Revoked Declined Rule",
+       |            "Outcome": "false",
+       |            "Revoked": "false",
+       |            "Rule": "2"
+       |          },
+       |          "ruleVersion": "8"
+       |        },
+       |        {
+       |          "executionDatetime": "2017-03-28T14:55:14.000+0000",
+       |          "id": 134,
+       |          "result": "True",
+       |          "ruleName": "CCACheckConflict",
+       |          "ruleResults": {
+       |            "Conflicts": "PL1ZRPRZY,PL1ZRPRZP",
+       |            "Description": "Authorisation Conflicts Rule",
+       |            "Outcome": "True",
+       |            "Rule": "1"
+       |          },
+       |          "ruleVersion": "2"
+       |        },
+       |        {
+       |          "executionDatetime": "2017-03-28T14:55:15.000+0000",
+       |          "id": 136,
+       |          "result": "True",
+       |          "ruleName": "CCACheckSuppressedProperties",
+       |          "ruleResults": {
+       |            "Description": "Suppressed Properties Rule",
+       |            "Outcome": "True",
+       |            "Rule": "5"
+       |          },
+       |          "ruleVersion": "10"
+       |        }
+       |      ],
+       |      "selfCertificationDeclarationFlag": false,
+       |      "startDate": "2017-04-01",
+       |      "submissionId": "PL1ZRPD4B",
+       |      "uarn": 9342442000,
+       |      "uploadedFiles": [
+       |        {
+       |          "createDatetime": "2017-03-28T14:43:50.000+0000",
+       |          "evidenceType": "ratesBill",
+       |          "name": "downloadfile.PDF"
+       |        }
+       |      ],
+       |      "NDRListValuationHistoryItems": [
+       |        {
+       |          "address": "INDEPENDENT POWER NETWORKS LTD INDEPENDENT DISTRIBUTION NETWORK OPERATOR, PINN HILL, EXETER, EX1 3TH",
+       |          "asstRef": 18630583000,
+       |          "billingAuthCode": "1105",
+       |          "billingAuthorityReference": "2205402111",
+       |          "compositeProperty": "N",
+       |          "currentFromDate": "2017-04-01",
+       |          "deletedIndicator": false,
+       |          "description": "INDEPENDENT DISTRIBUTION NETWORK OPERATOR",
+       |          "effectiveDate": "2017-03-31",
+       |          "listYear": "2017",
+       |          "numberOfPreviousProposals": 0,
+       |          "origCasenoSeq": 24730691212,
+       |          "rateableValue": 2800,
+       |          "specialCategoryCode": "094U",
+       |          "uarn": 9342442000,
+       |          "valuationDetailsAvailable": false
+       |        }
+       |      ]
+       |    }
+       |  ]
+       |}""".stripMargin
 
   private val agentsByPermission: String = s"""{
-    |  "agents" : [
-    |    {
-    |      "authorisedPartyCapacity": "AGENT",
-    |      "authorisedPartyOrganisationId": $agentWithNeither,
-    |      "authorisedPartyStatus": "APPROVED",
-    |      "caseLinks": [],
-    |      "id": 12,
-    |      "permissions": [
-    |        {
-    |          "challengePermission": "NOT_PERMITTED",
-    |          "checkPermission": "NOT_PERMITTED",
-    |          "id": 13
-    |        }
-    |      ],
-    |      "startDate": "2017-03-28",
-    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-    |    },
-    |    {
-    |      "authorisedPartyCapacity": "AGENT",
-    |      "authorisedPartyOrganisationId": $agentWithNeither,
-    |      "authorisedPartyStatus": "DECLINED",
-    |      "caseLinks": [],
-    |      "id": 12,
-    |      "permissions": [
-    |        {
-    |          "challengePermission": "NOT_PERMITTED",
-    |          "checkPermission": "NOT_PERMITTED",
-    |          "id": 13
-    |        }
-    |      ],
-    |      "startDate": "2017-03-28",
-    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-    |    },
-    |    {
-    |      "authorisedPartyCapacity": "AGENT",
-    |      "authorisedPartyOrganisationId": $agentWithNeither,
-    |      "authorisedPartyStatus": "PENDING",
-    |      "caseLinks": [],
-    |      "id": 12,
-    |      "permissions": [
-    |        {
-    |          "challengePermission": "NOT_PERMITTED",
-    |          "checkPermission": "NOT_PERMITTED",
-    |          "id": 13
-    |        }
-    |      ],
-    |      "startDate": "2017-03-28",
-    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-    |    },
-    |    {
-    |      "authorisedPartyCapacity": "AGENT",
-    |      "authorisedPartyOrganisationId": $agentWithNeither,
-    |      "authorisedPartyStatus": "TIMED_OUT",
-    |      "caseLinks": [],
-    |      "id": 12,
-    |      "permissions": [
-    |        {
-    |          "challengePermission": "NOT_PERMITTED",
-    |          "checkPermission": "NOT_PERMITTED",
-    |          "id": 13
-    |        }
-    |      ],
-    |      "startDate": "2017-03-28",
-    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-    |    },
-    |    {
-    |      "authorisedPartyCapacity": "AGENT",
-    |      "authorisedPartyOrganisationId": $agentWithNeither,
-    |      "authorisedPartyStatus": "REVOKED",
-    |      "caseLinks": [],
-    |      "id": 12,
-    |      "permissions": [
-    |        {
-    |          "challengePermission": "NOT_PERMITTED",
-    |          "checkPermission": "NOT_PERMITTED",
-    |          "id": 13
-    |        }
-    |      ],
-    |      "startDate": "2017-03-28",
-    |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-    |    }
-    |  ]
-    |}""".stripMargin
+                                              |  "agents" : [
+                                              |    {
+                                              |      "authorisedPartyCapacity": "AGENT",
+                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
+                                              |      "authorisedPartyStatus": "APPROVED",
+                                              |      "caseLinks": [],
+                                              |      "id": 12,
+                                              |      "permissions": [
+                                              |        {
+                                              |          "challengePermission": "NOT_PERMITTED",
+                                              |          "checkPermission": "NOT_PERMITTED",
+                                              |          "id": 13
+                                              |        }
+                                              |      ],
+                                              |      "startDate": "2017-03-28",
+                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+                                              |    },
+                                              |    {
+                                              |      "authorisedPartyCapacity": "AGENT",
+                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
+                                              |      "authorisedPartyStatus": "DECLINED",
+                                              |      "caseLinks": [],
+                                              |      "id": 12,
+                                              |      "permissions": [
+                                              |        {
+                                              |          "challengePermission": "NOT_PERMITTED",
+                                              |          "checkPermission": "NOT_PERMITTED",
+                                              |          "id": 13
+                                              |        }
+                                              |      ],
+                                              |      "startDate": "2017-03-28",
+                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+                                              |    },
+                                              |    {
+                                              |      "authorisedPartyCapacity": "AGENT",
+                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
+                                              |      "authorisedPartyStatus": "PENDING",
+                                              |      "caseLinks": [],
+                                              |      "id": 12,
+                                              |      "permissions": [
+                                              |        {
+                                              |          "challengePermission": "NOT_PERMITTED",
+                                              |          "checkPermission": "NOT_PERMITTED",
+                                              |          "id": 13
+                                              |        }
+                                              |      ],
+                                              |      "startDate": "2017-03-28",
+                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+                                              |    },
+                                              |    {
+                                              |      "authorisedPartyCapacity": "AGENT",
+                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
+                                              |      "authorisedPartyStatus": "TIMED_OUT",
+                                              |      "caseLinks": [],
+                                              |      "id": 12,
+                                              |      "permissions": [
+                                              |        {
+                                              |          "challengePermission": "NOT_PERMITTED",
+                                              |          "checkPermission": "NOT_PERMITTED",
+                                              |          "id": 13
+                                              |        }
+                                              |      ],
+                                              |      "startDate": "2017-03-28",
+                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+                                              |    },
+                                              |    {
+                                              |      "authorisedPartyCapacity": "AGENT",
+                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
+                                              |      "authorisedPartyStatus": "REVOKED",
+                                              |      "caseLinks": [],
+                                              |      "id": 12,
+                                              |      "permissions": [
+                                              |        {
+                                              |          "challengePermission": "NOT_PERMITTED",
+                                              |          "checkPermission": "NOT_PERMITTED",
+                                              |          "id": 13
+                                              |        }
+                                              |      ],
+                                              |      "startDate": "2017-03-28",
+                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
+                                              |    }
+                                              |  ]
+                                              |}""".stripMargin
 
   private val agentsWithPermission = Seq(
-    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = 2000000002),
-    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = agentWithBoth),
-    Party(permissions = Seq(Permission(checkPermission = StartAndContinue, challengePermission = NotPermitted, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = agentWithCheckOnly),
-    Party(permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = StartAndContinue, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = agentWithChallengeOnly)
+    Party(
+      permissions =
+        Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)),
+      authorisedPartyStatus = RepresentationStatus.approved,
+      organisationId = 2000000002
+    ),
+    Party(
+      permissions =
+        Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)),
+      authorisedPartyStatus = RepresentationStatus.approved,
+      organisationId = agentWithBoth
+    ),
+    Party(
+      permissions =
+        Seq(Permission(checkPermission = StartAndContinue, challengePermission = NotPermitted, endDate = None)),
+      authorisedPartyStatus = RepresentationStatus.approved,
+      organisationId = agentWithCheckOnly
+    ),
+    Party(
+      permissions =
+        Seq(Permission(checkPermission = NotPermitted, challengePermission = StartAndContinue, endDate = None)),
+      authorisedPartyStatus = RepresentationStatus.approved,
+      organisationId = agentWithChallengeOnly
+    )
   )
 
-  private val validPropertyLink = PropertyLink(authorisationId = 42,
+  private val validPropertyLink = PropertyLink(
+    authorisationId = 42,
     organisationId = 1000000001,
     uarn = 9342442000L,
     linkedDate = LocalDate.parse("2017-04-01"),
     personId = 46,
     pending = false,
-    assessment = Seq(Assessment(assessmentRef = 18630583000L, listYear = "2017", uarn = 9342442000L, effectiveDate = LocalDate.parse("2017-03-31"))),
-    agents = agentsWithPermission :+ Party(permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = NotPermitted, endDate = None)), authorisedPartyStatus = RepresentationStatus.approved, organisationId = agentWithNeither),
-    authorisationStatus = "APPROVED")
+    assessment = Seq(
+      Assessment(
+        assessmentRef = 18630583000L,
+        listYear = "2017",
+        uarn = 9342442000L,
+        effectiveDate = LocalDate.parse("2017-03-31"))),
+    agents = agentsWithPermission :+ Party(
+      permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = NotPermitted, endDate = None)),
+      authorisedPartyStatus = RepresentationStatus.approved,
+      organisationId = agentWithNeither
+    ),
+    authorisationStatus = "APPROVED"
+  )
 
   private val declinedPropertyLink = validPropertyLink.copy(authorisationStatus = "DECLINED")
 
-  private val validOrg = Organisation(id = 1000000003, groupId = "stub-group-3", companyName = "Automated Stub 3", addressId = 1000000000, email = "stub3@voa.gov.uk", phone = "0123456783", isAgent = false, agentCode = Some(990551132))
+  private val validOrg = Organisation(
+    id = 1000000003,
+    groupId = "stub-group-3",
+    companyName = "Automated Stub 3",
+    addressId = 1000000000,
+    email = "stub3@voa.gov.uk",
+    phone = "0123456783",
+    isAgent = false,
+    agentCode = Some(990551132)
+  )
 
   private val validOrgNoPhone = validOrg.copy(phone = "not set")
 
-  private val validPerson = Person(externalId = "Ext-cbdabe06-a2b7-46c6-8546-39fe9fe1c27d",
-    trustId = "9f87e199-c4b8-461e-9498-b4dafc98d4be", organisationId = 1000000003, individualId = 956459863,
-    details = PersonDetails(firstName = "Jim", lastName = "James", email = "j@example.com", phone1 = "0123456789",
-    phone2 = Some("0123456789"), addressId = 1000000000))
+  private val validPerson = Person(
+    externalId = "Ext-cbdabe06-a2b7-46c6-8546-39fe9fe1c27d",
+    trustId = "9f87e199-c4b8-461e-9498-b4dafc98d4be",
+    organisationId = 1000000003,
+    individualId = 956459863,
+    details = PersonDetails(
+      firstName = "Jim",
+      lastName = "James",
+      email = "j@example.com",
+      phone1 = "0123456789",
+      phone2 = Some("0123456789"),
+      addressId = 1000000000)
+  )
 
-  private val validPersonNoPhone = validPerson.copy(details = validPerson.details.copy(phone1 = "not set", phone2 = None))
+  private val validPersonNoPhone =
+    validPerson.copy(details = validPerson.details.copy(phone1 = "not set", phone2 = None))
 
   private val mockWsHttp = mock[WSHttp]
 
-  when(mockWsHttp.GET[Option[Organisation]](contains("?governmentGatewayGroupId=NOT_FOUND"))(any[HttpReads[Option[Organisation]]], refEq(hc), any()))
+  when(
+    mockWsHttp.GET[Option[Organisation]](contains("?governmentGatewayGroupId=NOT_FOUND"))(
+      any[HttpReads[Option[Organisation]]],
+      refEq(hc),
+      any()))
     .thenReturn(Future.successful(None))
 
-  when(mockWsHttp.GET[Option[Organisation]](contains("?governmentGatewayGroupId=stub-group-3"))(any[HttpReads[Option[Organisation]]], refEq(hc), any()))
+  when(
+    mockWsHttp.GET[Option[Organisation]](contains("?governmentGatewayGroupId=stub-group-3"))(
+      any[HttpReads[Option[Organisation]]],
+      refEq(hc),
+      any()))
     .thenReturn(Future.successful(Some(validOrg)))
 
-  when(mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=NO_PERSON"))(any[HttpReads[Option[Person]]], refEq(hc), any()))
+  when(
+    mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=NO_PERSON"))(
+      any[HttpReads[Option[Person]]],
+      refEq(hc),
+      any()))
     .thenReturn(Future.successful(None))
 
-  when(mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=extId"))(any[HttpReads[Option[Person]]], refEq(hc), any()))
+  when(
+    mockWsHttp.GET[Option[Person]](contains("?governmentGatewayExternalId=extId"))(
+      any[HttpReads[Option[Person]]],
+      refEq(hc),
+      any()))
     .thenReturn(Future.successful(Some(validPerson)))
 
-  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$directlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
+  when(
+    mockWsHttp.GET[Option[PropertyLink]](
+      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+        s"?listYear=2017&authorisationId=$directlyLinkedAuthId"))(
+      any[HttpReads[Option[PropertyLink]]],
+      refEq(hc),
+      any()))
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
-  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
+  when(
+    mockWsHttp.GET[Option[PropertyLink]](
+      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+        s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"))(
+      any[HttpReads[Option[PropertyLink]]],
+      refEq(hc),
+      any()))
     .thenReturn(Future.successful(Some(declinedPropertyLink)))
 
-  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$nonExistentAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
+  when(
+    mockWsHttp.GET[Option[PropertyLink]](
+      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+        s"?listYear=2017&authorisationId=$nonExistentAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(None))
 
-  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
+  when(
+    mockWsHttp.GET[Option[PropertyLink]](
+      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+        s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"))(
+      any[HttpReads[Option[PropertyLink]]],
+      refEq(hc),
+      any()))
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
-  when(mockWsHttp.GET[Option[PropertyLink]](isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-    s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
+  when(
+    mockWsHttp.GET[Option[PropertyLink]](
+      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+        s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"))(
+      any[HttpReads[Option[PropertyLink]]],
+      refEq(hc),
+      any()))
     .thenReturn(Future.successful(Some(declinedPropertyLink)))
 
   private val connector = new BackendConnector(mockWsHttp, "http://localhost", 2017)
@@ -575,11 +664,26 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     }
 
     "Correctly parse all types of representation" in {
-      (Json.parse(agentsByPermission) \ "agents" \ 0).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.approved
-      (Json.parse(agentsByPermission) \ "agents" \ 1).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.declined
-      (Json.parse(agentsByPermission) \ "agents" \ 2).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.pending
-      (Json.parse(agentsByPermission) \ "agents" \ 3).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.timedOut
-      (Json.parse(agentsByPermission) \ "agents" \ 4).validate[Party].get.authorisedPartyStatus mustBe RepresentationStatus.revoked
+      (Json.parse(agentsByPermission) \ "agents" \ 0)
+        .validate[Party]
+        .get
+        .authorisedPartyStatus mustBe RepresentationStatus.approved
+      (Json.parse(agentsByPermission) \ "agents" \ 1)
+        .validate[Party]
+        .get
+        .authorisedPartyStatus mustBe RepresentationStatus.declined
+      (Json.parse(agentsByPermission) \ "agents" \ 2)
+        .validate[Party]
+        .get
+        .authorisedPartyStatus mustBe RepresentationStatus.pending
+      (Json.parse(agentsByPermission) \ "agents" \ 3)
+        .validate[Party]
+        .get
+        .authorisedPartyStatus mustBe RepresentationStatus.timedOut
+      (Json.parse(agentsByPermission) \ "agents" \ 4)
+        .validate[Party]
+        .get
+        .authorisedPartyStatus mustBe RepresentationStatus.revoked
     }
   }
 
@@ -619,11 +723,13 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     }
 
     "for a found PropertyLink in the USER's properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(validPropertyLink.copy(agents = agentsWithPermission))
+      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(
+        validPropertyLink.copy(agents = agentsWithPermission))
     }
 
     "for a found PropertyLink in the AGENT's delegated properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(validPropertyLink.copy(agents = agentsWithPermission))
+      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(
+        validPropertyLink.copy(agents = agentsWithPermission))
     }
 
     "for a found PropertyLink in the USER's properties that is DECLINED, return None" in {
@@ -635,12 +741,15 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     }
 
     "for a found Assessment on one of the USER's properties return a 'Some(Assessment)'" in {
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(
+        validPropertyLink.assessment.head)
     }
 
     "for a found Assessment on one of the USER's properties return a 'Some(Assessment)' irrespective of the role param (agent applicable only)" in {
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, check)) mustBe Some(validPropertyLink.assessment.head)
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, check)) mustBe Some(
+        validPropertyLink.assessment.head)
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(
+        validPropertyLink.assessment.head)
     }
 
     "for a not found Assessment on one of the USER's properties return a 'None'" in {
@@ -648,7 +757,8 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)'" in {
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(
+        validPropertyLink.assessment.head)
     }
 
     "for a not found Assessment on one of the AGENT's properties return a 'None'" in {
@@ -656,8 +766,10 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = check and AGENT is permitted to do a check" in {
-      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, check)) mustBe Some(validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, check)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, check)) mustBe Some(
+        validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, check)) mustBe Some(
+        validPropertyLink.assessment.head)
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'None' if role = check and AGENT is NOT permitted to do a check" in {
@@ -666,8 +778,10 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = challenge and AGENT is permitted to do a challenge" in {
-      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(
+        validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(
+        validPropertyLink.assessment.head)
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'None' if role = challenge and AGENT is NOT permitted to do a challenge" in {
@@ -676,11 +790,13 @@ class BackendConnectorSpec extends WordSpec with MustMatchers with MockitoSugar 
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = any and AGENT is permitted to do a challenge" in {
-      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(
+        validPropertyLink.assessment.head)
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = any and AGENT is permitted to do a check" in {
-      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(
+        validPropertyLink.assessment.head)
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'None' if role = any and AGENT is NOT permitted to do a challenge OR check" in {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,9 @@ import uk.gov.hmrc.play.microservice.config.LoadAuditingConfig
 import scala.concurrent.Future
 import scala.util.{Failure, Try}
 
-trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpPatch with WSPatch with HttpDelete with WSDelete with Hooks with AppName
+trait WSHttp
+    extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpPatch with WSPatch
+    with HttpDelete with WSDelete with Hooks with AppName
 object WSHttp extends WSHttp {
   override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
 
@@ -47,10 +49,11 @@ object WSHttp extends WSHttp {
 }
 
 class SimpleWSHttp extends WSHttp {
-  override def logResult[A](ld: LoggingDetails, method: String, uri: String, startAge: Long)(result: Try[A]) = result match {
-    case Failure(ex: Upstream4xxResponse) if ex.upstreamResponseCode == 401 => {}
-    case _ => super.logResult[A](ld, method, uri, startAge)(result)
-  }
+  override def logResult[A](ld: LoggingDetails, method: String, uri: String, startAge: Long)(result: Try[A]) =
+    result match {
+      case Failure(ex: Upstream4xxResponse) if ex.upstreamResponseCode == 401 => {}
+      case _                                                                  => super.logResult[A](ld, method, uri, startAge)(result)
+    }
 
   override protected def configuration: Option[Config] = Some(Play.current.configuration.underlying)
 
@@ -78,13 +81,15 @@ trait Hooks extends HttpHooks with HttpAuditing {
 }
 
 trait AzureHeaders extends WSHttp {
-  def buildHeaderCarrier(hc: HeaderCarrier): HeaderCarrier = HeaderCarrier(requestId = hc.requestId, sessionId = hc.sessionId)
-    .withExtraHeaders(hc.extraHeaders: _*)
+  def buildHeaderCarrier(hc: HeaderCarrier): HeaderCarrier =
+    HeaderCarrier(requestId = hc.requestId, sessionId = hc.sessionId)
+      .withExtraHeaders(hc.extraHeaders: _*)
 
   override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     super.doGet(url)(buildHeaderCarrier(hc))
 
-  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = super.doDelete(url)(buildHeaderCarrier(hc))
+  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+    super.doDelete(url)(buildHeaderCarrier(hc))
 
   override def doPatch[A](url: String, body: A)(implicit w: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
     super.doPatch(url, body)(w, buildHeaderCarrier(hc))
@@ -92,6 +97,8 @@ trait AzureHeaders extends WSHttp {
   override def doPut[A](url: String, body: A)(implicit w: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
     super.doPut(url, body)(w, buildHeaderCarrier(hc))
 
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit w: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
+        implicit w: Writes[A],
+        hc: HeaderCarrier): Future[HttpResponse] =
     super.doPost(url, body, headers)(w, buildHeaderCarrier(hc))
 }

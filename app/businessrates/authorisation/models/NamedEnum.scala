@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,22 +32,19 @@ trait NamedEnumSupport[E <: NamedEnum] {
 
   def all: Seq[E]
 
-  def fromName(name: String): Option[E] = {
+  def fromName(name: String): Option[E] =
     all.find {
       _.name.equalsIgnoreCase(name)
     }
-  }
 
   implicit def queryStringBindable = new QueryStringBindable[E] {
-    def bind(key: String, params: Map[String, Seq[String]]) = {
+    def bind(key: String, params: Map[String, Seq[String]]) =
       params.get(key).flatMap(_.headOption) match {
         case Some(value) => Some(fromName(value).map(Right(_)).getOrElse(Left(s"$key with value $value not found")))
-        case _ => None
+        case _           => None
       }
-    }
     def unbind(key: String, value: E) = key + "=" + URLEncoder.encode(Option(value.name).getOrElse(""), "utf-8")
   }
-
 
   implicit def pathBindable(implicit binder: PathBindable[String]) = new PathBindable[E] {
     override def bind(key: String, value: String): Either[String, E] =
@@ -61,12 +58,12 @@ trait NamedEnumSupport[E <: NamedEnum] {
 }
 
 object EnumFormat {
-  def apply[T <: NamedEnum](enumObject: NamedEnumSupport[T]): Format[T] = Format[T](generateReads(enumObject), generateWrites(enumObject))
+  def apply[T <: NamedEnum](enumObject: NamedEnumSupport[T]): Format[T] =
+    Format[T](generateReads(enumObject), generateWrites(enumObject))
 
   private def generateWrites[T <: NamedEnum](enumObject: NamedEnumSupport[T]): Writes[T] = new Writes[T] {
-    def writes(data: T): JsValue = {
+    def writes(data: T): JsValue =
       JsString(data.name)
-    }
   }
 
   private def generateReads[T <: NamedEnum](enumObject: NamedEnumSupport[T]): Reads[T] = new Reads[T] {
@@ -74,7 +71,7 @@ object EnumFormat {
       case JsString(value) =>
         enumObject.fromName(value) match {
           case Some(enumValue) => JsSuccess(enumValue)
-          case None => JsError(s"Value: $value is not valid; expected one of ${enumObject.all}")
+          case None            => JsError(s"Value: $value is not valid; expected one of ${enumObject.all}")
         }
       case js =>
         JsError(s"Invalid Json: expected string, got: $js")

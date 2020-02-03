@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 object StubHttp extends WSHttp {
   override def doGet(url: String)(implicit hc: HeaderCarrier) = ???
 
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit wts: Writes[A], hc: HeaderCarrier) = ???
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
+        implicit wts: Writes[A],
+        hc: HeaderCarrier) = ???
 
-  override def doPostString(url: String, body: String, headers: Seq[(String, String)])(implicit hc: HeaderCarrier) = ???
+  override def doPostString(url: String, body: String, headers: Seq[(String, String)])(implicit hc: HeaderCarrier) =
+    ???
 
   override def doEmptyPost[A](url: String)(implicit hc: HeaderCarrier) = ???
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,24 +37,31 @@ class AccountsMongoCacheSpec extends UnitSpec with ScalaFutures with GuiceOneApp
 
   val db: DB = app.injector.instanceOf[DB]
 
-  private val accountsMongoCache = new AccountsMongoCache(db){
+  private val accountsMongoCache = new AccountsMongoCache(db) {
     override def indexes = Seq.empty
   }
 
   protected def appBuilder: GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
-      .configure(
-        "mongodb.uri" -> s"mongodb://127.0.0.1:27017/test-${this.getClass.getSimpleName}")
+      .configure("mongodb.uri" -> s"mongodb://127.0.0.1:27017/test-${this.getClass.getSimpleName}")
 
   private val addressId = 1234
   private val organisationId = 1234
   private val individualId = 5678
   private val agentCode = 546345L
   private val isAgent = false
-  private val personDetails = PersonDetails("FirstName","LastName", "email@email.com", "0123456789", None, addressId)
-  private val person = Person("govGatewayId","trustId",organisationId, individualId, personDetails)
-  private val organisation = Organisation(organisationId, "groupId","companyName",addressId,"email@test.com","0213456788", isAgent, Some(agentCode).filter(_ => isAgent))
-  private val accounts = Accounts(organisationId, 57654,organisation,person)
+  private val personDetails = PersonDetails("FirstName", "LastName", "email@email.com", "0123456789", None, addressId)
+  private val person = Person("govGatewayId", "trustId", organisationId, individualId, personDetails)
+  private val organisation = Organisation(
+    organisationId,
+    "groupId",
+    "companyName",
+    addressId,
+    "email@test.com",
+    "0213456788",
+    isAgent,
+    Some(agentCode).filter(_ => isAgent))
+  private val accounts = Accounts(organisationId, 57654, organisation, person)
 
   "AccountsMongoCacheSpec" should {
 

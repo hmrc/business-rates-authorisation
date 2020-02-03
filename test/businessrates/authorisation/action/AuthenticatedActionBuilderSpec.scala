@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Result, Results}
 import play.api.test.FakeRequest
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, MissingBearerToken, InternalError}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, InternalError, MissingBearerToken}
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -33,7 +33,6 @@ import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
-
 
 class AuthenticatedActionBuilderSpec extends MockitoSugar with UnitSpec {
 
@@ -46,8 +45,8 @@ class AuthenticatedActionBuilderSpec extends MockitoSugar with UnitSpec {
 
     val authConnector: AuthConnector = new AuthConnector {
       def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[A] =
+            implicit hc: HeaderCarrier,
+            ec: ExecutionContext): Future[A] =
         exception.fold(Future.successful(success.asInstanceOf[A]))(Future.failed(_))
     }
 
@@ -90,7 +89,7 @@ class AuthenticatedActionBuilderSpec extends MockitoSugar with UnitSpec {
       val result: Future[Result] = action(FakeRequest())
 
       ScalaFutures.whenReady(result.failed) { e =>
-        e shouldBe a [InternalError]
+        e shouldBe a[InternalError]
       }
     }
 

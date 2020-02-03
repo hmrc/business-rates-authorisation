@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,16 +37,21 @@ class StubBackendConnector extends BackendConnector(StubHttp, "http://locahost:9
   def stubPerson(person: Person) = stubbedPerson = Some(person)
   def stubLink(link: PropertyLink) = stubbedLinks :+= link
 
-  override def getOrganisationByGGId(ggGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
+  override def getOrganisationByGGId(
+        ggGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     Future.successful(stubbedOrganisation)
 
-  override def getOrganisationByOrgId(orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
+  override def getOrganisationByOrgId(
+        orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     Future.successful(stubbedOrganisation)
 
-  override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
+  override def getPerson(
+        externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
     Future.successful(stubbedPerson)
 
-  override protected def getAuthorisation(authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] = Future.successful {
-    stubbedLinks.find(_.authorisationId == authorisationId)
-  }
+  override protected def getAuthorisation(
+        authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
+    Future.successful {
+      stubbedLinks.find(_.authorisationId == authorisationId)
+    }
 }

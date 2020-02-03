@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,17 +33,15 @@ import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode, ServicesConf
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
 
-
 class GuiceModule(
-                   environment: Environment,
-                   configuration: Configuration
-                 ) extends AbstractModule {
+      environment: Environment,
+      configuration: Configuration
+) extends AbstractModule {
 
   private val servicesConfig = new ServicesConfig {
     override protected def mode: Mode = environment.mode
 
     override protected def runModeConfiguration: Configuration = configuration
-
 
   }
   def configure(): Unit = {
@@ -63,8 +61,6 @@ class GuiceModule(
   }
 }
 
-
-
 class MongoProvider @Inject()(reactiveMongoComponent: ReactiveMongoComponent) extends Provider[DB] {
   override def get(): DB = reactiveMongoComponent.mongoConnector.db()
 }
@@ -76,13 +72,15 @@ object ControllerConfiguration extends ControllerConfig {
 object MicroserviceAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport {
   override val auditConnector = MicroserviceAuditConnector
 
-  override def controllerNeedsAuditing(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuditing
+  override def controllerNeedsAuditing(controllerName: String): Boolean =
+    ControllerConfiguration.paramsForController(controllerName).needsAuditing
 
   override protected def appNameConfiguration: Configuration = Play.current.configuration
 }
 
 object MicroserviceLoggingFilter extends LoggingFilter with MicroserviceFilterSupport {
-  override def controllerNeedsLogging(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsLogging
+  override def controllerNeedsLogging(controllerName: String): Boolean =
+    ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with MicroserviceFilterSupport {
@@ -91,7 +89,8 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Mi
   override val microserviceAuditFilter = MicroserviceAuditFilter
   override val authFilter = None
 
-  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig(s"microservice.metrics")
+  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] =
+    app.configuration.getConfig(s"microservice.metrics")
 
   override protected def mode: Mode = Play.current.mode
 
@@ -99,5 +98,3 @@ object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with Mi
 }
 
 private case class ConfigMissing(key: String) extends Exception(s"Missing config for $key")
-
-

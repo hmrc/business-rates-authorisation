@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,32 +27,41 @@ import cats.implicits._
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
-class AccountsService @Inject()(groupAccounts: OrganisationAccounts, individualAccounts: PersonAccounts, cache: AccountsCache)(implicit ec: ExecutionContext) {
+class AccountsService @Inject()(
+      groupAccounts: OrganisationAccounts,
+      individualAccounts: PersonAccounts,
+      cache: AccountsCache)(implicit ec: ExecutionContext) {
 
-  def get(externalId: String, groupId: String)(implicit hc: HeaderCarrier): Future[Option[Accounts]] = {
+  def get(externalId: String, groupId: String)(implicit hc: HeaderCarrier): Future[Option[Accounts]] =
     hc.sessionId.fold(getFromApi(externalId, groupId)) { sid =>
       cache.get(sid.value) flatMap {
         case Some(accounts) => Future.successful(Some(accounts))
-        case _ => getFromApiAndCache(sid.value, externalId, groupId)
+        case _              => getFromApiAndCache(sid.value, externalId, groupId)
       }
     }
-  }
 
   private def getFromApi(externalId: String, groupId: String)(implicit hc: HeaderCarrier): Future[Option[Accounts]] = {
     val eventualPerson = OptionT(individualAccounts.getPerson(externalId))
 
     (for {
       organisation <- OptionT(groupAccounts.getOrganisationByGGId(groupId))
-      person <- eventualPerson
+      person       <- eventualPerson
     } yield {
-      Accounts(organisation.id, person.individualId, organisation.copy(agentCode = organisation.agentCode.filter(_ => organisation.isAgent)), person)
+      Accounts(
+        organisation.id,
+        person.individualId,
+        organisation.copy(agentCode = organisation.agentCode.filter(_ => organisation.isAgent)),
+        person)
     }).value
   }
 
-  private def getFromApiAndCache(sessionId: String, externalId: String, groupId: String)(implicit hc: HeaderCarrier): Future[Option[Accounts]] = {
+  private def getFromApiAndCache(sessionId: String, externalId: String, groupId: String)(
+        implicit hc: HeaderCarrier): Future[Option[Accounts]] =
     getFromApi(externalId, groupId) flatMap {
-      case Some(accs) => cache.cache(sessionId, accs) map { _ => Some(accs) }
+      case Some(accs) =>
+        cache.cache(sessionId, accs) map { _ =>
+          Some(accs)
+        }
       case None => Future.successful(None)
     }
-  }
 }
