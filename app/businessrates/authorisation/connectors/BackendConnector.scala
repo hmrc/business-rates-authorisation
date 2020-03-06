@@ -16,12 +16,10 @@
 
 package businessrates.authorisation.connectors
 
-import java.time.LocalDate
-import javax.inject.Inject
-
 import businessrates.authorisation.config.WSHttp
 import businessrates.authorisation.models._
 import com.google.inject.name.Named
+import javax.inject.Inject
 import uk.gov.hmrc.http.HttpReads._
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 
@@ -40,14 +38,6 @@ class BackendConnector @Inject()(
   val authorisationsUrl: String = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment"
 
   val declinedStatuses = Seq("REVOKED", "DECLINED")
-
-  private val onlyPendingAndApproved: AgentFilter = agent =>
-    Seq(RepresentationStatus.approved, RepresentationStatus.pending)
-      .contains(agent.authorisedPartyStatus)
-  private val mustHaveAPermission: AgentFilter =
-    _.permissions.exists(p => p.values.exists { case (_, a) => a != NotPermitted })
-  private val withoutPermissionEndDateOrAfterNow: Party => Party =
-    agent => agent.copy(permissions = agent.permissions.filter(p => p.endDate.forall(ed => ed.isAfter(LocalDate.now))))
 
   private def NotFound[T]: PartialFunction[Throwable, Option[T]] = {
     case _: NotFoundException => None
@@ -73,11 +63,7 @@ class BackendConnector @Inject()(
     getAuthorisation(authorisationId).map(_.find(l =>
       l.organisationId == organisationId || l.agents.exists(_.organisationId == organisationId)))
 
-  private def withRole(role: PermissionType): Permission => Boolean = { p =>
-    role == any || p.values.get(role).exists(_ != NotPermitted)
-  }
-
-  override def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long, role: PermissionType)(
+  override def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long)(
         implicit hc: HeaderCarrier,
         ec: ExecutionContext): Future[Option[Assessment]] =
     getLink(organisationId, authorisationId) map {
@@ -85,11 +71,9 @@ class BackendConnector @Inject()(
       case PropertyLinkOwnerAndAssessments(`organisationId`, assessments) =>
         assessments.find(_.assessmentRef == assessmentRef)
       case PropertyLinkAssessmentsAndAgents(assessments, agents) =>
-        agents.find(_.organisationId == organisationId).flatMap {
-          case Party(permissions, RepresentationStatus.approved, _) if permissions exists withRole(role) =>
-            assessments.find(_.assessmentRef == assessmentRef)
-          case _ => None
-        }
+        agents
+          .find(_.organisationId == organisationId)
+          .flatMap(_ => assessments.find(_.assessmentRef == assessmentRef))
       case _ => None
     }
 
@@ -104,12 +88,7 @@ class BackendConnector @Inject()(
         authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
     http.GET[Option[PropertyLink]](s"$authorisationsUrl?listYear=$listYear&authorisationId=$authorisationId") map {
       case Some(link) if !declinedStatuses.contains(link.authorisationStatus.toUpperCase) =>
-        Some(
-          link.copy(
-            agents = link.agents
-              .filter(onlyPendingAndApproved)
-              .map(withoutPermissionEndDateOrAfterNow)
-              .filter(mustHaveAPermission)))
+        Some(link)
       case _ => None
     } recover NotFound[PropertyLink]
 }

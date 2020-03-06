@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package businessrates.authorisation.connectors
+package businessrates.authorisation.utils
 
-import businessrates.authorisation.models.{Assessment, PropertyLink}
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.libs.json.{Format, Reads, Writes}
 
-import scala.concurrent.{ExecutionContext, Future}
+trait JsonUtils {
 
-trait PropertyLinking {
-  def getLink(organisationId: Long, authorisationId: Long)(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[Option[PropertyLink]]
-  def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long)(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[Option[Assessment]]
+  def enumFormat[E <: Enumeration](e: E): Format[E#Value] =
+    Format(Reads.enumNameReads(e), Writes.enumNameWrites)
 }
+
+object JsonUtils extends JsonUtils

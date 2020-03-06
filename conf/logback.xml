@@ -46,14 +46,16 @@
     <logger name="com.google.inject" level="INFO"/>
 
     <logger name="uk.gov" level="DEBUG"/>
+    <logger name="org.asynchttpclient.netty" level="DEBUG"/>
+    <logger name="reactivemongo" level="INFO"/>
 
     <logger name="application" level="DEBUG"/>
 
-    <logger name="connector" level="INFO">
+    <logger name="connector" level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
     </root>

@@ -19,7 +19,7 @@ package businessrates.authorisation.connectors
 import java.time.LocalDate
 import businessrates.authorisation.ArbitraryDataGeneration
 import businessrates.authorisation.config.WSHttp
-import businessrates.authorisation.models.{any => anyPT, _}
+import businessrates.authorisation.models._
 import org.mockito.ArgumentMatchers.{eq => isEqual, _}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -181,48 +181,18 @@ class BackendConnectorSpec
        |}],
        |"agents":[
        |{
-       |"permissions":[
-       |{
-       |"checkPermission":"START_AND_CONTINUE",
-       |"challengePermission":"START_AND_CONTINUE"
-       |}],
-       |"authorisedPartyStatus":"APPROVED",
        |"organisationId":2000000002
        |},
        |{
-       |"permissions":[
-       |{
-       |"checkPermission":"START_AND_CONTINUE",
-       |"challengePermission":"START_AND_CONTINUE"
-       |}],
-       |"authorisedPartyStatus":"APPROVED",
        |"organisationId":$agentWithBoth
        |},
        |{
-       |"permissions":[
-       |{
-       |"checkPermission":"START_AND_CONTINUE",
-       |"challengePermission":"NOT_PERMITTED"
-       |}],
-       |"authorisedPartyStatus":"APPROVED",
        |"organisationId":$agentWithCheckOnly
        |},
        |{
-       |"permissions":[
-       |{
-       |"checkPermission":"NOT_PERMITTED",
-       |"challengePermission":"START_AND_CONTINUE"
-       |}],
-       |"authorisedPartyStatus":"APPROVED",
        |"organisationId":$agentWithChallengeOnly
        |},
        |{
-       |"permissions":[
-       |{
-       |"checkPermission":"NOT_PERMITTED",
-       |"challengePermission":"NOT_PERMITTED"
-       |}],
-       |"authorisedPartyStatus":"APPROVED",
        |"organisationId":$agentWithNeither
        |}],
        |"authorisationStatus":"APPROVED"
@@ -486,30 +456,10 @@ class BackendConnectorSpec
                                               |}""".stripMargin
 
   private val agentsWithPermission = Seq(
-    Party(
-      permissions =
-        Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)),
-      authorisedPartyStatus = RepresentationStatus.approved,
-      organisationId = 2000000002
-    ),
-    Party(
-      permissions =
-        Seq(Permission(checkPermission = StartAndContinue, challengePermission = StartAndContinue, endDate = None)),
-      authorisedPartyStatus = RepresentationStatus.approved,
-      organisationId = agentWithBoth
-    ),
-    Party(
-      permissions =
-        Seq(Permission(checkPermission = StartAndContinue, challengePermission = NotPermitted, endDate = None)),
-      authorisedPartyStatus = RepresentationStatus.approved,
-      organisationId = agentWithCheckOnly
-    ),
-    Party(
-      permissions =
-        Seq(Permission(checkPermission = NotPermitted, challengePermission = StartAndContinue, endDate = None)),
-      authorisedPartyStatus = RepresentationStatus.approved,
-      organisationId = agentWithChallengeOnly
-    )
+    Party(organisationId = 2000000002),
+    Party(organisationId = agentWithBoth),
+    Party(organisationId = agentWithCheckOnly),
+    Party(organisationId = agentWithChallengeOnly)
   )
 
   private val validPropertyLink = PropertyLink(
@@ -526,8 +476,6 @@ class BackendConnectorSpec
         uarn = 9342442000L,
         effectiveDate = LocalDate.parse("2017-03-31"))),
     agents = agentsWithPermission :+ Party(
-      permissions = Seq(Permission(checkPermission = NotPermitted, challengePermission = NotPermitted, endDate = None)),
-      authorisedPartyStatus = RepresentationStatus.approved,
       organisationId = agentWithNeither
     ),
     authorisationStatus = "APPROVED"
@@ -662,29 +610,6 @@ class BackendConnectorSpec
     "Correctly parse a PropertyLink" in {
       (Json.parse(inputPropertyLink) \ "authorisations" \ 0).validate[PropertyLink] mustBe JsSuccess(validPropertyLink)
     }
-
-    "Correctly parse all types of representation" in {
-      (Json.parse(agentsByPermission) \ "agents" \ 0)
-        .validate[Party]
-        .get
-        .authorisedPartyStatus mustBe RepresentationStatus.approved
-      (Json.parse(agentsByPermission) \ "agents" \ 1)
-        .validate[Party]
-        .get
-        .authorisedPartyStatus mustBe RepresentationStatus.declined
-      (Json.parse(agentsByPermission) \ "agents" \ 2)
-        .validate[Party]
-        .get
-        .authorisedPartyStatus mustBe RepresentationStatus.pending
-      (Json.parse(agentsByPermission) \ "agents" \ 3)
-        .validate[Party]
-        .get
-        .authorisedPartyStatus mustBe RepresentationStatus.timedOut
-      (Json.parse(agentsByPermission) \ "agents" \ 4)
-        .validate[Party]
-        .get
-        .authorisedPartyStatus mustBe RepresentationStatus.revoked
-    }
   }
 
   "Json translation to internal structures [Writes]" should {
@@ -723,13 +648,11 @@ class BackendConnectorSpec
     }
 
     "for a found PropertyLink in the USER's properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(
-        validPropertyLink.copy(agents = agentsWithPermission))
+      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(validPropertyLink)
     }
 
     "for a found PropertyLink in the AGENT's delegated properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(
-        validPropertyLink.copy(agents = agentsWithPermission))
+      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(validPropertyLink)
     }
 
     "for a found PropertyLink in the USER's properties that is DECLINED, return None" in {
@@ -740,67 +663,26 @@ class BackendConnectorSpec
       await(connector.getLink(2000000002, indirectlyLinkedDeclinedAuthId)) mustBe None
     }
 
-    "for a found Assessment on one of the USER's properties return a 'Some(Assessment)'" in {
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(
-        validPropertyLink.assessment.head)
-    }
-
     "for a found Assessment on one of the USER's properties return a 'Some(Assessment)' irrespective of the role param (agent applicable only)" in {
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, check)) mustBe Some(
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L)) mustBe Some(
         validPropertyLink.assessment.head)
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L)) mustBe Some(
         validPropertyLink.assessment.head)
     }
 
     "for a not found Assessment on one of the USER's properties return a 'None'" in {
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L + 1, anyPT)) mustBe None
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L + 1)) mustBe None
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)'" in {
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(
+      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
         validPropertyLink.assessment.head)
-    }
-
-    "for a not found Assessment on one of the AGENT's properties return a 'None'" in {
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L + 1, anyPT)) mustBe None
-    }
-
-    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = check and AGENT is permitted to do a check" in {
-      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, check)) mustBe Some(
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
         validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, check)) mustBe Some(
+      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
         validPropertyLink.assessment.head)
-    }
-
-    "for a found Assessment on one of the AGENT's properties return a 'None' if role = check and AGENT is NOT permitted to do a check" in {
-      await(connector.getAssessment(agentWithNeither, indirectlyLinkedAuthId, 18630583000L, check)) mustBe None
-      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, check)) mustBe None
-    }
-
-    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = challenge and AGENT is permitted to do a challenge" in {
-      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
         validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe Some(
-        validPropertyLink.assessment.head)
-    }
-
-    "for a found Assessment on one of the AGENT's properties return a 'None' if role = challenge and AGENT is NOT permitted to do a challenge" in {
-      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe None
-      await(connector.getAssessment(agentWithNeither, indirectlyLinkedAuthId, 18630583000L, challenge)) mustBe None
-    }
-
-    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = any and AGENT is permitted to do a challenge" in {
-      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(
-        validPropertyLink.assessment.head)
-    }
-
-    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)' if role = any and AGENT is permitted to do a check" in {
-      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe Some(
-        validPropertyLink.assessment.head)
-    }
-
-    "for a found Assessment on one of the AGENT's properties return a 'None' if role = any and AGENT is NOT permitted to do a challenge OR check" in {
-      await(connector.getAssessment(agentWithNeither, indirectlyLinkedAuthId, 18630583000L, anyPT)) mustBe None
     }
   }
 
