@@ -25,9 +25,7 @@ lazy val scoverageSettings = {
   )
 }
 
-lazy val playSettings = Seq(
-  routesImport ++= Seq("businessrates.authorisation.models.PermissionType")
-)
+lazy val playSettings = Seq()
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)

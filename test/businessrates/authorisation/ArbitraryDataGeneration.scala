@@ -95,5 +95,5 @@ trait ArbitraryDataGeneration {
   def randomParty: Gen[Party] =
     for {
       organisationId <- randomPositiveLong
-  } yield Party(organisationId)
+    } yield Party(organisationId)
 }

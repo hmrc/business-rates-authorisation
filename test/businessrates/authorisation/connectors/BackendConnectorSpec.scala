@@ -456,8 +456,7 @@ class BackendConnectorSpec
                                               |}""".stripMargin
 
   private val agentsWithPermission = Seq(
-    Party(
-      organisationId = 2000000002),
+    Party(organisationId = 2000000002),
     Party(organisationId = agentWithBoth),
     Party(organisationId = agentWithCheckOnly),
     Party(organisationId = agentWithChallengeOnly)
@@ -649,13 +648,11 @@ class BackendConnectorSpec
     }
 
     "for a found PropertyLink in the USER's properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(
-        validPropertyLink)
+      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(validPropertyLink)
     }
 
     "for a found PropertyLink in the AGENT's delegated properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(
-        validPropertyLink)
+      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(validPropertyLink)
     }
 
     "for a found PropertyLink in the USER's properties that is DECLINED, return None" in {
@@ -684,7 +681,8 @@ class BackendConnectorSpec
         validPropertyLink.assessment.head)
       await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
         validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(validPropertyLink.assessment.head)
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
+        validPropertyLink.assessment.head)
     }
   }
 

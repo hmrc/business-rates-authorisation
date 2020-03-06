@@ -71,9 +71,9 @@ class BackendConnector @Inject()(
       case PropertyLinkOwnerAndAssessments(`organisationId`, assessments) =>
         assessments.find(_.assessmentRef == assessmentRef)
       case PropertyLinkAssessmentsAndAgents(assessments, agents) =>
-        agents.find(_.organisationId == organisationId).flatMap( _ =>
-          assessments.find(_.assessmentRef == assessmentRef)
-        )
+        agents
+          .find(_.organisationId == organisationId)
+          .flatMap(_ => assessments.find(_.assessmentRef == assessmentRef))
       case _ => None
     }
 

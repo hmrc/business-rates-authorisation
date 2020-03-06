@@ -208,10 +208,11 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
             .retryUntil(_.organisationId != agentOrganisation.id)
             .copy(
               pending = false,
-              agents = Seq(randomParty.copy(
-                organisationId = agentOrganisation.id
-            ))
-          )
+              agents = Seq(
+                randomParty.copy(
+                  organisationId = agentOrganisation.id
+                ))
+            )
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = testController.authoriseToViewAssessment(
@@ -245,10 +246,11 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
             .retryUntil(_.organisationId != agentOrganisation.id)
             .copy(
               pending = false,
-              agents = Seq(randomParty.copy(
-                organisationId = agentOrganisation.id
-            ))
-          )
+              agents = Seq(
+                randomParty.copy(
+                  organisationId = agentOrganisation.id
+                ))
+            )
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = testController.authoriseToViewAssessment(
@@ -272,10 +274,11 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
             .retryUntil(_.organisationId != agentOrganisation.id)
             .copy(
               pending = false,
-              agents = Seq(randomParty.copy(
-                organisationId = agentOrganisation.id
-            ))
-          )
+              agents = Seq(
+                randomParty.copy(
+                  organisationId = agentOrganisation.id
+                ))
+            )
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = testController.authoriseToViewAssessment(
