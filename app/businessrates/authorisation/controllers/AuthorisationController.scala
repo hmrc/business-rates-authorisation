@@ -44,12 +44,11 @@ class AuthorisationController @Inject()(
 
   def authoriseToViewAssessment(
         authorisationId: Long,
-        assessmentRef: Long,
-        role: Option[PermissionType] = None): Action[AnyContent] = Action.async { implicit request =>
+        assessmentRef: Long): Action[AnyContent] = Action.async { implicit request =>
     withIds { accounts =>
-      propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef, role.getOrElse(any)).map {
-        case Some(_) => Ok(toJson(accounts))
-        case _       => Forbidden
+      propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef).map {
+        case Some(_)  => Ok(toJson(accounts))
+        case _        => Forbidden
       }
     }
   }

@@ -21,42 +21,16 @@ import java.time.{LocalDate, ZoneId}
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-sealed trait PermissionType extends NamedEnum { override def key = "permissionType" }
 
-case object any extends PermissionType { override def name = "any" }
-case object check extends PermissionType { override def name = "check" }
-case object challenge extends PermissionType { override def name = "challenge" }
-
-object PermissionType extends NamedEnumSupport[PermissionType] {
-  implicit val format = EnumFormat(PermissionType)
-  override def all = Seq(check, challenge, any)
-}
-
-case class Permission(
-      checkPermission: AgentPermission,
-      challengePermission: AgentPermission,
-      endDate: Option[LocalDate]) {
-  val values: Map[PermissionType, AgentPermission] = Map(check -> checkPermission, challenge -> challengePermission)
-}
-
-object Permission {
-  private val readsBuilder =
-    (__ \ "checkPermission").read[AgentPermission] and
-      (__ \ "challengePermission").read[AgentPermission] and
-      (__ \ "endDate").readNullable[LocalDate]
-
-  implicit val format: OFormat[Permission] = OFormat(readsBuilder.apply(Permission.apply _), Json.writes[Permission])
-}
-
-case class Party(permissions: Seq[Permission], authorisedPartyStatus: RepresentationStatus, organisationId: Long)
+case class Party(organisationId: Long)
 
 object Party {
-  private val readsBuilder =
-    (__ \ "permissions").read[Seq[Permission]] and
-      (__ \ "authorisedPartyStatus").read[RepresentationStatus] and
-      (__ \ "authorisedPartyOrganisationId").read[Long]
+  private val readsBuilder = (__ \ "authorisedPartyOrganisationId").read[Long]
 
-  implicit val format: OFormat[Party] = OFormat(readsBuilder.apply(Party.apply _), Json.writes[Party])
+  implicit val format: OFormat[Party] = OFormat(
+    readsBuilder.map(Party.apply),
+    Json.writes[Party]
+  )
 }
 
 case class PropertyLink(

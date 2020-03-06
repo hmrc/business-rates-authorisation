@@ -19,7 +19,7 @@ package businessrates.authorisation
 import java.time.LocalDate
 
 import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.models.{any => ANY, _}
+import businessrates.authorisation.models._
 import businessrates.authorisation.services.AccountsService
 import businessrates.authorisation.utils._
 import org.mockito.ArgumentMatchers.{eq => matching, _}
@@ -209,11 +209,9 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
             .copy(
               pending = false,
               agents = Seq(randomParty.copy(
-                organisationId = agentOrganisation.id,
-                authorisedPartyStatus = RepresentationStatus.approved,
-                permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
-              ))
-            )
+                organisationId = agentOrganisation.id
+            ))
+          )
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = testController.authoriseToViewAssessment(
@@ -248,11 +246,9 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
             .copy(
               pending = false,
               agents = Seq(randomParty.copy(
-                organisationId = agentOrganisation.id,
-                authorisedPartyStatus = RepresentationStatus.approved,
-                permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
-              ))
-            )
+                organisationId = agentOrganisation.id
+            ))
+          )
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = testController.authoriseToViewAssessment(
@@ -277,11 +273,9 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
             .copy(
               pending = false,
               agents = Seq(randomParty.copy(
-                organisationId = agentOrganisation.id,
-                authorisedPartyStatus = RepresentationStatus.approved,
-                permissions = Seq(Permission(StartAndContinue, StartAndContinue, None))
-              ))
-            )
+                organisationId = agentOrganisation.id
+            ))
+          )
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = testController.authoriseToViewAssessment(
