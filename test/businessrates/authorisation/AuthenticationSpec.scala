@@ -16,20 +16,20 @@
 
 package businessrates.authorisation
 
-import businessrates.authorisation.controllers.AuthorisationController
-import businessrates.authorisation.models.{Accounts, GovernmentGatewayDetails, Organisation, Person}
+import businessrates.authorisation.controllers.{AuthorisationController, VoaIds}
+import businessrates.authorisation.models.{Accounts, Organisation, Person}
 import businessrates.authorisation.services.AccountsService
 import businessrates.authorisation.utils._
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito.when
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.auth.core.retrieve.~
+import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.auth.core.retrieve.{CompositeRetrieval, SimpleRetrieval, ~}
 
 import scala.concurrent.Future
 
@@ -46,7 +46,8 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
   val testController = new AuthorisationController(
     StubPropertyLinking,
     mockAccountsService,
-    new VoaStubWithIds(mockAuthConnector, mockAccountsService))
+    new VoaIds(mockAuthConnector, mockAccountsService),
+    stubControllerComponents())
 
   "testController" should {
     behave like anAuthenticateEndpoint(testController)
@@ -72,8 +73,8 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
           when(mockAuthConnector.authorise(
             any(),
             matching(Retrievals.externalId and Retrievals.groupIdentifier and Retrievals.affinityGroup))(any(), any()))
-            .thenReturn(Future.successful(
-              new ~(new ~(Some("anExternalId"), Some("aGroupId")), Some(AffinityGroup.Organisation))))
+            .thenReturn(
+              Future.successful(new ~(new ~(Some("anExternalId"), Some("aGroupId")), Some(AffinityGroup.Organisation))))
           val res = testController.authenticate()(FakeRequest())
           status(res) mustBe UNAUTHORIZED
           contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
@@ -127,14 +128,13 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
         when(
           mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(
-            any[HeaderCarrier])).thenReturn(Future.successful(
-          Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
+            any[HeaderCarrier])).thenReturn(
+          Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
 
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)
         StubPersonAccounts.stubPerson(stubPerson)
         val res = testController.authenticate()(FakeRequest())
         status(res) mustBe UNAUTHORIZED
-        println(contentAsJson(res))
       }
 
       "return a 401 status and fail when group id is missing and is not Organisation" in {
@@ -150,14 +150,13 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
         when(
           mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(
-            any[HeaderCarrier])).thenReturn(Future.successful(
-          Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
+            any[HeaderCarrier])).thenReturn(
+          Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
 
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)
         StubPersonAccounts.stubPerson(stubPerson)
         val res = testController.authenticate()(FakeRequest())
         status(res) mustBe UNAUTHORIZED
-        println(contentAsJson(res))
       }
 
       "return a 401 status when the affinity group is missing from the user." in {
@@ -173,8 +172,8 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
             Future.successful(new ~(new ~(Some(stubPerson.externalId), Some(stubOrganisation.groupId)), None)))
         when(
           mockAccountsService.get(matching(stubPerson.externalId), matching(stubOrganisation.groupId))(
-            any[HeaderCarrier])).thenReturn(Future.successful(
-          Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
+            any[HeaderCarrier])).thenReturn(
+          Future.successful(Some(Accounts(stubOrganisation.id, stubPerson.individualId, stubOrganisation, stubPerson))))
 
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)
         StubPersonAccounts.stubPerson(stubPerson)

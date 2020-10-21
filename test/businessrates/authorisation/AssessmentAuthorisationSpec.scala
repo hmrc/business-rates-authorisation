@@ -18,7 +18,7 @@ package businessrates.authorisation
 
 import java.time.LocalDate
 
-import businessrates.authorisation.controllers.AuthorisationController
+import businessrates.authorisation.controllers.{AuthorisationController, VoaIds}
 import businessrates.authorisation.models._
 import businessrates.authorisation.services.AccountsService
 import businessrates.authorisation.utils._
@@ -26,7 +26,7 @@ import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -67,7 +67,8 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
   val testController = new AuthorisationController(
     StubPropertyLinking,
     mockAccountsService,
-    new VoaStubWithIds(mockAuthConnector, mockAccountsService))
+    new VoaIds(mockAuthConnector, mockAccountsService),
+    stubControllerComponents())
 
   private val organisation: Organisation = randomOrganisation
 

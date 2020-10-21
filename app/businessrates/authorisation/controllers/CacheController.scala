@@ -18,15 +18,17 @@ package businessrates.authorisation.controllers
 
 import businessrates.authorisation.repositories.AccountsCache
 import com.google.inject.Inject
-import play.api.mvc.Action
 import play.api.mvc.Results.EmptyContent
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CacheController @Inject()(cache: AccountsCache)(implicit ec: ExecutionContext) extends BaseController {
+class CacheController @Inject()(cache: AccountsCache, controllerComponents: ControllerComponents)(
+      implicit ec: ExecutionContext)
+    extends BackendController(controllerComponents) {
 
-  def clearCache = Action.async { implicit request =>
+  def clearCache: Action[AnyContent] = Action.async { implicit request =>
     val header = uk.gov.hmrc.play.HeaderCarrierConverter.fromHeadersAndSession(request.headers)
     header.sessionId.fold(Future.successful(Ok(EmptyContent()))) { sid =>
       cache.drop(sid.value) map { _ =>

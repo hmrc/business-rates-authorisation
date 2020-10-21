@@ -16,25 +16,30 @@
 
 package businessrates.authorisation.config
 
-import businessrates.authorisation.utils.WireMockSpec
+import akka.actor.ActorSystem
+import businessrates.authorisation.connectors.VOABackendWSHttp
+import businessrates.authorisation.utils.{TestConfiguration, WireMockSpec}
 import com.codahale.metrics.{Counter, Meter, MetricRegistry, Timer}
 import com.kenshoo.play.metrics.Metrics
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.ws
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws.{WSClient, WSResponse}
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.ws.WSRequest
 import uk.gov.hmrc.play.test.UnitSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar {
+class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar with TestConfiguration {
 
   val metricsMock = mock[Metrics]
   val metricRegistry = mock[MetricRegistry]
   val mockTimer = mock[Timer]
+  val mockWSClient = mock[WSClient]
 
   when(metricsMock.defaultRegistry).thenReturn(metricRegistry)
 
@@ -46,14 +51,22 @@ class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar 
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val wsHttp = new VOABackendWSHttp(metricsMock) with MockWsRequest { val status = 200 }
-  val failHttp = new VOABackendWSHttp(metricsMock) with MockWsRequest { val status = 400 }
+  val backendWSHttp =
+    new VOABackendWSHttp(configuration, metricsMock, mock[AuditConnector], mockWSClient, mock[ActorSystem])
+    with MockWsRequest {
+      val status = 200
+    }
+  val failHttp =
+    new VOABackendWSHttp(configuration, metricsMock, mock[AuditConnector], mock[WSClient], mock[ActorSystem])
+    with MockWsRequest {
+      val status = 400
+    }
 
   "Invoking a method on the VOABackendWSHttp connection" should {
     "trigger metrics success logging for the customer-management-api endpoint" in {
       val url = "http://voa-api-proxy.service:80/customer-management-api/organisation"
 
-      await(wsHttp.doGet(url))
+      await(backendWSHttp.doGet(url, headers = Seq.empty))
 
       verify(metricRegistry, times(1)).counter("customer-management-api/success-counter")
       verify(metricRegistry, times(1)).meter("customer-management-api/success-meter")
@@ -63,7 +76,7 @@ class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar 
       val url =
         "http://voa-api-proxy.service:80/mdtp-dashboard-management-api/mdtp_dashboard/properties_view?listYear=2016&organisationId=101"
 
-      await(wsHttp.doGet(url))
+      await(backendWSHttp.doGet(url, headers = Seq.empty))
 
       verify(metricRegistry, times(1)).counter("mdtp-dashboard-management-api/success-counter")
       verify(metricRegistry, times(1)).meter("mdtp-dashboard-management-api/success-meter")
@@ -73,7 +86,7 @@ class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar 
       val url =
         "http://voa-api-proxy.service:80/address-management-api/address?pageSize=100&startPoint=1&SearchParameters={\"postcode\": \"BN12 6EA\"}"
 
-      await(wsHttp.doGet(url))
+      await(backendWSHttp.doGet(url, headers = Seq.empty))
 
       verify(metricRegistry, times(1)).counter("address-management-api/success-counter")
       verify(metricRegistry, times(1)).meter("address-management-api/success-meter")
@@ -83,7 +96,7 @@ class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar 
       val url =
         "http://voa-api-proxy.service:80/address-management-api/address?pageSize=100&startPoint=1&SearchParameters={\"postcode\": \"BN12 6EA\"}"
 
-      await(failHttp.doGet(url))
+      await(failHttp.doGet(url, headers = Seq.empty))
 
       verify(metricRegistry, times(1)).counter("address-management-api/failed-counter")
       verify(metricRegistry, times(1)).meter("address-management-api/failed-meter")
@@ -93,14 +106,17 @@ class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar 
   trait MockWsRequest extends WSRequest {
     val status: Int
 
-    override def buildRequest[A](url: String)(implicit hc: HeaderCarrier): ws.WSRequest = {
+    override def buildRequest[A](url: String, headers: Seq[(String, String)])(
+          implicit hc: HeaderCarrier): ws.WSRequest = {
       val mockRequest = mock[play.api.libs.ws.WSRequest]
       val mockResponse = mock[WSResponse]
 
-      when(mockRequest.get()).thenReturn(Future.successful(mockResponse))
+      when(mockRequest.withMethod(any())).thenReturn(mockRequest)
+      when(mockRequest.execute()).thenReturn(Future.successful(mockResponse))
       when(mockResponse.status).thenReturn(status)
 
       mockRequest
     }
+
   }
 }

@@ -23,7 +23,7 @@ import businessrates.authorisation.connectors.{OrganisationAccounts, PersonAccou
 import businessrates.authorisation.models.{Accounts, Organisation, Person}
 import businessrates.authorisation.repositories.AccountsCache
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.play.test.UnitSpec
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers.{eq => matching, _}

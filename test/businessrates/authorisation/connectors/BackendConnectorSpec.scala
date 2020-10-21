@@ -17,12 +17,13 @@
 package businessrates.authorisation.connectors
 
 import java.time.LocalDate
+
 import businessrates.authorisation.ArbitraryDataGeneration
-import businessrates.authorisation.config.WSHttp
 import businessrates.authorisation.models._
+import businessrates.authorisation.utils.TestConfiguration
 import org.mockito.ArgumentMatchers.{eq => isEqual, _}
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
@@ -33,7 +34,7 @@ import scala.concurrent.Future
 
 class BackendConnectorSpec
     extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach with FutureAwaits
-    with DefaultAwaitTimeout with ArbitraryDataGeneration {
+    with DefaultAwaitTimeout with ArbitraryDataGeneration with TestConfiguration {
 
   implicit val hc = HeaderCarrier()
 
@@ -370,91 +371,6 @@ class BackendConnectorSpec
        |  ]
        |}""".stripMargin
 
-  private val agentsByPermission: String = s"""{
-                                              |  "agents" : [
-                                              |    {
-                                              |      "authorisedPartyCapacity": "AGENT",
-                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
-                                              |      "authorisedPartyStatus": "APPROVED",
-                                              |      "caseLinks": [],
-                                              |      "id": 12,
-                                              |      "permissions": [
-                                              |        {
-                                              |          "challengePermission": "NOT_PERMITTED",
-                                              |          "checkPermission": "NOT_PERMITTED",
-                                              |          "id": 13
-                                              |        }
-                                              |      ],
-                                              |      "startDate": "2017-03-28",
-                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-                                              |    },
-                                              |    {
-                                              |      "authorisedPartyCapacity": "AGENT",
-                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
-                                              |      "authorisedPartyStatus": "DECLINED",
-                                              |      "caseLinks": [],
-                                              |      "id": 12,
-                                              |      "permissions": [
-                                              |        {
-                                              |          "challengePermission": "NOT_PERMITTED",
-                                              |          "checkPermission": "NOT_PERMITTED",
-                                              |          "id": 13
-                                              |        }
-                                              |      ],
-                                              |      "startDate": "2017-03-28",
-                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-                                              |    },
-                                              |    {
-                                              |      "authorisedPartyCapacity": "AGENT",
-                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
-                                              |      "authorisedPartyStatus": "PENDING",
-                                              |      "caseLinks": [],
-                                              |      "id": 12,
-                                              |      "permissions": [
-                                              |        {
-                                              |          "challengePermission": "NOT_PERMITTED",
-                                              |          "checkPermission": "NOT_PERMITTED",
-                                              |          "id": 13
-                                              |        }
-                                              |      ],
-                                              |      "startDate": "2017-03-28",
-                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-                                              |    },
-                                              |    {
-                                              |      "authorisedPartyCapacity": "AGENT",
-                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
-                                              |      "authorisedPartyStatus": "TIMED_OUT",
-                                              |      "caseLinks": [],
-                                              |      "id": 12,
-                                              |      "permissions": [
-                                              |        {
-                                              |          "challengePermission": "NOT_PERMITTED",
-                                              |          "checkPermission": "NOT_PERMITTED",
-                                              |          "id": 13
-                                              |        }
-                                              |      ],
-                                              |      "startDate": "2017-03-28",
-                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-                                              |    },
-                                              |    {
-                                              |      "authorisedPartyCapacity": "AGENT",
-                                              |      "authorisedPartyOrganisationId": $agentWithNeither,
-                                              |      "authorisedPartyStatus": "REVOKED",
-                                              |      "caseLinks": [],
-                                              |      "id": 12,
-                                              |      "permissions": [
-                                              |        {
-                                              |          "challengePermission": "NOT_PERMITTED",
-                                              |          "checkPermission": "NOT_PERMITTED",
-                                              |          "id": 13
-                                              |        }
-                                              |      ],
-                                              |      "startDate": "2017-03-28",
-                                              |      "submissionId": "a9cc69a2-e89c-4f61-8b8b-12e56c96ec04"
-                                              |    }
-                                              |  ]
-                                              |}""".stripMargin
-
   private val agentsWithPermission = Seq(
     Party(organisationId = 2000000002),
     Party(organisationId = agentWithBoth),
@@ -513,7 +429,7 @@ class BackendConnectorSpec
   private val validPersonNoPhone =
     validPerson.copy(details = validPerson.details.copy(phone1 = "not set", phone2 = None))
 
-  private val mockWsHttp = mock[WSHttp]
+  private val mockWsHttp = mock[VOABackendWSHttp]
 
   when(
     mockWsHttp.GET[Option[Organisation]](contains("?governmentGatewayGroupId=NOT_FOUND"))(
@@ -545,16 +461,13 @@ class BackendConnectorSpec
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$directlyLinkedAuthId"))(
-      any[HttpReads[Option[PropertyLink]]],
-      refEq(hc),
-      any()))
+      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+        s"?listYear=2017&authorisationId=$directlyLinkedAuthId"))(any(), any(), any()))
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
         s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"))(
       any[HttpReads[Option[PropertyLink]]],
       refEq(hc),
@@ -563,13 +476,13 @@ class BackendConnectorSpec
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
         s"?listYear=2017&authorisationId=$nonExistentAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(None))
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
         s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"))(
       any[HttpReads[Option[PropertyLink]]],
       refEq(hc),
@@ -578,14 +491,14 @@ class BackendConnectorSpec
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
         s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"))(
       any[HttpReads[Option[PropertyLink]]],
       refEq(hc),
       any()))
     .thenReturn(Future.successful(Some(declinedPropertyLink)))
 
-  private val connector = new BackendConnector(mockWsHttp, "http://localhost", 2017)
+  private val connector = new BackendConnector(mockWsHttp, servicesConfig)
 
   implicit val organisationApiFormat = Organisation.apiFormat
   implicit val personApiFormat = Person.apiFormat

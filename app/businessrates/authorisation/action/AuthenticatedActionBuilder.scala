@@ -21,26 +21,27 @@ import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.auth.core.retrieve._
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, AuthorisedFunctions, InternalError}
+import uk.gov.hmrc.auth.core.retrieve.v2._
+import uk.gov.hmrc.auth.core.retrieve.~
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthenticatedActionBuilder @Inject()(
-      override val authConnector: AuthConnector
+      override val authConnector: AuthConnector,
+      controllerComponents: ControllerComponents
 )(implicit override val executionContext: ExecutionContext)
-    extends ActionBuilder[RequestWithPrincipal] with AuthorisedFunctions with Results {
+    extends ActionBuilder[RequestWithPrincipal, AnyContent] with AuthorisedFunctions with Results {
 
-  val logger = Logger(this.getClass.getName)
+  val logger: Logger = Logger(this.getClass.getName)
 
   def invokeBlock[A](request: Request[A], block: RequestWithPrincipal[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier =
-      HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
 
-    authorised().retrieve(v2.Retrievals.externalId and v2.Retrievals.groupIdentifier) {
+    authorised().retrieve(Retrievals.externalId and Retrievals.groupIdentifier) {
       case externalId ~ groupIdentifier =>
         (externalId, groupIdentifier) match {
           case (Some(exId), Some(grpId)) => block(RequestWithPrincipal(request, Principal(exId, grpId)))
@@ -49,15 +50,16 @@ class AuthenticatedActionBuilder @Inject()(
           case (None, None)              => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_EXTERNAL_ID_OR_GROUP_ID")))
         }
     } recoverWith {
-      case e: InternalError => {
+      case e: InternalError =>
         logger.warn(e.getMessage)
         throw e
-      }
-      case e: AuthorisationException => {
+      case e: AuthorisationException =>
         logger.warn(e.getMessage)
         Future.successful(Unauthorized)
-      }
       case e: Exception => throw e
     }
   }
+
+  override def parser: BodyParser[AnyContent] = controllerComponents.parsers.anyContent
+
 }

@@ -46,7 +46,7 @@ trait NamedEnumSupport[E <: NamedEnum] {
     def unbind(key: String, value: E) = key + "=" + URLEncoder.encode(Option(value.name).getOrElse(""), "utf-8")
   }
 
-  implicit def pathBindable(implicit binder: PathBindable[String]) = new PathBindable[E] {
+  implicit def pathBindable = new PathBindable[E] {
     override def bind(key: String, value: String): Either[String, E] =
       fromName(value).map(Right(_)).getOrElse(Left(s"$key with value $value not found"))
     override def unbind(key: String, value: E): String = value.name
@@ -61,20 +61,16 @@ object EnumFormat {
   def apply[T <: NamedEnum](enumObject: NamedEnumSupport[T]): Format[T] =
     Format[T](generateReads(enumObject), generateWrites(enumObject))
 
-  private def generateWrites[T <: NamedEnum](enumObject: NamedEnumSupport[T]): Writes[T] = new Writes[T] {
-    def writes(data: T): JsValue =
-      JsString(data.name)
-  }
+  private def generateWrites[T <: NamedEnum](enumObject: NamedEnumSupport[T]): Writes[T] =
+    (data: T) => JsString(data.name)
 
-  private def generateReads[T <: NamedEnum](enumObject: NamedEnumSupport[T]): Reads[T] = new Reads[T] {
-    def reads(json: JsValue): JsResult[T] = json match {
-      case JsString(value) =>
-        enumObject.fromName(value) match {
-          case Some(enumValue) => JsSuccess(enumValue)
-          case None            => JsError(s"Value: $value is not valid; expected one of ${enumObject.all}")
-        }
-      case js =>
-        JsError(s"Invalid Json: expected string, got: $js")
-    }
+  private def generateReads[T <: NamedEnum](enumObject: NamedEnumSupport[T]): Reads[T] = {
+    case JsString(value) =>
+      enumObject.fromName(value) match {
+        case Some(enumValue) => JsSuccess(enumValue)
+        case None            => JsError(s"Value: $value is not valid; expected one of ${enumObject.all}")
+      }
+    case js =>
+      JsError(s"Invalid Json: expected string, got: $js")
   }
 }

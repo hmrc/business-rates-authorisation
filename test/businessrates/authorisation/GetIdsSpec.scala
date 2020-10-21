@@ -18,21 +18,21 @@ package businessrates.authorisation
 
 import java.time.LocalDate
 
-import businessrates.authorisation.controllers.AuthorisationController
+import businessrates.authorisation.controllers.{AuthorisationController, VoaIds}
 import businessrates.authorisation.models._
 import businessrates.authorisation.services.AccountsService
-import businessrates.authorisation.utils.{StubPropertyLinking, VoaStubWithIds}
+import businessrates.authorisation.utils.StubPropertyLinking
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.retrieve.~
+import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -58,7 +58,8 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
   val testController = new AuthorisationController(
     StubPropertyLinking,
     mockAccountsService,
-    new VoaStubWithIds(mockAuthConnector, mockAccountsService))
+    new VoaIds(mockAuthConnector, mockAccountsService),
+    stubControllerComponents())
 
   "Getting the IDs" when {
     "a user is submitting a check on their own property link" must {
