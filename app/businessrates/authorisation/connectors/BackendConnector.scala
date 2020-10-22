@@ -16,20 +16,20 @@
 
 package businessrates.authorisation.connectors
 
-import businessrates.authorisation.config.WSHttp
 import businessrates.authorisation.models._
-import com.google.inject.name.Named
 import javax.inject.Inject
+import play.api.libs.json.Reads
 import uk.gov.hmrc.http.HttpReads._
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BackendConnector @Inject()(
-      @Named("voaBackendWSHttp") val http: WSHttp,
-      @Named("dataPlatformUrl") val backendUrl: String,
-      @Named("ratesListYear") val listYear: Int)
+class BackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: ServicesConfig)
     extends OrganisationAccounts with PersonAccounts with PropertyLinking {
+
+  lazy val backendUrl: String = servicesConfig.baseUrl("data-platform")
+  lazy val listYear: Int = servicesConfig.getConfInt("rates.list.year", 2017)
 
   type AgentFilter = Party => Boolean
 
@@ -52,9 +52,8 @@ class BackendConnector @Inject()(
     getOrganisation(s"$orgId", "organisationId")
 
   def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
-    implicit val apiFormat = Person.apiFormat
-    http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[
-      Person]
+    implicit val apiFormat: Reads[Person] = Person.apiFormat
+    http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
   }
 
   def getLink(organisationId: Long, authorisationId: Long)(
@@ -80,7 +79,7 @@ class BackendConnector @Inject()(
   private def getOrganisation(id: String, paramName: String)(
         implicit hc: HeaderCarrier,
         ec: ExecutionContext): Future[Option[Organisation]] = {
-    implicit val apiFormat = Organisation.apiFormat
+    implicit val apiFormat: Reads[Organisation] = Organisation.apiFormat
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
   }
 

@@ -26,12 +26,7 @@ case class PersonDetails(
       phone1: String,
       phone2: Option[String],
       addressId: Int)
-case class Person(
-      externalId: String,
-      trustId: String,
-      organisationId: Long,
-      individualId: Long,
-      details: PersonDetails)
+case class Person(externalId: String, trustId: String, organisationId: Long, individualId: Long, details: PersonDetails)
 
 object PersonDetails {
   val apiFormat: Reads[PersonDetails] = (

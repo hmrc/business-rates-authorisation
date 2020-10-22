@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package businessrates.authorisation.auth
+package businessrates.authorisation.utils
 
-import javax.inject.Inject
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.play.config.ServicesConfig
+import play.api.{Environment, Mode}
+import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 
-class DefaultAuthConnector @Inject()(val http: HttpPost, val config: ServicesConfig) extends PlayAuthConnector {
-  override val serviceUrl = config.baseUrl("auth")
+trait TestConfiguration {
+
+  val configuration: play.api.Configuration = play.api.Configuration.load(Environment.simple())
+
+  val servicesConfig: ServicesConfig =
+    new ServicesConfig(configuration, new RunMode(configuration, Mode.Test))
+
 }
+
+object TestConfiguration extends TestConfiguration

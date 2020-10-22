@@ -17,19 +17,14 @@
 package businessrates.authorisation.repositories
 
 import businessrates.authorisation.models.{Accounts, Organisation, Person, PersonDetails}
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.play.test.UnitSpec
 import play.api.inject.guice.GuiceApplicationBuilder
 import reactivemongo.api.DB
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson._
+import uk.gov.hmrc.play.test.UnitSpec
 
-import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.DurationDouble
 
 class AccountsMongoCacheSpec extends UnitSpec with ScalaFutures with GuiceOneAppPerSuite {
 

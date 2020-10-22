@@ -23,7 +23,7 @@ import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -31,8 +31,9 @@ import scala.concurrent.Future
 class AuthorisationController @Inject()(
       val propertyLinking: PropertyLinking,
       val accounts: AccountsService,
-      val ids: WithIds
-) extends BaseController {
+      val ids: WithIds,
+      controllerComponents: ControllerComponents
+) extends BackendController(controllerComponents) {
 
   import ids._
 
