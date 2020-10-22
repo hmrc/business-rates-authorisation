@@ -22,9 +22,8 @@ import com.codahale.metrics._
 import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json.Writes
 import uk.gov.hmrc.play.http.ws.WSHttp
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 trait HasMetrics extends WSHttp {
@@ -35,28 +34,40 @@ trait HasMetrics extends WSHttp {
 
   lazy val registry: MetricRegistry = metrics.defaultRegistry
 
-  override def doGet(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    withMetricsTimer(getApiName(url)) { super.doGet(url) }
-
-  override def doDelete(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    withMetricsTimer(getApiName(url)) { super.doDelete(url) }
-
-  override def doPatch[A](url: String, body: A)(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
-    withMetricsTimer(getApiName(url)) { super.doPatch(url, body) }
-
-  override def doPut[A](url: String, body: A)(implicit writes: Writes[A], hc: HeaderCarrier): Future[HttpResponse] =
-    withMetricsTimer(getApiName(url)) { super.doPut(url, body) }
+  override def doPatch[A](url: String, body: A, headers: Seq[(String, String)])(
+        implicit rds: Writes[A],
+        hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] =
+    withMetricsTimer(getApiName(url)) { super.doPatch(url, body, headers) }
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
-        implicit writes: Writes[A],
-        hc: HeaderCarrier): Future[HttpResponse] =
+        implicit rds: Writes[A],
+        hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doPost(url, body, headers) }
+
+  override def doDelete(url: String, headers: Seq[(String, String)])(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] =
+    withMetricsTimer(getApiName(url)) { super.doDelete(url, headers) }
+
+  override def doPut[A](url: String, body: A, headers: Seq[(String, String)])(
+        implicit rds: Writes[A],
+        hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] =
+    withMetricsTimer(getApiName(url)) { super.doPut(url, body, headers) }
+
+  override def doGet(url: String, headers: Seq[(String, String)])(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] =
+    withMetricsTimer(getApiName(url)) { super.doGet(url, headers) }
 
   private def getApiName(url: String): String = new URL(url).getPath.drop(1).split("/").head
 
-  private def withMetricsTimer(metric: Metric)(block: => Future[HttpResponse]): Future[HttpResponse] = {
+  private def withMetricsTimer(metric: Metric)(block: => Future[HttpResponse])(
+        implicit executionContext: ExecutionContext): Future[HttpResponse] = {
     val timer = MetricsTimer(metric)
-    block map { response =>
+    block.map { response =>
       timer.complete(response.status)
       response
     } recover {

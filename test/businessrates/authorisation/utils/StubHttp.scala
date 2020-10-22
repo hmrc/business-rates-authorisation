@@ -17,29 +17,44 @@
 package businessrates.authorisation.utils
 
 import akka.actor.ActorSystem
-import businessrates.authorisation.config.WSHttp
+import businessrates.authorisation.connectors.VOABackendWSHttp
+import businessrates.authorisation.utils.TestConfiguration._
+import com.kenshoo.play.metrics.Metrics
 import com.typesafe.config.Config
-import play.api.{Configuration, Play}
+import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.libs.json.Writes
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.libs.ws.WSClient
+import uk.gov.hmrc.http.hooks.HttpHook
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
-object StubHttp extends WSHttp {
-  override def doGet(url: String)(implicit hc: HeaderCarrier) = ???
+import scala.concurrent.{ExecutionContext, Future}
+
+object StubHttp
+    extends VOABackendWSHttp(configuration, mock[Metrics], mock[AuditConnector], mock[WSClient], mock[ActorSystem]) {
+
+  override def doGet(url: String, headers: Seq[(String, String)])(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] = ???
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
-        implicit wts: Writes[A],
-        hc: HeaderCarrier) = ???
+        implicit rds: Writes[A],
+        hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] = ???
 
-  override def doPostString(url: String, body: String, headers: Seq[(String, String)])(implicit hc: HeaderCarrier) =
-    ???
+  override def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)])(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] = ???
 
-  override def doEmptyPost[A](url: String)(implicit hc: HeaderCarrier) = ???
+  override def doPostString(url: String, body: String, headers: Seq[(String, String)])(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] = ???
 
-  override def doFormPost(url: String, body: Map[String, Seq[String]])(implicit hc: HeaderCarrier) = ???
+  override def doEmptyPost[A](url: String, headers: Seq[(String, String)])(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse] = ???
 
   override protected def configuration: Option[Config] = ???
 
-  override protected def appNameConfiguration: Configuration = ???
-
-  override protected def actorSystem: ActorSystem = ???
+  override val hooks: Seq[HttpHook] = Seq.empty
 }

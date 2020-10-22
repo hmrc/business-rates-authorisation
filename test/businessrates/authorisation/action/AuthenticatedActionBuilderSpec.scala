@@ -16,23 +16,19 @@
 
 package businessrates.authorisation.action
 
-import businessrates.authorisation.ControllerSpec
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Result, Results}
 import play.api.test.FakeRequest
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, InternalError, MissingBearerToken}
+import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, InternalError, MissingBearerToken}
 import uk.gov.hmrc.http.HeaderCarrier
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import play.libs.concurrent.Futures
 import uk.gov.hmrc.play.test.UnitSpec
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class AuthenticatedActionBuilderSpec extends MockitoSugar with UnitSpec {
 
@@ -50,7 +46,7 @@ class AuthenticatedActionBuilderSpec extends MockitoSugar with UnitSpec {
         exception.fold(Future.successful(success.asInstanceOf[A]))(Future.failed(_))
     }
 
-    val authenticatedAction = new AuthenticatedActionBuilder(authConnector)
+    val authenticatedAction = new AuthenticatedActionBuilder(authConnector, stubControllerComponents())
 
   }
 
@@ -80,17 +76,15 @@ class AuthenticatedActionBuilderSpec extends MockitoSugar with UnitSpec {
       status(result) shouldBe UNAUTHORIZED
     }
 
-    "throw an internal exception if the authorisation fails due to a internal exception" in new Setup {
+    "return 401 UNAUTHORIZED if the authorisation fails due to a internal exception" in new Setup {
 
-      override def exception = Some(new InternalError())
+      override def exception = Some(InternalError())
 
       val action = authenticatedAction.async(_ => Future.successful(Results.Ok("")))
 
       val result: Future[Result] = action(FakeRequest())
 
-      ScalaFutures.whenReady(result.failed) { e =>
-        e shouldBe a[InternalError]
-      }
+      status(result) shouldBe UNAUTHORIZED
     }
 
     "return an unauthorised exception if the user does not have either a group ID or a external ID" in new Setup {

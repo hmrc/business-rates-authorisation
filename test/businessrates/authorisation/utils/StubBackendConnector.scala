@@ -21,8 +21,9 @@ import businessrates.authorisation.models.{Organisation, Person, PropertyLink}
 
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
+import TestConfiguration.servicesConfig
 
-class StubBackendConnector extends BackendConnector(StubHttp, "http://locahost:9536", 2017) {
+class StubBackendConnector extends BackendConnector(StubHttp, servicesConfig) {
   private var stubbedOrganisation: Option[Organisation] = None
   private var stubbedPerson: Option[Person] = None
   private var stubbedLinks: Seq[PropertyLink] = Nil
@@ -45,8 +46,7 @@ class StubBackendConnector extends BackendConnector(StubHttp, "http://locahost:9
         orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     Future.successful(stubbedOrganisation)
 
-  override def getPerson(
-        externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
+  override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
     Future.successful(stubbedPerson)
 
   override protected def getAuthorisation(

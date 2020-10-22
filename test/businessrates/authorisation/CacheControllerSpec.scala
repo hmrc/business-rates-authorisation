@@ -21,9 +21,10 @@ import businessrates.authorisation.repositories.AccountsCache
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
+import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
@@ -34,14 +35,13 @@ class CacheControllerSpec extends ControllerSpec with MockitoSugar with BeforeAn
 
   val accountsCache = mock[AccountsCache]
 
-  val controller = new CacheController(accountsCache)
+  val controller = new CacheController(accountsCache, stubControllerComponents())
 
   val sessionId = "session-id-1"
 
   "CacheController" should {
     "not call accountsCache.drop when sessionID is not in headers" in {
       val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-      val headerCarrier: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
 
       controller.clearCache.apply(request)
       verify(accountsCache, times(0)).drop(sessionId)
@@ -51,7 +51,6 @@ class CacheControllerSpec extends ControllerSpec with MockitoSugar with BeforeAn
       when(accountsCache.drop(anyString())).thenReturn(Future.successful(()))
 
       val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withHeaders(HeaderNames.xSessionId -> sessionId)
-      val headerCarrier: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
       controller.clearCache.apply(request)
       verify(accountsCache, times(1)).drop(sessionId)
     }
