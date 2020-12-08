@@ -16,7 +16,7 @@ lazy val scoverageSettings = {
   // Semicolon-separated list of regexs matching classes to exclude
   import scoverage.ScoverageKeys
   Seq(
-    ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;views.*;config.*;poc.view.*;" +
+    ScoverageKeys.coverageExcludedPackages := "<empty>;.*Reverse.*;views.*;config.*;poc.view.*;" +
       "poc.config.*;.*(AuthService|BuildInfo|Routes).*;businessrates.authorisation.config.*;" +
       "businessrates.authorisation.models.*",
     ScoverageKeys.coverageMinimum := 60,
