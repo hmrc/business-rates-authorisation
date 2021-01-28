@@ -461,13 +461,13 @@ class BackendConnectorSpec
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
         s"?listYear=2017&authorisationId=$directlyLinkedAuthId"))(any(), any(), any()))
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
         s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"))(
       any[HttpReads[Option[PropertyLink]]],
       refEq(hc),
@@ -476,13 +476,13 @@ class BackendConnectorSpec
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
         s"?listYear=2017&authorisationId=$nonExistentAuthId"))(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(None))
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
         s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"))(
       any[HttpReads[Option[PropertyLink]]],
       refEq(hc),
@@ -491,7 +491,7 @@ class BackendConnectorSpec
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9536/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
+      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
         s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"))(
       any[HttpReads[Option[PropertyLink]]],
       refEq(hc),
