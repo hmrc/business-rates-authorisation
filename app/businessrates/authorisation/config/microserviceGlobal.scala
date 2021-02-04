@@ -29,7 +29,7 @@ class GuiceModule(
       configuration: Configuration
 ) extends AbstractModule {
 
-  def configure(): Unit = {
+  override def configure(): Unit = {
     bind(classOf[OrganisationAccounts]).to(classOf[BackendConnector])
     bind(classOf[PersonAccounts]).to(classOf[BackendConnector])
     bind(classOf[PropertyLinking]).to(classOf[BackendConnector])

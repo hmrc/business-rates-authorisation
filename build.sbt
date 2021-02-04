@@ -67,16 +67,16 @@ def oneForkedJvmPerTest(tests: Seq[TestDefinition]) = tests.map { test =>
 
 lazy val compileDependencies = Seq(
   ws,
-  "uk.gov.hmrc"   %% "auth-client"          % "3.0.0-play-26",
-  "uk.gov.hmrc"   %% "bootstrap-play-26"    % "1.15.0",
-  "org.typelevel" %% "cats-core"            % "1.6.1",
-  "uk.gov.hmrc"   %% "simple-reactivemongo" % "7.30.0-play-26"
+  "uk.gov.hmrc"   %% "auth-client"                  % "3.3.0-play-27",
+  "uk.gov.hmrc"   %% "bootstrap-backend-play-27"    % "3.4.0",
+  "org.typelevel" %% "cats-core"                    % "1.6.1",
+  "uk.gov.hmrc"   %% "simple-reactivemongo"         % "7.31.0-play-27"
 )
 
 lazy val testDependencies = Seq(
-    "uk.gov.hmrc" %% "hmrctest" % "3.9.0-play-26" % "test",
-  "org.scalatest"          %% "scalatest"          % "3.0.6"             % "test",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.0"             % "test",
+  "uk.gov.hmrc"            %% "hmrctest"           % "3.9.0-play-26"     % "test",
+  "org.scalatest"          %% "scalatest"          % "3.0.8"             % "test",
+  "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3"             % "test",
   "org.pegdown"            % "pegdown"             % "1.6.0"             % "test",
   "com.typesafe.play"      %% "play-test"          % PlayVersion.current % "test",
   "org.mockito"            % "mockito-core"        % "2.27.0"            % "test",

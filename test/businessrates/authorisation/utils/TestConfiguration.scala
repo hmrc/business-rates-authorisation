@@ -17,14 +17,14 @@
 package businessrates.authorisation.utils
 
 import play.api.{Environment, Mode}
-import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 trait TestConfiguration {
 
   val configuration: play.api.Configuration = play.api.Configuration.load(Environment.simple())
 
   val servicesConfig: ServicesConfig =
-    new ServicesConfig(configuration, new RunMode(configuration, Mode.Test))
+    new ServicesConfig(configuration)
 
 }
 
