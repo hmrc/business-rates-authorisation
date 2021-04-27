@@ -56,10 +56,7 @@ lazy val microservice = Project(appName, file("."))
     testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
     parallelExecution in IntegrationTest := false
   )
-  .settings(resolvers ++= Seq(
-    Resolver.bintrayRepo("hmrc", "releases"),
-    Resolver.jcenterRepo
-  ))
+  .settings(resolvers += Resolver.jcenterRepo)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) = tests.map { test =>
   Group(test.name, Seq(test), SubProcess(ForkOptions().withRunJVMOptions(Vector(s"-Dtest.name=${test.name}"))))
