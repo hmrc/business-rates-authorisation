@@ -41,17 +41,11 @@ object StubHttp
         implicit rds: Writes[A],
         ec: ExecutionContext): Future[HttpResponse] = ???
 
-  def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)])(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[HttpResponse] = ???
+  override def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)])(ec: ExecutionContext): Future[HttpResponse] = ???
 
-  def doPostString(url: String, body: String, headers: Seq[(String, String)])(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[HttpResponse] = ???
+  override def doPostString(url: String, body: String, headers: Seq[(String, String)])(ec: ExecutionContext): Future[HttpResponse] = ???
 
-  def doEmptyPost[A](url: String, headers: Seq[(String, String)])(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[HttpResponse] = ???
+  override def doEmptyPost[A](url: String, headers: Seq[(String, String)])(ec: ExecutionContext): Future[HttpResponse] = ???
 
   override protected def configuration: Config = ???
 
