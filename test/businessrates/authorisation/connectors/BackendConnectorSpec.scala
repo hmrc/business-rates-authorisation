@@ -462,40 +462,46 @@ class BackendConnectorSpec
   when(
     mockWsHttp.GET[Option[PropertyLink]](
       isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$directlyLinkedAuthId"), any(), any())(any(), any(), any()))
+        s"?listYear=2017&authorisationId=$directlyLinkedAuthId"),
+      any(),
+      any()
+    )(any(), any(), any()))
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
       isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"), any(), any())(
-      any[HttpReads[Option[PropertyLink]]],
-      refEq(hc),
-      any()))
+        s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"),
+      any(),
+      any()
+    )(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(Some(declinedPropertyLink)))
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
       isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$nonExistentAuthId"), any(), any())(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
+        s"?listYear=2017&authorisationId=$nonExistentAuthId"),
+      any(),
+      any()
+    )(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(None))
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
       isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"), any(), any())(
-      any[HttpReads[Option[PropertyLink]]],
-      refEq(hc),
-      any()))
+        s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"),
+      any(),
+      any()
+    )(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(Some(validPropertyLink)))
 
   when(
     mockWsHttp.GET[Option[PropertyLink]](
       isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"), any(), any())(
-      any[HttpReads[Option[PropertyLink]]],
-      refEq(hc),
-      any()))
+        s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"),
+      any(),
+      any()
+    )(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
     .thenReturn(Future.successful(Some(declinedPropertyLink)))
 
   private val connector = new BackendConnector(mockWsHttp, servicesConfig)

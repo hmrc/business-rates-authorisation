@@ -39,7 +39,6 @@ object StubHttp
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
         implicit rds: Writes[A],
-
         ec: ExecutionContext): Future[HttpResponse] = ???
 
   def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)])(

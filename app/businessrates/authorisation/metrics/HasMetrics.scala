@@ -53,8 +53,7 @@ trait HasMetrics extends WSHttp {
         ec: ExecutionContext): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doPut(url, body, headers) }
 
-  override def doGet(url: String, headers: Seq[(String, String)])(
-        implicit ec: ExecutionContext): Future[HttpResponse] =
+  override def doGet(url: String, headers: Seq[(String, String)])(implicit ec: ExecutionContext): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doGet(url, headers) }
 
   private def getApiName(url: String): String = new URL(url).getPath.drop(1).split("/").head
