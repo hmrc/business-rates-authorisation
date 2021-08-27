@@ -43,7 +43,7 @@ class VOABackendWSHttp @Inject()(
 
   override val hooks: Seq[HttpHook] = Seq(AuditingHook)
 
-  override protected def configuration: Option[Config] = Some(config.underlying)
+  override protected def configuration: Config = config.underlying
 
   override def appName: String = "business-rates-authorisation"
 
@@ -53,29 +53,26 @@ class VOABackendWSHttp @Inject()(
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
         implicit rds: Writes[A],
-        hc: HeaderCarrier,
         ec: ExecutionContext): Future[HttpResponse] =
-    super.doPost(url, body, headers)(rds, buildHeaderCarrier(hc), ec)
+    super.doPost(url, body, headers)(rds, ec)
 
   override def doDelete(url: String, headers: Seq[(String, String)])(
-        implicit hc: HeaderCarrier,
+        implicit
         ec: ExecutionContext): Future[HttpResponse] =
-    super.doDelete(url, headers)(buildHeaderCarrier(hc), ec)
+    super.doDelete(url, headers)(ec)
 
   override def doGet(url: String, headers: Seq[(String, String)])(
-        implicit hc: HeaderCarrier,
+        implicit
         ec: ExecutionContext): Future[HttpResponse] =
-    super.doGet(url, headers)(buildHeaderCarrier(hc), ec)
+    super.doGet(url, headers)(ec)
 
   override def doPut[A](url: String, body: A, headers: Seq[(String, String)])(
         implicit rds: Writes[A],
-        hc: HeaderCarrier,
         ec: ExecutionContext): Future[HttpResponse] =
-    super.doPut(url, body, headers)(rds, buildHeaderCarrier(hc), ec)
+    super.doPut(url, body, headers)(rds, ec)
 
   override def doPatch[A](url: String, body: A, headers: Seq[(String, String)])(
         implicit rds: Writes[A],
-        hc: HeaderCarrier,
         ec: ExecutionContext): Future[HttpResponse] =
-    super.doPatch(url, body, headers)(rds, buildHeaderCarrier(hc), ec)
+    super.doPatch(url, body, headers)(rds, ec)
 }

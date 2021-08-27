@@ -34,27 +34,27 @@ object StubHttp
     extends VOABackendWSHttp(configuration, mock[Metrics], mock[AuditConnector], mock[WSClient], mock[ActorSystem]) {
 
   override def doGet(url: String, headers: Seq[(String, String)])(
-        implicit hc: HeaderCarrier,
+        implicit
         ec: ExecutionContext): Future[HttpResponse] = ???
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
         implicit rds: Writes[A],
-        hc: HeaderCarrier,
+
         ec: ExecutionContext): Future[HttpResponse] = ???
 
-  override def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)])(
+  def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)])(
         implicit hc: HeaderCarrier,
         ec: ExecutionContext): Future[HttpResponse] = ???
 
-  override def doPostString(url: String, body: String, headers: Seq[(String, String)])(
+  def doPostString(url: String, body: String, headers: Seq[(String, String)])(
         implicit hc: HeaderCarrier,
         ec: ExecutionContext): Future[HttpResponse] = ???
 
-  override def doEmptyPost[A](url: String, headers: Seq[(String, String)])(
+  def doEmptyPost[A](url: String, headers: Seq[(String, String)])(
         implicit hc: HeaderCarrier,
         ec: ExecutionContext): Future[HttpResponse] = ???
 
-  override protected def configuration: Option[Config] = ???
+  override protected def configuration: Config = ???
 
   override val hooks: Seq[HttpHook] = Seq.empty
 }
