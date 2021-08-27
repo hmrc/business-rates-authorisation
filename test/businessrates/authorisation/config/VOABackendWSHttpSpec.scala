@@ -106,8 +106,7 @@ class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar 
   trait MockWsRequest extends WSRequest {
     val status: Int
 
-    override def buildRequest[A](url: String, headers: Seq[(String, String)])(
-          implicit hc: HeaderCarrier): ws.WSRequest = {
+    override def buildRequest[A](url: String, headers: Seq[(String, String)]): ws.WSRequest = {
       val mockRequest = mock[play.api.libs.ws.WSRequest]
       val mockResponse = mock[WSResponse]
 

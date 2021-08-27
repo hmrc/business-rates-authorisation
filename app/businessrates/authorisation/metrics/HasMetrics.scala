@@ -24,7 +24,7 @@ import play.api.libs.json.Writes
 import uk.gov.hmrc.play.http.ws.WSHttp
 
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HttpResponse
 
 trait HasMetrics extends WSHttp {
 
@@ -36,30 +36,24 @@ trait HasMetrics extends WSHttp {
 
   override def doPatch[A](url: String, body: A, headers: Seq[(String, String)])(
         implicit rds: Writes[A],
-        hc: HeaderCarrier,
         ec: ExecutionContext): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doPatch(url, body, headers) }
 
   override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
         implicit rds: Writes[A],
-        hc: HeaderCarrier,
         ec: ExecutionContext): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doPost(url, body, headers) }
 
   override def doDelete(url: String, headers: Seq[(String, String)])(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[HttpResponse] =
+        implicit ec: ExecutionContext): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doDelete(url, headers) }
 
   override def doPut[A](url: String, body: A, headers: Seq[(String, String)])(
         implicit rds: Writes[A],
-        hc: HeaderCarrier,
         ec: ExecutionContext): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doPut(url, body, headers) }
 
-  override def doGet(url: String, headers: Seq[(String, String)])(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[HttpResponse] =
+  override def doGet(url: String, headers: Seq[(String, String)])(implicit ec: ExecutionContext): Future[HttpResponse] =
     withMetricsTimer(getApiName(url)) { super.doGet(url, headers) }
 
   private def getApiName(url: String): String = new URL(url).getPath.drop(1).split("/").head

@@ -65,7 +65,7 @@ def oneForkedJvmPerTest(tests: Seq[TestDefinition]) = tests.map { test =>
 lazy val compileDependencies = Seq(
   ws,
   "uk.gov.hmrc"   %% "auth-client"                  % "3.3.0-play-27",
-  "uk.gov.hmrc"   %% "bootstrap-backend-play-27"    % "3.4.0",
+  "uk.gov.hmrc"   %% "bootstrap-backend-play-27"    % "5.11.0",
   "org.typelevel" %% "cats-core"                    % "1.6.1",
   "uk.gov.hmrc"   %% "simple-reactivemongo"         % "7.31.0-play-27"
 )

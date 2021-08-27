@@ -30,7 +30,7 @@ import org.mockito.ArgumentMatchers.{eq => matching, _}
 
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.SessionId
+import uk.gov.hmrc.http.SessionId
 
 class AccountsServiceSpec extends UnitSpec with MockitoSugar with BeforeAndAfterEach with ArbitraryDataGeneration {
 
