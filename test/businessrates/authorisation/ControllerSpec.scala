@@ -17,11 +17,13 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.utils.{StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
-import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 
 class ControllerSpec
-    extends WordSpec with MustMatchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout
+    extends AnyWordSpec with Matchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout
     with ArbitraryDataGeneration {
 
   override protected def beforeEach() = {

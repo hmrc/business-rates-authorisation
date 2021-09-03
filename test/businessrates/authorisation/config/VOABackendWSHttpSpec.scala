@@ -23,18 +23,23 @@ import com.codahale.metrics.{Counter, Meter, MetricRegistry, Timer}
 import com.kenshoo.play.metrics.Metrics
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
+import akka.util.Timeout
+import org.scalatest.time.{Millis, Span}
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.ws
 import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.test.Helpers.await
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.ws.WSRequest
-import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class VOABackendWSHttpSpec extends UnitSpec with WireMockSpec with MockitoSugar with TestConfiguration {
+class VOABackendWSHttpSpec extends AnyWordSpec with WireMockSpec with MockitoSugar with TestConfiguration {
+
+  implicit val timeout: Timeout = Timeout(Span(250, Millis))
 
   val metricsMock = mock[Metrics]
   val metricRegistry = mock[MetricRegistry]

@@ -18,23 +18,23 @@ package businessrates.authorisation.utils
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import uk.gov.hmrc.play.it.Port
-import uk.gov.hmrc.play.test.UnitSpec
 
-trait WireMockSpec extends UnitSpec with BeforeAndAfterAll with BeforeAndAfterEach {
+trait WireMockSpec extends AnyWordSpec with BeforeAndAfterAll with BeforeAndAfterEach {
 
-  private lazy val wireMockServer = new WireMockServer(Port.randomAvailable)
+  val wiremockPort: Int = 19525
+  private lazy val wireMockServer = new WireMockServer(wiremockPort)
 
-  protected lazy val mockServerUrl = s"http://localhost:${wireMockServer.port}"
+  protected lazy val mockServerUrl = s"http://localhost:$wiremockPort"
 
-  override def beforeAll() {
+  override def beforeAll(): Unit = {
     super.beforeAll
     wireMockServer.start()
     WireMock.configureFor("localhost", wireMockServer.port)
   }
 
-  override def beforeEach() =
+  override def beforeEach(): Unit =
     WireMock.reset()
 
   override def afterAll(): Unit = {

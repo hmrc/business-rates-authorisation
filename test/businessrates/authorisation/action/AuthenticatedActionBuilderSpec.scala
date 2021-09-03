@@ -16,6 +16,8 @@
 
 package businessrates.authorisation.action
 
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Result, Results}
@@ -25,12 +27,11 @@ import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, InternalError, MissingBearerToken}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthenticatedActionBuilderSpec extends MockitoSugar with UnitSpec {
+class AuthenticatedActionBuilderSpec extends AnyWordSpec with MockitoSugar with Matchers {
 
   private trait Setup {
     implicit val hc: HeaderCarrier = HeaderCarrier()
