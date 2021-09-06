@@ -16,23 +16,28 @@
 
 package businessrates.authorisation.services
 
-import java.util.UUID
-
+import akka.util.Timeout
 import businessrates.authorisation.ArbitraryDataGeneration
 import businessrates.authorisation.connectors.{OrganisationAccounts, PersonAccounts}
 import businessrates.authorisation.models.{Accounts, Organisation, Person}
 import businessrates.authorisation.repositories.AccountsCache
-import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.play.test.UnitSpec
-import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers.{eq => matching, _}
+import org.mockito.Mockito._
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Millis, Span}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
+import play.api.test.Helpers.await
+import uk.gov.hmrc.http.{HeaderCarrier, SessionId}
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.SessionId
 
-class AccountsServiceSpec extends UnitSpec with MockitoSugar with BeforeAndAfterEach with ArbitraryDataGeneration {
+class AccountsServiceSpec
+    extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach with ArbitraryDataGeneration {
+
+  implicit val timeout: Timeout = Timeout(Span(250, Millis))
 
   "Accounts service" when {
     "the request does not have a session id" should {

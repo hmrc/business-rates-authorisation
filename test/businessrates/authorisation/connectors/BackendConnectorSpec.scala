@@ -16,24 +16,25 @@
 
 package businessrates.authorisation.connectors
 
-import java.time.LocalDate
-
 import businessrates.authorisation.ArbitraryDataGeneration
 import businessrates.authorisation.models._
 import businessrates.authorisation.utils.TestConfiguration
 import org.mockito.ArgumentMatchers.{eq => isEqual, _}
 import org.mockito.Mockito._
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class BackendConnectorSpec
-    extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach with FutureAwaits
+    extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach with FutureAwaits
     with DefaultAwaitTimeout with ArbitraryDataGeneration with TestConfiguration {
 
   implicit val hc = HeaderCarrier()

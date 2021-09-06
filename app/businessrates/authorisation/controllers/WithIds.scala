@@ -18,15 +18,15 @@ package businessrates.authorisation.controllers
 
 import businessrates.authorisation.models.{Accounts, GovernmentGatewayDetails}
 import businessrates.authorisation.services.AccountsService
-import javax.inject.Inject
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.auth.core.AffinityGroup.{Individual, Organisation}
+import uk.gov.hmrc.auth.core.retrieve._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.auth.core.retrieve._
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 trait WithIds extends Results with AuthorisedFunctions {
@@ -46,7 +46,7 @@ trait WithIds extends Results with AuthorisedFunctions {
         case e                         => throw e
       }
 
-  protected def impl(default: (Accounts) => Future[Result])(
+  protected def impl(default: Accounts => Future[Result])(
         optGGDetails: GovernmentGatewayDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Result]
 
 }
@@ -54,9 +54,9 @@ trait WithIds extends Results with AuthorisedFunctions {
 class VoaIds @Inject()(
       val authConnector: AuthConnector,
       val accounts: AccountsService
-) extends WithIds {
+) extends WithIds with Logging {
 
-  override def impl(default: (Accounts) => Future[Result])(
+  override def impl(default: Accounts => Future[Result])(
         optGGDetails: GovernmentGatewayDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Result] =
     optGGDetails match {
       case GovernmentGatewayDetails(externalId, Some(groupId), Some(Organisation) | Some(Individual)) =>
@@ -65,10 +65,10 @@ class VoaIds @Inject()(
           case None       => Future.successful(Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")))
         }
       case GovernmentGatewayDetails(_, None, _) =>
-        Logger.info(s"User has logged in with no groupId")
+        logger.info(s"User has logged in with no groupId")
         Future.successful(Unauthorized(Json.obj("errorCode" -> "NON_GROUPID_ACCOUNT")))
       case GovernmentGatewayDetails(_, _, affinityGroup) =>
-        Logger.info(s"User has logged in with non-permitted affinityGroup ${affinityGroup.getOrElse("Not provided")}")
+        logger.info(s"User has logged in with non-permitted affinityGroup ${affinityGroup.getOrElse("Not provided")}")
         Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")))
     }
 }

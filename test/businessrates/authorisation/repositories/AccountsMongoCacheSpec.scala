@@ -16,17 +16,21 @@
 
 package businessrates.authorisation.repositories
 
+import akka.util.Timeout
 import businessrates.authorisation.models.{Accounts, Organisation, Person, PersonDetails}
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.test.Helpers.await
 import reactivemongo.api.DB
-import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class AccountsMongoCacheSpec extends UnitSpec with ScalaFutures with GuiceOneAppPerSuite {
+class AccountsMongoCacheSpec extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
+  implicit val timeout: Timeout = Timeout(Span(250, Millis))
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(5, Millis))
 
