@@ -55,7 +55,7 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
 
   def anAuthenticateEndpoint(testController: AuthorisationController) =
     "Calling the authentication endpoint" when {
-      "the user is logged in to Government Gateway with an agent account" must {
+      "the user is logged in to Government Gateway with an agent account" should {
         "return a 401 status and the INVALID_ACCOUNT_TYPE error code" in {
           when(mockAuthConnector.authorise(
             any(),
@@ -63,12 +63,12 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
             .thenReturn(
               Future.successful(new ~(new ~(Some("anExternalId"), Some("aGroupId")), Some(AffinityGroup.Agent))))
           val res = testController.authenticate()(FakeRequest())
-          status(res) mustBe UNAUTHORIZED
-          contentAsJson(res) mustBe Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")
+          status(res) shouldBe UNAUTHORIZED
+          contentAsJson(res) shouldBe Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")
         }
       }
 
-      "the user is logged in to Government Gateway with an organisation account but has not registered a CCA account" must {
+      "the user is logged in to Government Gateway with an organisation account but has not registered a CCA account" should {
         "return a 401 status and the NO_CUSTOMER_RECORD error code" in {
           when(mockAuthConnector.authorise(
             any(),
@@ -76,12 +76,12 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
             .thenReturn(
               Future.successful(new ~(new ~(Some("anExternalId"), Some("aGroupId")), Some(AffinityGroup.Organisation))))
           val res = testController.authenticate()(FakeRequest())
-          status(res) mustBe UNAUTHORIZED
-          contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
+          status(res) shouldBe UNAUTHORIZED
+          contentAsJson(res) shouldBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
         }
       }
 
-      "the user is logged in to Government Gateway and has registered a CCA account" must {
+      "the user is logged in to Government Gateway and has registered a CCA account" should {
         "return a 200 status and the organisation ID, the person ID, and the organisation and person accounts" in {
           val stubOrganisation: Organisation = randomOrganisation
 
@@ -104,8 +104,8 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
           StubOrganisationAccounts.stubOrganisation(stubOrganisation)
           StubPersonAccounts.stubPerson(stubPerson)
           val res = testController.authenticate()(FakeRequest())
-          status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj(
+          status(res) shouldBe OK
+          contentAsJson(res) shouldBe Json.obj(
             "organisationId" -> stubOrganisation.id,
             "personId"       -> stubPerson.individualId,
             "organisation"   -> Json.toJson(stubOrganisation),
@@ -134,7 +134,7 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)
         StubPersonAccounts.stubPerson(stubPerson)
         val res = testController.authenticate()(FakeRequest())
-        status(res) mustBe UNAUTHORIZED
+        status(res) shouldBe UNAUTHORIZED
       }
 
       "return a 401 status and fail when group id is missing and is not Organisation" in {
@@ -156,7 +156,7 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)
         StubPersonAccounts.stubPerson(stubPerson)
         val res = testController.authenticate()(FakeRequest())
-        status(res) mustBe UNAUTHORIZED
+        status(res) shouldBe UNAUTHORIZED
       }
 
       "return a 401 status when the affinity group is missing from the user." in {
@@ -178,7 +178,7 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
         StubOrganisationAccounts.stubOrganisation(stubOrganisation)
         StubPersonAccounts.stubPerson(stubPerson)
         val res = testController.authenticate()(FakeRequest())
-        status(res) mustBe UNAUTHORIZED
+        status(res) shouldBe UNAUTHORIZED
       }
     }
 

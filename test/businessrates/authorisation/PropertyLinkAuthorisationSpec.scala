@@ -61,7 +61,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
 
   "Calling the property link authorisation endpoint" when {
 
-    "the user is logged in to government gateway but has not registered a VOA account" must {
+    "the user is logged in to government gateway but has not registered a VOA account" should {
       "return a 401 response and the NO_CUSTOMER_RECORD error code" in {
         when(
           mockAuthConnector.authorise(
@@ -75,13 +75,13 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
 
         val res = TestAuthController.authorise(randomPositiveLong)(FakeRequest())
 
-        status(res) mustBe UNAUTHORIZED
-        contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
+        status(res) shouldBe UNAUTHORIZED
+        contentAsJson(res) shouldBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
       }
     }
 
     "the user is logged in to government gateway and has a VOA account" when {
-      "the account does not have a link to the property" must {
+      "the account does not have a link to the property" should {
         "return a 403 response" in {
           val person: Person = randomPerson
           val organisation: Organisation = randomOrganisation
@@ -94,11 +94,11 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           stubAccounts(person, organisation)
 
           val res = TestAuthController.authorise(randomPositiveLong)(FakeRequest())
-          status(res) mustBe FORBIDDEN
+          status(res) shouldBe FORBIDDEN
         }
       }
 
-      "the account has a pending link to the property" must {
+      "the account has a pending link to the property" should {
         "return a 200 response, the organisation and person IDs, and the organisation and person account details" in {
           val person: Person = randomPerson
           val organisation: Organisation = randomOrganisation
@@ -114,8 +114,8 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = TestAuthController.authorise(propertyLink.authorisationId)(FakeRequest())
-          status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj(
+          status(res) shouldBe OK
+          contentAsJson(res) shouldBe Json.obj(
             "organisationId" -> organisation.id,
             "personId"       -> person.individualId,
             "organisation"   -> Json.toJson(organisation),
@@ -123,7 +123,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
         }
       }
 
-      "the account has an approved link to the property" must {
+      "the account has an approved link to the property" should {
         "return a 200 response, the organisation and person IDs, and the organisation and person account details" in {
           val person: Person = randomPerson
           val organisation: Organisation = randomOrganisation
@@ -139,8 +139,8 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = TestAuthController.authorise(propertyLink.authorisationId)(FakeRequest())
-          status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj(
+          status(res) shouldBe OK
+          contentAsJson(res) shouldBe Json.obj(
             "organisationId" -> organisation.id,
             "personId"       -> person.individualId,
             "organisation"   -> Json.toJson(organisation),
@@ -148,7 +148,7 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
         }
       }
 
-      "the user is acting as an agent on behalf of the property" must {
+      "the user is acting as an agent on behalf of the property" should {
         "return a 200 response, the organisation and person IDs, and the organisation and person account details" in {
           val anAgent: Person = randomPerson
           val agentOrganisation: Organisation = randomOrganisation
@@ -169,8 +169,8 @@ class PropertyLinkAuthorisationSpec extends ControllerSpec with MockitoSugar wit
           StubPropertyLinking.stubLink(propertyLink)
 
           val res = TestAuthController.authorise(propertyLink.authorisationId)(FakeRequest())
-          status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj(
+          status(res) shouldBe OK
+          contentAsJson(res) shouldBe Json.obj(
             "organisationId" -> agentOrganisation.id,
             "personId"       -> anAgent.individualId,
             "organisation"   -> Json.toJson(agentOrganisation),

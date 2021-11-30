@@ -22,7 +22,7 @@ import businessrates.authorisation.utils.TestConfiguration
 import org.mockito.ArgumentMatchers.{eq => isEqual, _}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsSuccess, Json}
@@ -512,96 +512,97 @@ class BackendConnectorSpec
 
   "Json parsing from backend structures [Reads]" should {
     "Correctly parse an Organisation" in {
-      Json.parse(inputOrgJson).validate[Organisation] mustBe JsSuccess(validOrg)
+      Json.parse(inputOrgJson).validate[Organisation] shouldBe JsSuccess(validOrg)
     }
 
     "Correctly parse an Organisation with no phone" in {
-      Json.parse(inputOrgJsonNoPhone).validate[Organisation] mustBe JsSuccess(validOrgNoPhone)
+      Json.parse(inputOrgJsonNoPhone).validate[Organisation] shouldBe JsSuccess(validOrgNoPhone)
     }
 
     "Correctly parse a Person" in {
-      Json.parse(inputPersonJson).validate[Person] mustBe JsSuccess(validPerson)
+      Json.parse(inputPersonJson).validate[Person] shouldBe JsSuccess(validPerson)
     }
 
     "Correctly parse a Person with no phone" in {
-      Json.parse(inputPersonJsonNoPhone).validate[Person] mustBe JsSuccess(validPersonNoPhone)
+      Json.parse(inputPersonJsonNoPhone).validate[Person] shouldBe JsSuccess(validPersonNoPhone)
     }
 
     "Correctly parse a PropertyLink" in {
-      (Json.parse(inputPropertyLink) \ "authorisations" \ 0).validate[PropertyLink] mustBe JsSuccess(validPropertyLink)
+      (Json.parse(inputPropertyLink) \ "authorisations" \ 0).validate[PropertyLink] shouldBe JsSuccess(
+        validPropertyLink)
     }
   }
 
   "Json translation to internal structures [Writes]" should {
     "Correctly render an Organisation" in {
-      Json.toJson(validOrg).toString() mustBe outputOrgJson
+      Json.toJson(validOrg).toString() shouldBe outputOrgJson
     }
 
     "Correctly render a Person" in {
-      Json.toJson(validPerson).toString() mustBe outputPersonJson
+      Json.toJson(validPerson).toString() shouldBe outputPersonJson
     }
 
     "Correctly render a PropertyLink" in {
-      Json.toJson(validPropertyLink).toString() mustBe outputPropertyLink
+      Json.toJson(validPropertyLink).toString() shouldBe outputPropertyLink
     }
   }
 
   "The connector when translating a GET" should {
     "for a not found Organisation return a 'None'" in {
-      await(connector.getOrganisationByGGId("NOT_FOUND")) mustBe None
+      await(connector.getOrganisationByGGId("NOT_FOUND")) shouldBe None
     }
 
     "for a found Organisation return a 'Some(Organisation)'" in {
-      await(connector.getOrganisationByGGId("stub-group-3")) mustBe Some(validOrg)
+      await(connector.getOrganisationByGGId("stub-group-3")) shouldBe Some(validOrg)
     }
 
     "for a not found Person return a 'None'" in {
-      await(connector.getPerson("NO_PERSON")) mustBe None
+      await(connector.getPerson("NO_PERSON")) shouldBe None
     }
 
     "for a found Person return a 'Some(Person)'" in {
-      await(connector.getPerson("extId")) mustBe Some(validPerson)
+      await(connector.getPerson("extId")) shouldBe Some(validPerson)
     }
 
     "for a not found PropertyLink return a 'None'" in {
-      await(connector.getLink(999999999, nonExistentAuthId)) mustBe None
+      await(connector.getLink(999999999, nonExistentAuthId)) shouldBe None
     }
 
     "for a found PropertyLink in the USER's properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(1000000001, directlyLinkedAuthId)) mustBe Some(validPropertyLink)
+      await(connector.getLink(1000000001, directlyLinkedAuthId)) shouldBe Some(validPropertyLink)
     }
 
     "for a found PropertyLink in the AGENT's delegated properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) mustBe Some(validPropertyLink)
+      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) shouldBe Some(validPropertyLink)
     }
 
     "for a found PropertyLink in the USER's properties that is DECLINED, return None" in {
-      await(connector.getLink(1000000001, directlyLinkedDeclinedAuthId)) mustBe None
+      await(connector.getLink(1000000001, directlyLinkedDeclinedAuthId)) shouldBe None
     }
 
     "for a found PropertyLink in the AGENT's properties that is DECLINED, return None" in {
-      await(connector.getLink(2000000002, indirectlyLinkedDeclinedAuthId)) mustBe None
+      await(connector.getLink(2000000002, indirectlyLinkedDeclinedAuthId)) shouldBe None
     }
 
     "for a found Assessment on one of the USER's properties return a 'Some(Assessment)' irrespective of the role param (agent applicable only)" in {
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L)) mustBe Some(
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L)) shouldBe Some(
         validPropertyLink.assessment.head)
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L)) mustBe Some(
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L)) shouldBe Some(
         validPropertyLink.assessment.head)
     }
 
     "for a not found Assessment on one of the USER's properties return a 'None'" in {
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L + 1)) mustBe None
+      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L + 1)) shouldBe None
     }
 
     "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)'" in {
-      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
+      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L)) shouldBe Some(
         validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) shouldBe Some(
         validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
+      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L)) shouldBe Some(
         validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) mustBe Some(
+      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) shouldBe Some(
         validPropertyLink.assessment.head)
     }
   }

@@ -18,7 +18,7 @@ package businessrates.authorisation
 
 import businessrates.authorisation.utils.{StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 
