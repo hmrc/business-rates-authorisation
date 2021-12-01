@@ -62,7 +62,7 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
     stubControllerComponents())
 
   "Getting the IDs" when {
-    "a user is submitting a check on their own property link" must {
+    "a user is submitting a check on their own property link" should {
       "return the same IDs for the case creator's IDs and the link owner's IDs" in {
         when(
           mockAuthConnector.authorise(
@@ -85,16 +85,16 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
           ))
 
         val res = testController.getIds(authorisationId)(FakeRequest())
-        status(res) mustBe OK
+        status(res) shouldBe OK
 
-        contentAsJson(res) mustBe Json.obj(
+        contentAsJson(res) shouldBe Json.obj(
           "caseCreator"     -> Json.obj("organisationId" -> clientOrganisation.id, "personId" -> client.individualId),
           "interestedParty" -> Json.obj("organisationId" -> clientOrganisation.id, "personId" -> client.individualId)
         )
       }
     }
 
-    "an agent is submitting a check on behalf of a client" must {
+    "an agent is submitting a check on behalf of a client" should {
       "return the agent's IDs as the case creator's IDs, and the client's IDs as the link owner's IDs" in {
         when(
           mockAuthConnector.authorise(
@@ -120,9 +120,9 @@ class GetIdsSpec extends ControllerSpec with ArbitraryDataGeneration with Mockit
         )
 
         val res = testController.getIds(authorisationId)(FakeRequest())
-        status(res) mustBe OK
+        status(res) shouldBe OK
 
-        contentAsJson(res) mustBe Json.obj(
+        contentAsJson(res) shouldBe Json.obj(
           "caseCreator"     -> Json.obj("organisationId" -> agentOrganisation.id, "personId"  -> agent.individualId),
           "interestedParty" -> Json.obj("organisationId" -> clientOrganisation.id, "personId" -> client.individualId)
         )

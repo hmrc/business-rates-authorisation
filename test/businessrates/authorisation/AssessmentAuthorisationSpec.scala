@@ -76,7 +76,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
 
   "Calling the assessment authorisation endpoint" when {
 
-    "the user is logged in to government gateway but has not registered a VOA account" must {
+    "the user is logged in to government gateway but has not registered a VOA account" should {
       "return a 401 response and the NO_CUSTOMER_RECORD error code" in {
         when(
           mockAuthConnector.authorise(
@@ -85,13 +85,13 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           .thenReturn(Future.successful(new ~(new ~(Some(""), Some("")), Some(AffinityGroup.Organisation))))
 
         val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
-        status(res) mustBe UNAUTHORIZED
-        contentAsJson(res) mustBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
+        status(res) shouldBe UNAUTHORIZED
+        contentAsJson(res) shouldBe Json.obj("errorCode" -> "NO_CUSTOMER_RECORD")
       }
     }
 
     "the user is logged in to government gateway and has a VOA account" when {
-      "the account does not have a link to the property" must {
+      "the account does not have a link to the property" should {
         "return a 403 response" in {
           when(mockAuthConnector.authorise(
             any(),
@@ -100,11 +100,11 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
               new ~(new ~(Some(person.externalId), Some(organisation.groupId)), Some(AffinityGroup.Organisation))))
           stubAccounts()
           val res = testController.authoriseToViewAssessment(123, 456)(FakeRequest())
-          status(res) mustBe FORBIDDEN
+          status(res) shouldBe FORBIDDEN
         }
       }
 
-      "the account has an approved property link, but is not linked to the specific assessment" must {
+      "the account has an approved property link, but is not linked to the specific assessment" should {
         "return a 403 response" in {
           val linkId = 1234
           val assessmentRef = 9012
@@ -127,11 +127,11 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
               Seq(),
               "APPROVED"))
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
-          status(res) mustBe FORBIDDEN
+          status(res) shouldBe FORBIDDEN
         }
       }
 
-      "the account has a pending property link" must {
+      "the account has a pending property link" should {
         "return a 403 response" in {
           val linkId = 2345
           val assessmentRef = 1234
@@ -155,11 +155,11 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
               "PENDING"))
 
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
-          status(res) mustBe FORBIDDEN
+          status(res) shouldBe FORBIDDEN
         }
       }
 
-      "the account has a valid link to the assessment" must {
+      "the account has a valid link to the assessment" should {
         "return a 200 response and the organisation and person IDs" in {
           val linkId = 1234
           val assessmentRef = 9012
@@ -182,8 +182,8 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
               Seq(),
               "APPROVED"))
           val res = testController.authoriseToViewAssessment(linkId, assessmentRef)(FakeRequest())
-          status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj(
+          status(res) shouldBe OK
+          contentAsJson(res) shouldBe Json.obj(
             "organisationId" -> organisation.id,
             "personId"       -> person.individualId,
             "organisation"   -> Json.toJson(organisation),
@@ -191,7 +191,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
         }
       }
 
-      "the account is acting as an agent on behalf of the property link" must {
+      "the account is acting as an agent on behalf of the property link" should {
         "return a 200 response, the organisation and person IDs, and the organisation and person account details" in {
           val anAgent: Person = randomPerson
           val agentOrganisation: Organisation = randomOrganisation
@@ -219,8 +219,8 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val res = testController.authoriseToViewAssessment(
             propertyLink.authorisationId,
             propertyLink.assessment.head.assessmentRef)(FakeRequest())
-          status(res) mustBe OK
-          contentAsJson(res) mustBe Json.obj(
+          status(res) shouldBe OK
+          contentAsJson(res) shouldBe Json.obj(
             "organisationId" -> agentOrganisation.id,
             "personId"       -> anAgent.individualId,
             "organisation"   -> Json.toJson(agentOrganisation),
@@ -230,7 +230,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
     }
 
     "the user logs in and has an invalid government gateway OR VOA account " when {
-      "auth service" must {
+      "auth service" should {
         "return a 401 without group id" in {
           val anAgent: Person = randomPerson
           val agentOrganisation: Organisation = randomOrganisation
@@ -257,7 +257,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val res = testController.authoriseToViewAssessment(
             propertyLink.authorisationId,
             propertyLink.assessment.head.assessmentRef)(FakeRequest())
-          status(res) mustBe UNAUTHORIZED
+          status(res) shouldBe UNAUTHORIZED
         }
         "return a 401 without affinity group" in {
           val anAgent: Person = randomPerson
@@ -285,7 +285,7 @@ class AssessmentAuthorisationSpec extends ControllerSpec with MockitoSugar with 
           val res = testController.authoriseToViewAssessment(
             propertyLink.authorisationId,
             propertyLink.assessment.head.assessmentRef)(FakeRequest())
-          status(res) mustBe UNAUTHORIZED
+          status(res) shouldBe UNAUTHORIZED
         }
 
       }
