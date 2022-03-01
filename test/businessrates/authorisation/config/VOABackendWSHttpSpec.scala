@@ -77,16 +77,6 @@ class VOABackendWSHttpSpec extends AnyWordSpec with WireMockSpec with MockitoSug
       verify(metricRegistry, times(1)).meter("customer-management-api/success-meter")
     }
 
-    "trigger metrics success logging for the mdtp-dashboard-management-api endpoint - irrespective of query params" in {
-      val url =
-        "http://voa-api-proxy.service:80/mdtp-dashboard-management-api/mdtp_dashboard/properties_view?listYear=2016&organisationId=101"
-
-      await(backendWSHttp.doGet(url, headers = Seq.empty))
-
-      verify(metricRegistry, times(1)).counter("mdtp-dashboard-management-api/success-counter")
-      verify(metricRegistry, times(1)).meter("mdtp-dashboard-management-api/success-meter")
-    }
-
     "trigger metrics success logging for the address-management-api endpoint with JSON query" in {
       val url =
         "http://voa-api-proxy.service:80/address-management-api/address?pageSize=100&startPoint=1&SearchParameters={\"postcode\": \"BN12 6EA\"}"

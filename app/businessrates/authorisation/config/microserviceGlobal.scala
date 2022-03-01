@@ -16,7 +16,7 @@
 
 package businessrates.authorisation.config
 
-import businessrates.authorisation.connectors.{BackendConnector, OrganisationAccounts, PersonAccounts, PropertyLinking}
+import businessrates.authorisation.connectors.{BackendConnector, OrganisationAccounts, PersonAccounts}
 import businessrates.authorisation.controllers.{VoaIds, WithIds}
 import com.google.inject.{AbstractModule, Inject, Provider}
 import play.api.{Configuration, Environment}
@@ -32,7 +32,6 @@ class GuiceModule(
   override def configure(): Unit = {
     bind(classOf[OrganisationAccounts]).to(classOf[BackendConnector])
     bind(classOf[PersonAccounts]).to(classOf[BackendConnector])
-    bind(classOf[PropertyLinking]).to(classOf[BackendConnector])
     bind(classOf[WithIds]).to(classOf[VoaIds])
     bind(classOf[DB]).toProvider(classOf[MongoProvider]).asEagerSingleton()
   }

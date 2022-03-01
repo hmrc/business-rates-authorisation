@@ -16,7 +16,7 @@
 
 package businessrates.authorisation
 
-import businessrates.authorisation.utils.{StubOrganisationAccounts, StubPersonAccounts, StubPropertyLinking}
+import businessrates.authorisation.utils.{StubOrganisationAccounts, StubPersonAccounts}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -29,7 +29,6 @@ class ControllerSpec
   override protected def beforeEach() = {
     StubOrganisationAccounts.reset()
     StubPersonAccounts.reset()
-    StubPropertyLinking.reset()
   }
 
   implicit val request = FakeRequest()

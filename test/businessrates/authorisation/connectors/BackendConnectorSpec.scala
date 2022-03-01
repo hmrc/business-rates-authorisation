@@ -460,51 +460,6 @@ class BackendConnectorSpec
       any()))
     .thenReturn(Future.successful(Some(validPerson)))
 
-  when(
-    mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$directlyLinkedAuthId"),
-      any(),
-      any()
-    )(any(), any(), any()))
-    .thenReturn(Future.successful(Some(validPropertyLink)))
-
-  when(
-    mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$directlyLinkedDeclinedAuthId"),
-      any(),
-      any()
-    )(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
-    .thenReturn(Future.successful(Some(declinedPropertyLink)))
-
-  when(
-    mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$nonExistentAuthId"),
-      any(),
-      any()
-    )(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
-    .thenReturn(Future.successful(None))
-
-  when(
-    mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$indirectlyLinkedAuthId"),
-      any(),
-      any()
-    )(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
-    .thenReturn(Future.successful(Some(validPropertyLink)))
-
-  when(
-    mockWsHttp.GET[Option[PropertyLink]](
-      isEqual("http://localhost:9540/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment" +
-        s"?listYear=2017&authorisationId=$indirectlyLinkedDeclinedAuthId"),
-      any(),
-      any()
-    )(any[HttpReads[Option[PropertyLink]]], refEq(hc), any()))
-    .thenReturn(Future.successful(Some(declinedPropertyLink)))
-
   private val connector = new BackendConnector(mockWsHttp, servicesConfig)
 
   implicit val organisationApiFormat = Organisation.apiFormat
@@ -562,48 +517,6 @@ class BackendConnectorSpec
 
     "for a found Person return a 'Some(Person)'" in {
       await(connector.getPerson("extId")) shouldBe Some(validPerson)
-    }
-
-    "for a not found PropertyLink return a 'None'" in {
-      await(connector.getLink(999999999, nonExistentAuthId)) shouldBe None
-    }
-
-    "for a found PropertyLink in the USER's properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(1000000001, directlyLinkedAuthId)) shouldBe Some(validPropertyLink)
-    }
-
-    "for a found PropertyLink in the AGENT's delegated properties return a 'Some(PropertyLink)'" in {
-      await(connector.getLink(2000000002, indirectlyLinkedAuthId)) shouldBe Some(validPropertyLink)
-    }
-
-    "for a found PropertyLink in the USER's properties that is DECLINED, return None" in {
-      await(connector.getLink(1000000001, directlyLinkedDeclinedAuthId)) shouldBe None
-    }
-
-    "for a found PropertyLink in the AGENT's properties that is DECLINED, return None" in {
-      await(connector.getLink(2000000002, indirectlyLinkedDeclinedAuthId)) shouldBe None
-    }
-
-    "for a found Assessment on one of the USER's properties return a 'Some(Assessment)' irrespective of the role param (agent applicable only)" in {
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L)) shouldBe Some(
-        validPropertyLink.assessment.head)
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L)) shouldBe Some(
-        validPropertyLink.assessment.head)
-    }
-
-    "for a not found Assessment on one of the USER's properties return a 'None'" in {
-      await(connector.getAssessment(1000000001, directlyLinkedAuthId, 18630583000L + 1)) shouldBe None
-    }
-
-    "for a found Assessment on one of the AGENT's properties return a 'Some(Assessment)'" in {
-      await(connector.getAssessment(agentWithCheckOnly, indirectlyLinkedAuthId, 18630583000L)) shouldBe Some(
-        validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) shouldBe Some(
-        validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithChallengeOnly, indirectlyLinkedAuthId, 18630583000L)) shouldBe Some(
-        validPropertyLink.assessment.head)
-      await(connector.getAssessment(agentWithBoth, indirectlyLinkedAuthId, 18630583000L)) shouldBe Some(
-        validPropertyLink.assessment.head)
     }
   }
 
