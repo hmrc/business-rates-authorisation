@@ -16,20 +16,16 @@
 
 package businessrates.authorisation.controllers
 
-import businessrates.authorisation.connectors._
-import businessrates.authorisation.models._
 import businessrates.authorisation.services.AccountsService
-import javax.inject.Inject
-import play.api.libs.json.Json
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AuthorisationController @Inject()(
-      val propertyLinking: PropertyLinking,
       val accounts: AccountsService,
       val ids: WithIds,
       controllerComponents: ControllerComponents
@@ -43,39 +39,4 @@ class AuthorisationController @Inject()(
     }
   }
 
-  def authoriseToViewAssessment(authorisationId: Long, assessmentRef: Long): Action[AnyContent] = Action.async {
-    implicit request =>
-      withIds { accounts =>
-        propertyLinking.getAssessment(accounts.organisationId, authorisationId, assessmentRef).map {
-          case Some(_) => Ok(toJson(accounts))
-          case _       => Forbidden
-        }
-      }
-  }
-
-  def authorise(authorisationId: Long): Action[AnyContent] = Action.async { implicit request =>
-    withIds {
-      case a @ Accounts(oid, _, _, _) =>
-        propertyLinking.getLink(oid, authorisationId) map {
-          case Some(_) => Ok(Json.toJson(a))
-          case None    => Forbidden
-        }
-    }
-  }
-
-  def getIds(authorisationId: Long): Action[AnyContent] = Action.async { implicit request =>
-    withIds {
-      case Accounts(oid, pid, _, _) =>
-        propertyLinking.getLink(oid, authorisationId).map {
-          case Some(link) =>
-            Ok(
-              toJson(
-                SubmissionIds(
-                  caseCreator = AccountIds(oid, pid),
-                  interestedParty = AccountIds(link.organisationId, link.personId)
-                )))
-          case None => Forbidden
-        }
-    }
-  }
 }

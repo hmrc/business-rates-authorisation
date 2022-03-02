@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import scala.concurrent.{ExecutionContext, Future}
 
 class BackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: ServicesConfig)
-    extends OrganisationAccounts with PersonAccounts with PropertyLinking {
+    extends OrganisationAccounts with PersonAccounts {
 
   lazy val backendUrl: String = servicesConfig.baseUrl("data-platform")
   lazy val listYear: Int = servicesConfig.getConfInt("rates.list.year", 2017)
@@ -35,7 +35,6 @@ class BackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: Ser
 
   val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
   val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
-  val authorisationsUrl: String = s"$backendUrl/mdtp-dashboard-management-api/mdtp_dashboard/view_assessment"
 
   val declinedStatuses = Seq("REVOKED", "DECLINED")
 
@@ -56,26 +55,6 @@ class BackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: Ser
     http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
   }
 
-  def getLink(organisationId: Long, authorisationId: Long)(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[Option[PropertyLink]] =
-    getAuthorisation(authorisationId).map(_.find(l =>
-      l.organisationId == organisationId || l.agents.exists(_.organisationId == organisationId)))
-
-  override def getAssessment(organisationId: Long, authorisationId: Long, assessmentRef: Long)(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[Option[Assessment]] =
-    getLink(organisationId, authorisationId) map {
-      case PendingLink() => None
-      case PropertyLinkOwnerAndAssessments(`organisationId`, assessments) =>
-        assessments.find(_.assessmentRef == assessmentRef)
-      case PropertyLinkAssessmentsAndAgents(assessments, agents) =>
-        agents
-          .find(_.organisationId == organisationId)
-          .flatMap(_ => assessments.find(_.assessmentRef == assessmentRef))
-      case _ => None
-    }
-
   private def getOrganisation(id: String, paramName: String)(
         implicit hc: HeaderCarrier,
         ec: ExecutionContext): Future[Option[Organisation]] = {
@@ -83,11 +62,4 @@ class BackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: Ser
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
   }
 
-  protected def getAuthorisation(
-        authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
-    http.GET[Option[PropertyLink]](s"$authorisationsUrl?listYear=$listYear&authorisationId=$authorisationId") map {
-      case Some(link) if !declinedStatuses.contains(link.authorisationStatus.toUpperCase) =>
-        Some(link)
-      case _ => None
-    } recover NotFound[PropertyLink]
 }

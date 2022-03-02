@@ -49,9 +49,4 @@ class StubBackendConnector extends BackendConnector(StubHttp, servicesConfig) {
   override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =
     Future.successful(stubbedPerson)
 
-  override protected def getAuthorisation(
-        authorisationId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[PropertyLink]] =
-    Future.successful {
-      stubbedLinks.find(_.authorisationId == authorisationId)
-    }
 }
