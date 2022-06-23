@@ -25,7 +25,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.await
-import reactivemongo.api.DB
+import uk.gov.hmrc.mongo.MongoComponent
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,11 +34,9 @@ class AccountsMongoCacheSpec extends AnyWordSpec with Matchers with ScalaFutures
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(5, Millis))
 
-  val db: DB = app.injector.instanceOf[DB]
+  val mongoComponent: MongoComponent = app.injector.instanceOf[MongoComponent]
 
-  private val accountsMongoCache = new AccountsMongoCache(db) {
-    override def indexes = Seq.empty
-  }
+  private val accountsMongoCache = new AccountsMongoCache(mongoComponent)
 
   protected def appBuilder: GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
