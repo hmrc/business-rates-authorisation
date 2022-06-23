@@ -34,9 +34,9 @@ class AccountsMongoCacheSpec extends AnyWordSpec with Matchers with ScalaFutures
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(5, Millis))
 
-  val db: MongoComponent = app.injector.instanceOf[MongoComponent]
+  val mongoComponent: MongoComponent = app.injector.instanceOf[MongoComponent]
 
-  private val accountsMongoCache = new AccountsMongoCache(db)
+  private val accountsMongoCache = new AccountsMongoCache(mongoComponent)
 
   protected def appBuilder: GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
