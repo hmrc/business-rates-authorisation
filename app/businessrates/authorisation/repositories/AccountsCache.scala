@@ -16,15 +16,20 @@
 
 package businessrates.authorisation.repositories
 
-import javax.inject.Inject
+import java.time.LocalDateTime
 
+import javax.inject.Inject
 import businessrates.authorisation.models.Accounts
 import com.google.inject.ImplementedBy
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import org.mongodb.scala.model.Filters._
+
+import scala.concurrent.duration.SECONDS
 import play.api.libs.json.Json
-import reactivemongo.api.DB
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.{BSONDateTime, BSONDocument}
-import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[AccountsMongoCache])
@@ -34,39 +39,34 @@ trait AccountsCache {
   def drop(sessionId: String): Future[Unit]
 }
 
-class AccountsMongoCache @Inject()(db: DB)(implicit ec: ExecutionContext)
-    extends ReactiveRepository[Record, String]("accountsCache", () => db, Record.mongoFormat, implicitly)
-    with AccountsCache {
-
-  override def indexes: Seq[Index] =
-    Seq(
-      Index(
-        key = Seq("createdAt" -> IndexType.Ascending),
-        name = Some("ttl"),
-        options = BSONDocument("expireAfterSeconds" -> 900)))
+class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[Record](
+      mongoComponent = db,
+      collectionName = "accountsCache",
+      domainFormat = Record.mongoFormat,
+      indexes = Seq(IndexModel(ascending("createdAt"), IndexOptions().name("ttl").expireAfter(900L, SECONDS)))
+    ) with AccountsCache {
 
   override def cache(sessionId: String, accounts: Accounts): Future[Unit] =
-    insert(Record(sessionId, accounts)) map { _ =>
+    collection.insertOne(Record(sessionId, accounts)).toFuture().map { _ =>
       ()
     }
 
   override def get(sessionId: String): Future[Option[Accounts]] =
-    findById(sessionId) map { _.map(_.data) }
+    collection.find(equal("_id", sessionId)).map(_.data).toSingle().toFutureOption()
 
   override def drop(sessionId: String): Future[Unit] =
-    removeById(sessionId) map { _ =>
+    collection.findOneAndDelete(equal("_id", sessionId)).toFuture().map { _ =>
       ()
     }
+
 }
 
-private[repositories] case class Record(
-      _id: String,
-      data: Accounts,
-      createdAt: BSONDateTime = BSONDateTime(System.currentTimeMillis))
+private[repositories] case class Record(_id: String, data: Accounts, createdAt: LocalDateTime = LocalDateTime.now())
 
 private[repositories] object Record {
 
-  private implicit val dateFormat = reactivemongo.play.json.BSONFormats.BSONDateTimeFormat
+  private implicit val dateFormat = uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
   val mongoFormat = Json.format[Record]
 }

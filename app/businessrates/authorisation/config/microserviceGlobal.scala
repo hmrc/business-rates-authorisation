@@ -20,8 +20,7 @@ import businessrates.authorisation.connectors.{BackendConnector, OrganisationAcc
 import businessrates.authorisation.controllers.{VoaIds, WithIds}
 import com.google.inject.{AbstractModule, Inject, Provider}
 import play.api.{Configuration, Environment}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
+import uk.gov.hmrc.mongo.MongoComponent
 
 // keep the two unused parameters, as that's the constructor Guice expects to find
 class GuiceModule(
@@ -33,10 +32,9 @@ class GuiceModule(
     bind(classOf[OrganisationAccounts]).to(classOf[BackendConnector])
     bind(classOf[PersonAccounts]).to(classOf[BackendConnector])
     bind(classOf[WithIds]).to(classOf[VoaIds])
-    bind(classOf[DB]).toProvider(classOf[MongoProvider]).asEagerSingleton()
   }
 }
 
-class MongoProvider @Inject()(reactiveMongoComponent: ReactiveMongoComponent) extends Provider[DB] {
-  override def get(): DB = reactiveMongoComponent.mongoConnector.db()
+class MongoProvider @Inject()(mongoComponent: MongoComponent) extends Provider[MongoComponent] {
+  override def get(): MongoComponent = mongoComponent
 }
