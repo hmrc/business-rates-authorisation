@@ -18,7 +18,7 @@ package businessrates.authorisation.config
 
 import businessrates.authorisation.connectors.{BackendConnector, OrganisationAccounts, PersonAccounts}
 import businessrates.authorisation.controllers.{VoaIds, WithIds}
-import com.google.inject.{AbstractModule, Inject, Provider}
+import com.google.inject.AbstractModule
 import play.api.{Configuration, Environment}
 
 // keep the two unused parameters, as that's the constructor Guice expects to find

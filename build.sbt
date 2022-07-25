@@ -65,7 +65,7 @@ lazy val compileDependencies = Seq(
   ws,
   "uk.gov.hmrc"       %% "bootstrap-backend-play-28"    % "5.11.0",
   "org.typelevel"     %% "cats-core"                    % "1.6.1",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"           % "0.66.0"
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"           % "0.68.0"
 )
 
 lazy val testDependencies = Seq(
