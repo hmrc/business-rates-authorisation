@@ -19,7 +19,7 @@ package businessrates.authorisation.connectors
 import businessrates.authorisation.ArbitraryDataGeneration
 import businessrates.authorisation.models._
 import businessrates.authorisation.utils.TestConfiguration
-import org.mockito.ArgumentMatchers.{eq => isEqual, _}
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers

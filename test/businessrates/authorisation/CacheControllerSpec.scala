@@ -25,8 +25,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers.stubControllerComponents
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.http.HeaderNames
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

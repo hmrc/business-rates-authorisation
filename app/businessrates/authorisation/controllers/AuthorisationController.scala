@@ -19,7 +19,7 @@ package businessrates.authorisation.controllers
 import businessrates.authorisation.services.AccountsService
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,5 +38,4 @@ class AuthorisationController @Inject()(
       Future successful Ok(toJson(accounts))
     }
   }
-
 }

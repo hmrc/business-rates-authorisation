@@ -16,7 +16,7 @@
 
 package businessrates.authorisation.utils
 
-import play.api.{Environment, Mode}
+import play.api.Environment
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 trait TestConfiguration {
