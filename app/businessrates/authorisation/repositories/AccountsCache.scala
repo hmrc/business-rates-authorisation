@@ -66,7 +66,5 @@ private[repositories] case class Record(_id: String, data: Accounts, createdAt: 
 
 private[repositories] object Record {
 
-  private implicit val dateFormat = uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
-
   val mongoFormat = Json.format[Record]
 }

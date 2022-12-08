@@ -21,6 +21,7 @@ import com.google.inject.Inject
 import play.api.mvc.Results.EmptyContent
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -29,7 +30,7 @@ class CacheController @Inject()(cache: AccountsCache, controllerComponents: Cont
     extends BackendController(controllerComponents) {
 
   def clearCache: Action[AnyContent] = Action.async { implicit request =>
-    val header = uk.gov.hmrc.play.HeaderCarrierConverter.fromHeadersAndSession(request.headers)
+    val header = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     header.sessionId.fold(Future.successful(Ok(EmptyContent()))) { sid =>
       cache.drop(sid.value) map { _ =>
         Ok(EmptyContent())
