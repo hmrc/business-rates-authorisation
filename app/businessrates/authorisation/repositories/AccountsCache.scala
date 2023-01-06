@@ -18,7 +18,7 @@ package businessrates.authorisation.repositories
 
 import java.time.LocalDateTime
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import businessrates.authorisation.models.Accounts
 import com.google.inject.ImplementedBy
 import org.mongodb.scala.model.Indexes.ascending
@@ -39,6 +39,7 @@ trait AccountsCache {
   def drop(sessionId: String): Future[Unit]
 }
 
+@Singleton
 class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[Record](
       mongoComponent = db,
