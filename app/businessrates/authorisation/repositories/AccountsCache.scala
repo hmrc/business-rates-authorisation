@@ -47,8 +47,7 @@ class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionCon
       domainFormat = Record.mongoFormat,
       indexes = Seq(IndexModel(ascending("createdAt"),
         IndexOptions().name("ttl")
-          .unique(false).expireAfter(900L, SECONDS))),
-      replaceIndexes = true
+          .unique(false).expireAfter(900L, SECONDS)))
     ) with AccountsCache {
 
   override def cache(sessionId: String, accounts: Accounts): Future[Unit] =
