@@ -65,10 +65,10 @@ class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionCon
 
 }
 
-private[repositories] case class Record(_id: String, data: Accounts, createdAt: Instant = Instant.now())
+private[repositories] case class Record(_id: String, data: Accounts, createdAt: LocalDateTime = LocalDateTime.now())
 
 private[repositories] object Record {
 
-  private implicit val dateFormat = uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
+  private implicit val dateFormat = uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.localDateTimeFormat
   val mongoFormat = Json.format[Record]
 }
