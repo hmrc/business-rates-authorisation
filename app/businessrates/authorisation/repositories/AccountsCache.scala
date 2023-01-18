@@ -16,19 +16,18 @@
 
 package businessrates.authorisation.repositories
 
-import java.time.{Instant, LocalDateTime}
+import java.time.LocalDateTime
 import javax.inject.{Inject, Singleton}
 import businessrates.authorisation.models.Accounts
 import com.google.inject.ImplementedBy
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import org.mongodb.scala.model.Filters._
-
 import scala.concurrent.duration.SECONDS
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Json
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.localDateTimeFormat
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -73,6 +72,6 @@ private[repositories] case class Record(_id: String, data: Accounts, createdAt: 
 
 private[repositories] object Record {
 
-  private implicit val dateFormat = uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.localDateTimeFormat
+  private implicit val dateFormat = localDateTimeFormat
   val mongoFormat = Json.format[Record]
 }
