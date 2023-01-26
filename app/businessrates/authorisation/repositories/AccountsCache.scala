@@ -16,19 +16,18 @@
 
 package businessrates.authorisation.repositories
 
-import java.time.LocalDateTime
-import javax.inject.{Inject, Singleton}
-import businessrates.authorisation.models.Accounts
+import businessrates.authorisation.models.{Accounts, MongoLocalDateTimeFormat}
 import com.google.inject.ImplementedBy
+import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import org.mongodb.scala.model.Filters._
-import scala.concurrent.duration.SECONDS
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.localDateTimeFormat
 
+import java.time.LocalDateTime
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.duration.SECONDS
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[AccountsMongoCache])
@@ -43,7 +42,7 @@ class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionCon
     extends PlayMongoRepository[Record](
       mongoComponent = db,
       collectionName = "accountsCache",
-      domainFormat = Record.mongoFormat,
+      domainFormat = Record.mongoFormats,
       indexes = Seq(
         IndexModel(
           ascending("createdAt"),
@@ -71,7 +70,6 @@ class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionCon
 private[repositories] case class Record(_id: String, data: Accounts, createdAt: LocalDateTime = LocalDateTime.now())
 
 private[repositories] object Record {
-
-  private implicit val dateFormat = localDateTimeFormat
-  val mongoFormat = Json.format[Record]
+  implicit val dateFormat = MongoLocalDateTimeFormat.localDateTimeFormat
+  implicit val mongoFormats: OFormat[Record] = Json.format[Record]
 }
