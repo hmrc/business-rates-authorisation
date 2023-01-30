@@ -16,8 +16,10 @@
 
 package businessrates.authorisation.services
 
-import businessrates.authorisation.repositories.{AccountsCache, AccountsMongoCache}
+import businessrates.authorisation.models.{Accounts, Organisation, Person, PersonDetails}
+import businessrates.authorisation.repositories.{AccountsMongoCache, Record}
 import businessrates.authorisation.services.jobHandler.AccountsCacheJobHandler
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
@@ -27,6 +29,7 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.{await, defaultAwaitTimeout, running}
 
+import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -34,12 +37,15 @@ class AccountsCacheJobHandlerSpec extends AnyWordSpec with Matchers with Mockito
 
   "AccountsCacheJobHandler process job" should {
     "run updateStringCreatedAtTimestamp" in new Setup {
-      when(mockAccountsCache.updateStringCreatedAtTimestamp).thenReturn(Future.successful(20L))
+      when(mockAccountsCache.getRecordsWithIncorrectTimestamp)
+        .thenReturn(Future.successful(Seq(Record("1", accounts, LocalDateTime.now))))
+      when(mockAccountsCache.updateCreatedAtTimestampById(any())).thenReturn(Future.successful(1L))
       running(app) {
 
         await(handler.processJob())
-
-        verify(mockAccountsCache).updateStringCreatedAtTimestamp
+        verify(mockAccountsCache).getRecordsWithIncorrectTimestamp
+        await(mockAccountsCache.getRecordsWithIncorrectTimestamp)
+        verify(mockAccountsCache).updateCreatedAtTimestampById(any())
       }
     }
   }
@@ -59,5 +65,22 @@ class AccountsCacheJobHandlerSpec extends AnyWordSpec with Matchers with Mockito
     val mockAccountsCache: AccountsMongoCache = mock[AccountsMongoCache]
     val handler = new AccountsCacheJobHandler(mockAccountsCache)
 
+    private val addressId = 1234
+    private val organisationId = 1234
+    private val individualId = 5678
+    private val agentCode = 546345L
+    private val isAgent = false
+    private val personDetails = PersonDetails("FirstName", "LastName", "email@email.com", "0123456789", None, addressId)
+    private val person = Person("govGatewayId", "trustId", organisationId, individualId, personDetails)
+    private val organisation = Organisation(
+      organisationId,
+      "groupId",
+      "companyName",
+      addressId,
+      "email@test.com",
+      "0213456788",
+      isAgent,
+      Some(agentCode).filter(_ => isAgent))
+    val accounts = Accounts(organisationId, 57654, organisation, person)
   }
 }

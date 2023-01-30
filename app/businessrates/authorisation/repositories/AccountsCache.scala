@@ -19,7 +19,6 @@ package businessrates.authorisation.repositories
 import businessrates.authorisation.models.{Accounts, MongoLocalDateTimeFormat}
 import com.google.inject.ImplementedBy
 import org.bson.BsonType
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.Updates._
@@ -27,6 +26,7 @@ import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+
 import java.time.LocalDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.SECONDS
@@ -35,9 +35,14 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[AccountsMongoCache])
 trait AccountsCache {
   def cache(sessionId: String, accounts: Accounts): Future[Unit]
+
   def get(sessionId: String): Future[Option[Accounts]]
+
   def drop(sessionId: String): Future[Unit]
-  def updateStringCreatedAtTimestamp: Future[Long]
+
+  def updateCreatedAtTimestampById(ids: Seq[Record]): Future[Long]
+
+  def getRecordsWithIncorrectTimestamp: Future[Seq[Record]]
 }
 
 @Singleton
@@ -67,16 +72,16 @@ class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionCon
     collection.findOneAndDelete(equal("_id", sessionId)).toFuture().map { _ =>
       ()
     }
-  override def updateStringCreatedAtTimestamp: Future[Long] = {
-    val createdAtStringQuery: Bson = `type`("createdAt", BsonType.STRING)
+  override def updateCreatedAtTimestampById(record: Seq[Record]): Future[Long] =
     collection
-      .updateMany(filter = createdAtStringQuery, update = set("createdAt", LocalDateTime.now()))
+      .updateMany(filter = in("_id", record.map(_._id): _*), update = set("createdAt", LocalDateTime.now()))
       .toFuture()
       .map(_.getModifiedCount)
-  }
+  override def getRecordsWithIncorrectTimestamp: Future[Seq[Record]] =
+    collection.find(`type`("createdAt", BsonType.STRING)).limit(10000).toFuture()
 }
 
-private[repositories] case class Record(_id: String, data: Accounts, createdAt: LocalDateTime = LocalDateTime.now())
+case class Record(_id: String, data: Accounts, createdAt: LocalDateTime = LocalDateTime.now())
 
 object Record {
   implicit val dateFormat = MongoLocalDateTimeFormat.localDateTimeFormat

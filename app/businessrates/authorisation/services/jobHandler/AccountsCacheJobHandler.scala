@@ -28,7 +28,8 @@ class AccountsCacheJobHandler @Inject()(accountsCache: AccountsMongoCache)(impli
 
   def processJob(): Future[Unit] =
     for {
-      updatedCreatedAtTimestamp <- accountsCache.updateStringCreatedAtTimestamp
+      recordsWithIncorrectTimestamp <- accountsCache.getRecordsWithIncorrectTimestamp
+      updatedCreatedAtTimestamp     <- accountsCache.updateCreatedAtTimestampById(recordsWithIncorrectTimestamp)
     } yield {
       if (updatedCreatedAtTimestamp > 0) {
         log.info(s"Successful updated: $updatedCreatedAtTimestamp createdAt Strings to use current LocalDateTime")
