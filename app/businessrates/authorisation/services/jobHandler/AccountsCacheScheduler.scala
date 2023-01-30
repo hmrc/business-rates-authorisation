@@ -30,7 +30,7 @@ class AccountsCacheScheduler @Inject()(
       actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
 
   val log: LoggerLike = Logger(this.getClass)
-  private lazy val housekeepingIntervalMinutes: Double = configuration.get[Double]("housekeepingIntervalMinutes")
+  private lazy val housekeepingIntervalMinutes: Int = configuration.get[Int]("housekeepingIntervalMinutes")
 
   actorSystem.scheduler.scheduleWithFixedDelay(initialDelay = 0 seconds, delay = housekeepingIntervalMinutes minutes) {
     () =>
