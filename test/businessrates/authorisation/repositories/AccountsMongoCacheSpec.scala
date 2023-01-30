@@ -18,15 +18,18 @@ package businessrates.authorisation.repositories
 
 import akka.util.Timeout
 import businessrates.authorisation.models.{Accounts, Organisation, Person, PersonDetails}
+import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.await
 import uk.gov.hmrc.mongo.MongoComponent
 
+import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccountsMongoCacheSpec extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
@@ -63,7 +66,6 @@ class AccountsMongoCacheSpec extends AnyWordSpec with Matchers with ScalaFutures
   "AccountsMongoCacheSpec" should {
 
     "cache an Account, retrieve and drop the Accounts record" in {
-
       val sessionId = "session-id-1"
       await(accountsMongoCache.cache(sessionId, accounts))
 
@@ -76,9 +78,6 @@ class AccountsMongoCacheSpec extends AnyWordSpec with Matchers with ScalaFutures
 
       val maybeDroppedAccounts = await(accountsMongoCache.get(sessionId))
       maybeDroppedAccounts.isDefined shouldBe false
-
     }
-
   }
-
 }
