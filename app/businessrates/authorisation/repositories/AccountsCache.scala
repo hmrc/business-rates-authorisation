@@ -19,13 +19,14 @@ package businessrates.authorisation.repositories
 import businessrates.authorisation.models.{Accounts, MongoLocalDateTimeFormat}
 import com.google.inject.ImplementedBy
 import org.bson.BsonType
+import org.mongodb.scala.bson.BsonValue
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import play.api.libs.json.{Json, OFormat}
+import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections}
+import play.api.libs.json.{Json, OFormat, Reads, __}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import java.time.LocalDateTime
 import javax.inject.{Inject, Singleton}
@@ -40,9 +41,9 @@ trait AccountsCache {
 
   def drop(sessionId: String): Future[Unit]
 
-  def updateCreatedAtTimestampById(ids: Seq[Record]): Future[Long]
+  def updateCreatedAtTimestampById(ids: Seq[String]): Future[Long]
 
-  def getRecordsWithIncorrectTimestamp: Future[Seq[Record]]
+  def getRecordsWithIncorrectTimestamp: Future[Seq[String]]
 }
 
 @Singleton
@@ -72,13 +73,20 @@ class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionCon
     collection.findOneAndDelete(equal("_id", sessionId)).toFuture().map { _ =>
       ()
     }
-  override def updateCreatedAtTimestampById(record: Seq[Record]): Future[Long] =
+  override def updateCreatedAtTimestampById(ids: Seq[String]): Future[Long] =
     collection
-      .updateMany(filter = in("_id", record.map(_._id): _*), update = set("createdAt", LocalDateTime.now()))
+      .updateMany(filter = in("_id", ids: _*), update = set("createdAt", LocalDateTime.now()))
       .toFuture()
       .map(_.getModifiedCount)
-  override def getRecordsWithIncorrectTimestamp: Future[Seq[Record]] =
-    collection.find(`type`("createdAt", BsonType.STRING)).limit(10000).toFuture()
+  override def getRecordsWithIncorrectTimestamp: Future[Seq[String]] = {
+    val longReads: Reads[String] = (__ \ "_id").read[String]
+    collection
+      .find[BsonValue](`type`("createdAt", BsonType.STRING))
+      .projection(Projections.exclude("createdAt", "data"))
+      .limit(10000)
+      .toFuture()
+      .map(_.map(bson => Codecs.fromBson[String](bson)(longReads)))
+  }
 }
 
 case class Record(_id: String, data: Accounts, createdAt: LocalDateTime = LocalDateTime.now())

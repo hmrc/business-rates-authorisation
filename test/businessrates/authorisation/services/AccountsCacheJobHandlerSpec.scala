@@ -38,7 +38,7 @@ class AccountsCacheJobHandlerSpec extends AnyWordSpec with Matchers with Mockito
   "AccountsCacheJobHandler process job" should {
     "run updateStringCreatedAtTimestamp" in new Setup {
       when(mockAccountsCache.getRecordsWithIncorrectTimestamp)
-        .thenReturn(Future.successful(Seq(Record("1", accounts, LocalDateTime.now))))
+        .thenReturn(Future.successful(Seq("id")))
       when(mockAccountsCache.updateCreatedAtTimestampById(any())).thenReturn(Future.successful(1L))
       running(app) {
 
