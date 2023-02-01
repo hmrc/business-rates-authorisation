@@ -81,7 +81,7 @@ class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionCon
   override def getRecordsWithIncorrectTimestamp: Future[Seq[String]] = {
     val longReads: Reads[String] = (__ \ "_id").read[String]
     collection
-      .find[BsonValue](`type`("createdAt", BsonType.STRING))
+      .find[BsonValue](not(`type`("createdAt", BsonType.DATE_TIME)))
       .projection(Projections.exclude("createdAt", "data"))
       .limit(10000)
       .toFuture()

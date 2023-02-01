@@ -17,7 +17,7 @@
 package businessrates.authorisation.services
 
 import businessrates.authorisation.models.{Accounts, Organisation, Person, PersonDetails}
-import businessrates.authorisation.repositories.{AccountsMongoCache, Record}
+import businessrates.authorisation.repositories.AccountsMongoCache
 import businessrates.authorisation.services.jobHandler.AccountsCacheJobHandler
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
@@ -29,7 +29,6 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.{await, defaultAwaitTimeout, running}
 
-import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
