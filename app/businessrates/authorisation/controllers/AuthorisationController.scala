@@ -22,20 +22,19 @@ import play.api.mvc._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class AuthorisationController @Inject()(
       val accounts: AccountsService,
       val ids: WithIds,
       controllerComponents: ControllerComponents
-) extends BackendController(controllerComponents) {
+)(implicit executionContext: ExecutionContext)
+    extends BackendController(controllerComponents) {
 
   import ids._
 
   def authenticate: Action[AnyContent] = Action.async { implicit request =>
-    withIds { accounts =>
-      Future successful Ok(toJson(accounts))
-    }
+    withIds(accounts => Future.successful(Ok(toJson(accounts))))
   }
+
 }
