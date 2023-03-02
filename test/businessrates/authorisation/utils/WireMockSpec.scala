@@ -29,7 +29,7 @@ trait WireMockSpec extends AnyWordSpec with BeforeAndAfterAll with BeforeAndAfte
   protected lazy val mockServerUrl = s"http://localhost:$wiremockPort"
 
   override def beforeAll(): Unit = {
-    super.beforeAll
+    super.beforeAll()
     wireMockServer.start()
     WireMock.configureFor("localhost", wireMockServer.port)
   }

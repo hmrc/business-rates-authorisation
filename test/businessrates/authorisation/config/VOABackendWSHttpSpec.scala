@@ -101,12 +101,13 @@ class VOABackendWSHttpSpec extends AnyWordSpec with WireMockSpec with MockitoSug
   trait MockWsRequest extends WSRequest {
     val status: Int
 
-    override def buildRequest[A](url: String, headers: Seq[(String, String)]): ws.WSRequest = {
+    override def buildRequest(url: String, headers: Seq[(String, String)]): ws.WSRequest = {
       val mockRequest = mock[play.api.libs.ws.WSRequest]
       val mockResponse = mock[WSResponse]
 
       when(mockRequest.withMethod(any())).thenReturn(mockRequest)
       when(mockRequest.execute()).thenReturn(Future.successful(mockResponse))
+      when(mockResponse.headers).thenReturn(Map.empty)
       when(mockResponse.status).thenReturn(status)
 
       mockRequest
