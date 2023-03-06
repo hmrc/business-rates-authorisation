@@ -46,13 +46,13 @@ class AuthenticationSpec extends ControllerSpec with MockitoSugar {
   val testController = new AuthorisationController(
     mockAccountsService,
     new VoaIds(mockAuthConnector, mockAccountsService),
-    stubControllerComponents())
+    stubControllerComponents())(scala.concurrent.ExecutionContext.global)
 
   "testController" should {
     behave like anAuthenticateEndpoint(testController)
   }
 
-  def anAuthenticateEndpoint(testController: AuthorisationController) =
+  def anAuthenticateEndpoint(testController: AuthorisationController): Unit =
     "Calling the authentication endpoint" when {
       "the user is logged in to Government Gateway with an agent account" should {
         "return a 401 status and the INVALID_ACCOUNT_TYPE error code" in {
