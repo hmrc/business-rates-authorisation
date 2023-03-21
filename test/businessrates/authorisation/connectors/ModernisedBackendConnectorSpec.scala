@@ -33,7 +33,7 @@ import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class BackendConnectorSpec
+class ModernisedBackendConnectorSpec
     extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach with FutureAwaits
     with DefaultAwaitTimeout with ArbitraryDataGeneration with TestConfiguration {
 
@@ -398,8 +398,6 @@ class BackendConnectorSpec
     authorisationStatus = "APPROVED"
   )
 
-  private val declinedPropertyLink = validPropertyLink.copy(authorisationStatus = "DECLINED")
-
   private val validOrg = Organisation(
     id = 1000000003,
     groupId = "stub-group-3",
@@ -460,7 +458,7 @@ class BackendConnectorSpec
       any()))
     .thenReturn(Future.successful(Some(validPerson)))
 
-  private val connector = new BackendConnector(mockWsHttp, servicesConfig)
+  private val connector = new ModernisedBackendConnector(mockWsHttp, servicesConfig)
 
   implicit val organisationApiFormat = Organisation.apiFormat
   implicit val personApiFormat = Person.apiFormat

@@ -16,52 +16,51 @@
 
 package businessrates.authorisation.services
 
-import javax.inject.Inject
-
-import businessrates.authorisation.connectors.{OrganisationAccounts, PersonAccounts}
+import businessrates.authorisation.config.FeatureSwitch
+import businessrates.authorisation.connectors.{BackendConnector, BstBackendConnector, ModernisedBackendConnector}
 import businessrates.authorisation.models.Accounts
 import businessrates.authorisation.repositories.AccountsCache
 import cats.data.OptionT
 import cats.implicits._
-
-import scala.concurrent.{ExecutionContext, Future}
+import play.api.Logging
 import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
+
 class AccountsService @Inject()(
-      groupAccounts: OrganisationAccounts,
-      individualAccounts: PersonAccounts,
-      cache: AccountsCache)(implicit ec: ExecutionContext) {
+      modernisedConnector: ModernisedBackendConnector,
+      bstConnector: BstBackendConnector,
+      accountsCache: AccountsCache,
+      featureSwitch: FeatureSwitch)(implicit ec: ExecutionContext)
+    extends Logging {
+
+  lazy val connector: BackendConnector =
+    if (featureSwitch.isBstDownstreamEnabled) bstConnector else modernisedConnector
 
   def get(externalId: String, groupId: String)(implicit hc: HeaderCarrier): Future[Option[Accounts]] =
-    hc.sessionId.fold(getFromApi(externalId, groupId)) { sid =>
-      cache.get(sid.value) flatMap {
-        case Some(accounts) => Future.successful(Some(accounts))
-        case _              => getFromApiAndCache(sid.value, externalId, groupId)
-      }
+    cachedAccounts {
+      (for {
+        organisation <- OptionT(connector.getOrganisationByGGId(groupId))
+        person       <- OptionT(connector.getPerson(externalId))
+      } yield {
+        Accounts(
+          organisation.id,
+          person.individualId,
+          organisation.copy(agentCode = organisation.agentCode.filter(_ => organisation.isAgent)),
+          person)
+      }).value
     }
 
-  private def getFromApi(externalId: String, groupId: String)(implicit hc: HeaderCarrier): Future[Option[Accounts]] = {
-    val eventualPerson = OptionT(individualAccounts.getPerson(externalId))
-
-    (for {
-      organisation <- OptionT(groupAccounts.getOrganisationByGGId(groupId))
-      person       <- eventualPerson
-    } yield {
-      Accounts(
-        organisation.id,
-        person.individualId,
-        organisation.copy(agentCode = organisation.agentCode.filter(_ => organisation.isAgent)),
-        person)
-    }).value
-  }
-
-  private def getFromApiAndCache(sessionId: String, externalId: String, groupId: String)(
-        implicit hc: HeaderCarrier): Future[Option[Accounts]] =
-    getFromApi(externalId, groupId) flatMap {
-      case Some(accs) =>
-        cache.cache(sessionId, accs) map { _ =>
-          Some(accs)
-        }
-      case None => Future.successful(None)
+  private def cachedAccounts(block: => Future[Option[Accounts]])(implicit hc: HeaderCarrier): Future[Option[Accounts]] =
+    hc.sessionId.fold(block) { sessionId =>
+      accountsCache.get(sessionId.value).flatMap {
+        case None =>
+          block.flatTap {
+            case Some(accs) => accountsCache.cache(sessionId.value, accs)
+            case None       => Future.successful(())
+          }
+        case accs => Future.successful(accs)
+      }
     }
 }

@@ -16,7 +16,6 @@
 
 package businessrates.authorisation.config
 
-import businessrates.authorisation.connectors.{BackendConnector, OrganisationAccounts, PersonAccounts}
 import businessrates.authorisation.controllers.{VoaIds, WithIds}
 import com.google.inject.AbstractModule
 import play.api.{Configuration, Environment}
@@ -27,9 +26,6 @@ class GuiceModule(
       configuration: Configuration
 ) extends AbstractModule {
 
-  override def configure(): Unit = {
-    bind(classOf[OrganisationAccounts]).to(classOf[BackendConnector])
-    bind(classOf[PersonAccounts]).to(classOf[BackendConnector])
+  override def configure(): Unit =
     bind(classOf[WithIds]).to(classOf[VoaIds])
-  }
 }

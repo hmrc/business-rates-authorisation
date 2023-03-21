@@ -16,14 +16,14 @@
 
 package businessrates.authorisation.utils
 
-import businessrates.authorisation.connectors.BackendConnector
+import businessrates.authorisation.connectors.ModernisedBackendConnector
 import businessrates.authorisation.models.{Organisation, Person, PropertyLink}
 
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 import TestConfiguration.servicesConfig
 
-class StubBackendConnector extends BackendConnector(StubHttp, servicesConfig) {
+class StubBackendConnector extends ModernisedBackendConnector(StubHttp, servicesConfig) {
   private var stubbedOrganisation: Option[Organisation] = None
   private var stubbedPerson: Option[Person] = None
   private var stubbedLinks: Seq[PropertyLink] = Nil
