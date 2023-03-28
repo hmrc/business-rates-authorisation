@@ -20,9 +20,7 @@ import akka.actor.ActorSystem
 import businessrates.authorisation.metrics.HasMetrics
 import com.kenshoo.play.metrics.Metrics
 import com.typesafe.config.Config
-import javax.inject.Inject
 import play.api.Configuration
-import play.api.libs.json.Writes
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.hooks._
@@ -30,6 +28,7 @@ import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.ws._
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class VOABackendWSHttp @Inject()(
@@ -47,32 +46,9 @@ class VOABackendWSHttp @Inject()(
 
   override def appName: String = "business-rates-authorisation"
 
-  def buildHeaderCarrier(hc: HeaderCarrier): HeaderCarrier =
-    HeaderCarrier(requestId = hc.requestId, sessionId = hc.sessionId)
-      .withExtraHeaders(hc.extraHeaders: _*)
-
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
-        implicit rds: Writes[A],
-        ec: ExecutionContext): Future[HttpResponse] =
-    super.doPost(url, body, headers)(rds, ec)
-
-  override def doDelete(url: String, headers: Seq[(String, String)])(
-        implicit
-        ec: ExecutionContext): Future[HttpResponse] =
-    super.doDelete(url, headers)(ec)
-
   override def doGet(url: String, headers: Seq[(String, String)])(
         implicit
         ec: ExecutionContext): Future[HttpResponse] =
     super.doGet(url, headers)(ec)
 
-  override def doPut[A](url: String, body: A, headers: Seq[(String, String)])(
-        implicit rds: Writes[A],
-        ec: ExecutionContext): Future[HttpResponse] =
-    super.doPut(url, body, headers)(rds, ec)
-
-  override def doPatch[A](url: String, body: A, headers: Seq[(String, String)])(
-        implicit rds: Writes[A],
-        ec: ExecutionContext): Future[HttpResponse] =
-    super.doPatch(url, body, headers)(rds, ec)
 }

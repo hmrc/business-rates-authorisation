@@ -18,7 +18,7 @@ lazy val scoverageSettings = {
     ScoverageKeys.coverageExcludedPackages := "<empty>;.*Reverse.*;views.*;config.*;poc.view.*;" +
       "poc.config.*;.*(AuthService|BuildInfo|Routes).*;businessrates.authorisation.config.*;" +
       "businessrates.authorisation.models.*",
-    ScoverageKeys.coverageMinimum := 60,
+    ScoverageKeys.coverageMinimumStmtTotal := 81,
     ScoverageKeys.coverageFailOnMinimum := false,
     ScoverageKeys.coverageHighlighting := true
   )
@@ -54,26 +54,27 @@ lazy val microservice = Project(appName, file("."))
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) = tests.map { test =>
   Group(test.name, Seq(test), SubProcess(ForkOptions().withRunJVMOptions(Vector(s"-Dtest.name=${test.name}"))))
 }
+val bootstrapVersion = "7.15.0"
 
 lazy val compileDependencies = Seq(
   ws,
-  "uk.gov.hmrc"       %% "bootstrap-backend-play-28"    % "7.14.0",
+  "uk.gov.hmrc"       %% "bootstrap-backend-play-28"    % bootstrapVersion,
   "org.typelevel"     %% "cats-core"                    % "2.9.0",
   "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"           % "0.74.0"
 )
 
 lazy val testDependencies = Seq(
-  "org.scalatest"          %% "scalatest"          % "3.0.8"             % "test",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0"             % "test",
-  "org.pegdown"            % "pegdown"             % "1.6.0"             % "test",
-  "com.typesafe.play"      %% "play-test"          % PlayVersion.current % "test",
-  "org.mockito"            % "mockito-core"        % "3.4.6"             % "test",
+  "uk.gov.hmrc"            %% "bootstrap-test-play-28" % bootstrapVersion % "test, it",
+  "org.scalatest"          %% "scalatest"          % "3.0.8"             % "test,it",
+  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0"             % "test,it",
+  "org.pegdown"            % "pegdown"             % "1.6.0"             % "test,it",
+  "com.typesafe.play"      %% "play-test"          % PlayVersion.current % "test,it",
+  "org.mockito"            % "mockito-core"        % "3.4.6"             % "test,it",
   "org.scalatestplus"      %% "mockito-3-4"        % "3.2.9.0"           % "test,it",
-  "com.github.tomakehurst" % "wiremock-jre8"       % "2.23.2"            % "test",
-  "org.scalacheck"         %% "scalacheck"         % "1.14.0"            % "test",
+  "com.github.tomakehurst" % "wiremock-jre8"       % "2.23.2"            % "test,it",
+  "org.scalacheck"         %% "scalacheck"         % "1.14.0"            % "test,it",
   "com.vladsch.flexmark"   % "flexmark-all"        % "0.35.10"           % "test,it"
 )
-
 
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 addCommandAlias("precommit", ";scalafmt;test:scalafmt;coverage;test;coverageReport")

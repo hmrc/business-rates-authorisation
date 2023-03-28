@@ -18,11 +18,13 @@ package businessrates.authorisation.services
 
 import akka.util.Timeout
 import businessrates.authorisation.ArbitraryDataGeneration
-import businessrates.authorisation.connectors.{OrganisationAccounts, PersonAccounts}
+import businessrates.authorisation.config.FeatureSwitch
+import businessrates.authorisation.connectors.{BstBackendConnector, ModernisedBackendConnector}
 import businessrates.authorisation.models.{Accounts, Organisation, Person}
 import businessrates.authorisation.repositories.AccountsCache
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito._
+import org.mockito.verification.VerificationMode
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Span}
@@ -37,29 +39,44 @@ import scala.concurrent.{ExecutionContext, Future}
 class AccountsServiceSpec
     extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach with ArbitraryDataGeneration {
 
-  implicit val timeout: Timeout = Timeout(Span(250, Millis))
+  implicit val timeout: Timeout = Timeout(Span(2500, Millis))
+  implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
-  "Accounts service" when {
+  trait TestSetup {
+    val mockModernisedConnector: ModernisedBackendConnector = mock[ModernisedBackendConnector]
+    val mockBstConnector: BstBackendConnector = mock[BstBackendConnector]
+    val mockCache: AccountsCache = mock[AccountsCache]
+    val mockFeatureSwitch: FeatureSwitch = mock[FeatureSwitch]
+
+    val accountsService =
+      new AccountsService(mockModernisedConnector, mockBstConnector, mockCache, mockFeatureSwitch)
+
+    when(mockCache.get(anyString)).thenReturn(Future.successful(None))
+    when(mockCache.cache(anyString(), any[Accounts])).thenReturn(Future.successful(()))
+  }
+
+  "Accounts service with the BST Downstream enabled" when {
     "the request does not have a session id" should {
       val organisation: Organisation = randomOrganisation
       val person: Person = randomPerson
 
-      "get the account data from the API and not cache it" in {
+      "get the account data from the API and not cache it" in new TestSetup {
         val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
-        val expected = Accounts(organisation.id, person.individualId, organisation, person)
+        val expected: Accounts = Accounts(organisation.id, person.individualId, organisation, person)
 
-        when(mockOrganisations.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+        when(mockBstConnector.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
           .thenReturn(Future.successful(Some(organisation)))
-        when(mockPersons.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+        when(mockBstConnector.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext]))
           .thenReturn(Future.successful(Some(person)))
+        when(mockFeatureSwitch.isBstDownstreamEnabled).thenReturn(true)
 
-        val res = accountsService.get(externalId, groupId)(HeaderCarrier())
-        await(res) shouldBe Some(expected)
+        val res: Option[Accounts] = await(accountsService.get(externalId, groupId)(HeaderCarrier()))
+        res shouldBe Some(expected)
 
-        verify(mockOrganisations, once).getOrganisationByGGId(matching(groupId))(
+        verify(mockBstConnector, once).getOrganisationByGGId(matching(groupId))(
           any[HeaderCarrier],
           any[ExecutionContext])
-        verify(mockPersons, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
+        verify(mockBstConnector, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
         verify(mockCache, never).get(anyString())
         verify(mockCache, never).cache(anyString, matching(expected))
       }
@@ -70,81 +87,177 @@ class AccountsServiceSpec
       val hc = HeaderCarrier(sessionId = Some(SessionId(sid)))
 
       "the user does not have an account" should {
-        "not cache the result" in {
+        "not cache the result" in new TestSetup {
           val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
-          when(mockOrganisations.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
-            .thenReturn(Future.successful(None))
-          when(mockPersons.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext]))
-            .thenReturn(Future.successful(None))
 
-          val res = accountsService.get(externalId, groupId)(hc)
-          await(res) shouldBe None
+          when(mockBstConnector.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(None))
+          when(mockBstConnector.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(None))
+          when(mockFeatureSwitch.isBstDownstreamEnabled).thenReturn(true)
+
+          val res: Option[Accounts] = await(accountsService.get(externalId, groupId)(hc))
+          res shouldBe None
 
           verify(mockCache, once).get(sid)
-          verify(mockOrganisations, once).getOrganisationByGGId(matching(groupId))(
-            any[HeaderCarrier],
-            any[ExecutionContext])
-          verify(mockPersons, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockBstConnector).getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockBstConnector, never).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockCache, never).cache(anyString, any[Accounts])
         }
       }
 
       "the user has an account, and their account is not cached" should {
-        "get the account data from the API and cache it" in {
+        "get the account data from the API and cache it" in new TestSetup {
           val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
           val (person, organisation): (Person, Organisation) = (randomPerson, randomOrganisation)
-          val expected = Accounts(organisation.id, person.individualId, organisation, person)
+          val expected: Accounts = Accounts(organisation.id, person.individualId, organisation, person)
 
-          when(mockOrganisations.getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext]))
+          when(mockBstConnector.getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext]))
             .thenReturn(Future.successful(Some(organisation)))
-          when(mockPersons.getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext]))
+          when(mockBstConnector.getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext]))
             .thenReturn(Future.successful(Some(person)))
+          when(mockFeatureSwitch.isBstDownstreamEnabled).thenReturn(true)
 
-          val res = accountsService.get(externalId, groupId)(hc)
-          await(res) shouldBe Some(expected)
+          val res: Option[Accounts] = await(accountsService.get(externalId, groupId)(hc))
+          res shouldBe Some(expected)
 
           verify(mockCache, once).get(sid)
-          verify(mockOrganisations, once).getOrganisationByGGId(matching(groupId))(
+          verify(mockBstConnector, once).getOrganisationByGGId(matching(groupId))(
             any[HeaderCarrier],
             any[ExecutionContext])
-          verify(mockPersons, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockBstConnector, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockCache, once).cache(sid, expected)
         }
       }
 
       "the user's account data is cached" should {
-        "get the account data from the cache" in {
+        "get the account data from the cache" in new TestSetup {
           val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
           val (person, organisation): (Person, Organisation) = (randomPerson, randomOrganisation)
-          val expected = Accounts(organisation.id, person.individualId, organisation, person)
+          val expected: Accounts = Accounts(organisation.id, person.individualId, organisation, person)
 
           when(mockCache.get(sid)).thenReturn(Future.successful(Some(expected)))
 
-          val res = accountsService.get(externalId, groupId)(hc)
-          await(res) shouldBe Some(expected)
+          val res: Option[Accounts] = await(accountsService.get(externalId, groupId)(hc))
+          res shouldBe Some(expected)
 
           verify(mockCache, once).get(sid)
-          verify(mockOrganisations, never).getOrganisationByGGId(matching(groupId))(
+          verify(mockBstConnector, never).getOrganisationByGGId(matching(groupId))(
             any[HeaderCarrier],
             any[ExecutionContext])
-          verify(mockPersons, never).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockBstConnector, never).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockCache, never).cache(anyString, any[Accounts])
+        }
+      }
+    }
+
+  }
+
+  "Accounts service with the BST Downstream disabled" when {
+    "the request does not have a session id" should {
+      val organisation: Organisation = randomOrganisation
+      val person: Person = randomPerson
+
+      "get the account data from the API and not cache it" in new TestSetup {
+        val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
+        val expected: Accounts = Accounts(organisation.id, person.individualId, organisation, person)
+
+        when(mockModernisedConnector.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+          .thenReturn(Future.successful(Some(organisation)))
+        when(mockModernisedConnector.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+          .thenReturn(Future.successful(Some(person)))
+        when(mockFeatureSwitch.isBstDownstreamEnabled).thenReturn(false)
+
+        val res = await(accountsService.get(externalId, groupId)(HeaderCarrier()))
+        res shouldBe Some(expected)
+
+        verify(mockModernisedConnector, once).getOrganisationByGGId(matching(groupId))(
+          any[HeaderCarrier],
+          any[ExecutionContext])
+        verify(mockModernisedConnector, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
+        verify(mockCache, never).get(anyString())
+        verify(mockCache, never).cache(anyString, matching(expected))
+      }
+    }
+
+    "the request does have a session id" when {
+      val sid = UUID.randomUUID().toString
+      val hc = HeaderCarrier(sessionId = Some(SessionId(sid)))
+
+      "the user does not have an account" should {
+        "not cache the result" in new TestSetup {
+          val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
+
+          when(mockModernisedConnector.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(None))
+          when(mockModernisedConnector.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(None))
+          when(mockFeatureSwitch.isBstDownstreamEnabled).thenReturn(false)
+
+          val res: Option[Accounts] = await(accountsService.get(externalId, groupId)(hc))
+          res shouldBe None
+
+          verify(mockCache, once).get(sid)
+          verify(mockModernisedConnector).getOrganisationByGGId(matching(groupId))(
+            any[HeaderCarrier],
+            any[ExecutionContext])
+          verify(mockModernisedConnector, never).getPerson(matching(externalId))(
+            any[HeaderCarrier],
+            any[ExecutionContext])
+          verify(mockCache, never).cache(anyString, any[Accounts])
+        }
+      }
+
+      "the user has an account, and their account is not cached" should {
+        "get the account data from the API and cache it" in new TestSetup {
+          val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
+          val (person, organisation): (Person, Organisation) = (randomPerson, randomOrganisation)
+          val expected: Accounts = Accounts(organisation.id, person.individualId, organisation, person)
+
+          when(
+            mockModernisedConnector.getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(Some(organisation)))
+          when(mockModernisedConnector.getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext]))
+            .thenReturn(Future.successful(Some(person)))
+          when(mockFeatureSwitch.isBstDownstreamEnabled).thenReturn(false)
+
+          val res = await(accountsService.get(externalId, groupId)(hc))
+          res shouldBe Some(expected)
+
+          verify(mockCache, once).get(sid)
+          verify(mockModernisedConnector, once).getOrganisationByGGId(matching(groupId))(
+            any[HeaderCarrier],
+            any[ExecutionContext])
+          verify(mockModernisedConnector, once).getPerson(matching(externalId))(
+            any[HeaderCarrier],
+            any[ExecutionContext])
+          verify(mockCache, once).cache(sid, expected)
+        }
+      }
+
+      "the user's account data is cached" should {
+        "get the account data from the cache" in new TestSetup {
+          val (groupId, externalId): (String, String) = (randomShortString, randomShortString)
+          val (person, organisation): (Person, Organisation) = (randomPerson, randomOrganisation)
+          val expected: Accounts = Accounts(organisation.id, person.individualId, organisation, person)
+
+          when(mockCache.get(sid)).thenReturn(Future.successful(Some(expected)))
+
+          val res = await(accountsService.get(externalId, groupId)(hc))
+          res shouldBe Some(expected)
+
+          verify(mockCache, once).get(sid)
+          verify(mockModernisedConnector, never).getOrganisationByGGId(matching(groupId))(
+            any[HeaderCarrier],
+            any[ExecutionContext])
+          verify(mockModernisedConnector, never).getPerson(matching(externalId))(
+            any[HeaderCarrier],
+            any[ExecutionContext])
           verify(mockCache, never).cache(anyString, any[Accounts])
         }
       }
     }
   }
 
-  override protected def beforeEach(): Unit = {
-    reset(mockOrganisations, mockPersons, mockCache)
-    when(mockCache.get(anyString)).thenReturn(Future.successful(None))
-    when(mockCache.cache(anyString(), any[Accounts])).thenReturn(Future.successful(()))
-  }
-
-  lazy val accountsService =
-    new AccountsService(mockOrganisations, mockPersons, mockCache)(ExecutionContext.Implicits.global)
-  lazy val mockOrganisations = mock[OrganisationAccounts]
-  lazy val mockPersons = mock[PersonAccounts]
-  lazy val mockCache = mock[AccountsCache]
-
-  lazy val once = times(1)
+  lazy val once: VerificationMode = times(1)
 }

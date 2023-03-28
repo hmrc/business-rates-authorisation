@@ -17,10 +17,12 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.models._
-import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
+import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
+
+import scala.language.implicitConversions
 
 trait ArbitraryDataGeneration {
 
@@ -29,7 +31,7 @@ trait ArbitraryDataGeneration {
   def randomShortString: Gen[String] = Gen.listOfN(20, Gen.alphaNumChar).map(_.mkString)
   def randomNumericString: Gen[String] = Gen.listOfN(20, Gen.numChar).map(_.mkString)
   def randomPositiveLong: Gen[Long] = Gen.choose(0L, Long.MaxValue)
-  def randomInstant: Gen[Instant] = Gen.choose(0L, 32472144000000L /* 1/1/2999 */ ).map(Instant.ofEpochMilli(_))
+  def randomInstant: Gen[Instant] = Gen.choose(0L, 32472144000000L /* 1/1/2999 */ ).map(Instant.ofEpochMilli)
   def randomDate: Gen[ZonedDateTime] = randomInstant.map(ZonedDateTime.ofInstant(_, ZoneId.of("UTC")))
   def randomLocalDate: Gen[LocalDate] = randomDate.map(_.toLocalDate)
 

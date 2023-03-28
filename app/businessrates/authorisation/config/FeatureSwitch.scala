@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package businessrates.authorisation.connectors
+package businessrates.authorisation.config
 
-import businessrates.authorisation.models.Organisation
+import play.api.Configuration
 
-import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HeaderCarrier
+import javax.inject.Inject
 
-trait OrganisationAccounts {
-  def getOrganisationByGGId(
-        ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]]
-  def getOrganisationByOrgId(
-        orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]]
+class FeatureSwitch @Inject()(config: Configuration) {
+
+  private val prefix = "feature-switch"
+
+  def isBstDownstreamEnabled: Boolean = {
+    val key = s"$prefix.bstDownstream.enabled"
+    config.getOptional[Boolean](key).getOrElse(false)
+  }
 }
