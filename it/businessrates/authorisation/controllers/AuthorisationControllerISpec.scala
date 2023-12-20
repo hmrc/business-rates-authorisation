@@ -16,28 +16,28 @@ class AuthorisationControllerISpec extends BaseIntegrationSpec {
 
   val expectedResponseJson: JsObject = Json.obj(
     "organisationId" -> testOrgId,
-    "personId" -> testPersonId,
+    "personId"       -> testPersonId,
     "organisation" -> Json.obj(
-      "id" -> testOrgId,
-      "groupId" -> testGroupId,
+      "id"          -> testOrgId,
+      "groupId"     -> testGroupId,
       "companyName" -> "test org",
-      "addressId" -> 12,
-      "email" -> "test@test.com",
-      "phone" -> "0123456789",
-      "isAgent" -> true,
-      "agentCode" -> 123456
+      "addressId"   -> 12,
+      "email"       -> "test@test.com",
+      "phone"       -> "0123456789",
+      "isAgent"     -> true,
+      "agentCode"   -> 123456
     ),
     "person" -> Json.obj(
-      "externalId" -> testExternalId,
-      "trustId" -> "ivId",
+      "externalId"     -> testExternalId,
+      "trustId"        -> "ivId",
       "organisationId" -> testOrgId,
-      "individualId" -> testPersonId,
+      "individualId"   -> testPersonId,
       "details" -> Json.obj(
         "firstName" -> "Testy",
-        "lastName" -> "McTestface",
-        "email" -> "test@test.com",
-        "phone1" -> "0123456789",
-        "phone2" -> "0123456789",
+        "lastName"  -> "McTestface",
+        "email"     -> "test@test.com",
+        "phone1"    -> "0123456789",
+        "phone2"    -> "0123456789",
         "addressId" -> 1
       )
     )
@@ -100,10 +100,14 @@ class AuthorisationControllerISpec extends BaseIntegrationSpec {
           stubFor(
             patch(urlPathEqualTo(s"/customer-management-api/credential/$testPersonId"))
               .inScenario(credentialMigration)
-              .withRequestBody(equalToJson(Json.obj(
-                "GG-Group-ID" -> testGroupId,
-                "GG-External-ID" -> testExternalId,
-              ).toString()))
+              .withRequestBody(
+                equalToJson(
+                  Json
+                    .obj(
+                      "GG-Group-ID"    -> testGroupId,
+                      "GG-External-ID" -> testExternalId,
+                    )
+                    .toString()))
               .willReturn(ok)
               .willSetStateTo(credentialMigrated)
           )
@@ -124,8 +128,10 @@ class AuthorisationControllerISpec extends BaseIntegrationSpec {
               .willReturn(okJson(testPersonJson(testExternalId).toString))
           )
 
-          val res = await(ws.url(s"$baseUrl/authenticate")
-            .withHttpHeaders("AUTHORIZATION" -> "testBearerToken").get())
+          val res = await(
+            ws.url(s"$baseUrl/authenticate")
+              .withHttpHeaders("AUTHORIZATION" -> "testBearerToken")
+              .get())
 
           res.status shouldBe OK
           res.json shouldBe expectedResponseJson

@@ -40,7 +40,7 @@ import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class AccountsServiceSpec
-  extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach with ArbitraryDataGeneration {
+    extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach with ArbitraryDataGeneration {
 
   implicit val timeout: Timeout = Timeout(Span(2500, Millis))
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
@@ -196,12 +196,13 @@ class AccountsServiceSpec
             val (person, organisation): (Person, Organisation) = (randomPerson, randomOrganisation)
             val expected: Accounts = Accounts(organisation.id, person.individualId, organisation, person)
 
-
-            val testEnrolments = Enrolments(Set(Enrolment(
-              key = "HMRC-VOA-CCA",
-              identifiers = Seq(EnrolmentIdentifier("VOAPersonID", person.individualId.toString)),
-              state = "activated"
-            )))
+            val testEnrolments = Enrolments(
+              Set(
+                Enrolment(
+                  key = "HMRC-VOA-CCA",
+                  identifiers = Seq(EnrolmentIdentifier("VOAPersonID", person.individualId.toString)),
+                  state = "activated"
+                )))
 
             when(mockModernisedConnector.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
               .thenReturn(Future.successful(None), Future.successful(Some(organisation)))
@@ -209,7 +210,11 @@ class AccountsServiceSpec
             when(mockModernisedConnector.getPerson(anyString())(any[HeaderCarrier], any[ExecutionContext]))
               .thenReturn(Future.successful(Some(person)))
 
-            when(mockModernisedConnector.updateCredentials(ArgumentMatchers.eq(person.individualId.toString), ArgumentMatchers.eq(groupId), ArgumentMatchers.eq(externalId))(any[HeaderCarrier], any[ExecutionContext]))
+            when(
+              mockModernisedConnector.updateCredentials(
+                ArgumentMatchers.eq(person.individualId.toString),
+                ArgumentMatchers.eq(groupId),
+                ArgumentMatchers.eq(externalId))(any[HeaderCarrier], any[ExecutionContext]))
               .thenReturn(Future.successful(UpdateCredentialsSuccess))
 
             when(mockFeatureSwitch.isBstDownstreamEnabled).thenReturn(false)
@@ -218,9 +223,8 @@ class AccountsServiceSpec
             res shouldBe Some(expected)
 
             verify(mockCache, once).get(sid)
-            verify(mockModernisedConnector, times(2)).getOrganisationByGGId(matching(groupId))(
-              any[HeaderCarrier],
-              any[ExecutionContext])
+            verify(mockModernisedConnector, times(2))
+              .getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
             verify(mockModernisedConnector, once).getPerson(matching(externalId))(
               any[HeaderCarrier],
               any[ExecutionContext])
@@ -259,7 +263,6 @@ class AccountsServiceSpec
           }
         }
       }
-
 
       "the user has an account, and their account is not cached" should {
         "get the account data from the API and cache it" in new TestSetup {

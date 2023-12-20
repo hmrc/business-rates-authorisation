@@ -42,7 +42,8 @@ class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: 
         ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     getOrganisation(ggId, "governmentGatewayGroupId")
 
-  override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
+  override def getPerson(
+        externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
     implicit val apiFormat: Reads[Person] = Person.apiFormat
     http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
   }
@@ -55,18 +56,19 @@ class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: 
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
   }
 
-  override def updateCredentials(personId: String, groupId: String, externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UpdateCredentialsSuccess.type] = {
+  override def updateCredentials(personId: String, groupId: String, externalId: String)(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext): Future[UpdateCredentialsSuccess.type] = {
     val url = s"$backendUrl/customer-management-api/credential/$personId"
 
     val body = Json.obj(
-      "GG-Group-ID" -> groupId,
+      "GG-Group-ID"    -> groupId,
       "GG-External-ID" -> externalId,
     )
 
-    http.PATCH(url, body).map {
-      _ => UpdateCredentialsSuccess //Map any OK case to an UpdateCredentialsSuccess as any non 2xx will return a failed future
+    http.PATCH(url, body).map { _ =>
+      UpdateCredentialsSuccess //Map any OK case to an UpdateCredentialsSuccess as any non 2xx will return a failed future
     }
   }
-
 
 }

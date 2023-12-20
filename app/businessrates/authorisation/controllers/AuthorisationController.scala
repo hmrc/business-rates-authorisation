@@ -22,18 +22,19 @@ import play.api.libs.json.Json
 import play.api.libs.json.Json.toJson
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup.{Individual, Organisation}
-import uk.gov.hmrc.auth.core.retrieve.{v2, ~}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
+import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthorisationController @Inject()(val accountsService: AccountsService,
-                                        controllerComponents: ControllerComponents,
-                                        val authConnector: AuthConnector
-                                       )(implicit executionContext: ExecutionContext) extends BackendController(controllerComponents) with AuthorisedFunctions with Logging {
+class AuthorisationController @Inject()(
+      val accountsService: AccountsService,
+      controllerComponents: ControllerComponents,
+      val authConnector: AuthConnector)(implicit executionContext: ExecutionContext)
+    extends BackendController(controllerComponents) with AuthorisedFunctions with Logging {
 
   def authenticate: Action[AnyContent] = Action.async { implicit request =>
     authorised().retrieve(externalId and groupIdentifier and affinityGroup and authorisedEnrolments) {

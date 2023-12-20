@@ -17,11 +17,10 @@
 package businessrates.authorisation
 
 import businessrates.authorisation.models._
-
-import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 
+import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 import scala.language.implicitConversions
 
 trait ArbitraryDataGeneration {

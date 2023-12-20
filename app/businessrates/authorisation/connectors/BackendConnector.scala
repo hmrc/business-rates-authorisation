@@ -29,7 +29,9 @@ trait BackendConnector {
 
   def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]]
 
-  def updateCredentials(personId: String, groupId: String, externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UpdateCredentialsSuccess.type]
+  def updateCredentials(personId: String, groupId: String, externalId: String)(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext): Future[UpdateCredentialsSuccess.type]
 }
 
 object BackendConnector {

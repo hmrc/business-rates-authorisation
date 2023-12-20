@@ -12,16 +12,16 @@ object AuthStub {
       "key" -> "HMRC-VOA-CCA",
       "identifiers" -> Json.arr(
         Json.obj(
-          "key" -> "VOAPersonID",
+          "key"   -> "VOAPersonID",
           "value" -> personId.toString
         )
       )
     )
 
   def authResponseBody(enrolments: JsObject*): JsObject = Json.obj(
-    "externalId" -> testExternalId,
-    "groupIdentifier" -> testGroupId,
-    "affinityGroup" -> testAffinityGroup,
+    "externalId"           -> testExternalId,
+    "groupIdentifier"      -> testGroupId,
+    "affinityGroup"        -> testAffinityGroup,
     "authorisedEnrolments" -> JsArray(enrolments)
   )
 

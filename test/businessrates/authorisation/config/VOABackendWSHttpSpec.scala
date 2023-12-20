@@ -17,13 +17,13 @@
 package businessrates.authorisation.config
 
 import akka.actor.ActorSystem
+import akka.util.Timeout
 import businessrates.authorisation.connectors.VOABackendWSHttp
 import businessrates.authorisation.utils.{TestConfiguration, WireMockSpec}
 import com.codahale.metrics.{Counter, Meter, MetricRegistry, Timer}
 import com.kenshoo.play.metrics.Metrics
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import akka.util.Timeout
 import org.scalatest.time.{Millis, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar

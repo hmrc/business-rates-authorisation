@@ -28,21 +28,20 @@ class ModernisedBackendConnectorISpec extends BaseIntegrationSpec {
 
         val testGgId = "test-gg-id"
 
-        val testOrgJson: JsValue = Json.parse(
-          s"""
-             |{
-             | "id": 12345,
-             | "governmentGatewayGroupId" : "$testGgId",
-             | "organisationLatestDetail": {
-             |   "organisationName": "test org",
-             |   "addressUnitId": 12,
-             |   "organisationEmailAddress": "test@test.com",
-             |   "organisationTelephoneNumber": "0123456789",
-             |   "representativeFlag": true
-             | },
-             | "representativeCode": 123456
-             |}
-             |""".stripMargin)
+        val testOrgJson: JsValue = Json.parse(s"""
+                                                 |{
+                                                 | "id": 12345,
+                                                 | "governmentGatewayGroupId" : "$testGgId",
+                                                 | "organisationLatestDetail": {
+                                                 |   "organisationName": "test org",
+                                                 |   "addressUnitId": 12,
+                                                 |   "organisationEmailAddress": "test@test.com",
+                                                 |   "organisationTelephoneNumber": "0123456789",
+                                                 |   "representativeFlag": true
+                                                 | },
+                                                 | "representativeCode": 123456
+                                                 |}
+                                                 |""".stripMargin)
 
         val testOrg: Organisation =
           Organisation(
@@ -81,23 +80,22 @@ class ModernisedBackendConnectorISpec extends BaseIntegrationSpec {
 
         val testExternalId: String = "testExternalId"
 
-        val testPersonJson: JsValue = Json.parse(
-          s"""
-             |{
-             |  "governmentGatewayExternalId": "$testExternalId",
-             |  "organisationId": 123456,
-             |  "id": 123456,
-             |  "personLatestDetail": {
-             |    "firstName": "Testy",
-             |    "lastName": "McTestface",
-             |    "emailAddress": "test@test.com",
-             |    "telephoneNumber": "0123456789",
-             |    "mobileNumber": "0123456789",
-             |    "addressUnitId": 1,
-             |    "identifyVerificationId": "ivId"
-             |  }
-             |}
-             |""".stripMargin)
+        val testPersonJson: JsValue = Json.parse(s"""
+                                                    |{
+                                                    |  "governmentGatewayExternalId": "$testExternalId",
+                                                    |  "organisationId": 123456,
+                                                    |  "id": 123456,
+                                                    |  "personLatestDetail": {
+                                                    |    "firstName": "Testy",
+                                                    |    "lastName": "McTestface",
+                                                    |    "emailAddress": "test@test.com",
+                                                    |    "telephoneNumber": "0123456789",
+                                                    |    "mobileNumber": "0123456789",
+                                                    |    "addressUnitId": 1,
+                                                    |    "identifyVerificationId": "ivId"
+                                                    |  }
+                                                    |}
+                                                    |""".stripMargin)
 
         val testPerson: Person = Person(
           externalId = testExternalId,
@@ -141,9 +139,12 @@ class ModernisedBackendConnectorISpec extends BaseIntegrationSpec {
         val testExternalId = "testExternalId"
         val testGroupId = "testGroupId"
 
-        stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(OK, Json.obj())
+        stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(
+          OK,
+          Json.obj())
 
-        val result: BackendConnector.UpdateCredentialsSuccess.type = await(connector.updateCredentials(testPersonId, testGroupId, testExternalId))
+        val result: BackendConnector.UpdateCredentialsSuccess.type =
+          await(connector.updateCredentials(testPersonId, testGroupId, testExternalId))
 
         result shouldBe UpdateCredentialsSuccess
       }
@@ -154,7 +155,9 @@ class ModernisedBackendConnectorISpec extends BaseIntegrationSpec {
         val testExternalId = "testExternalId"
         val testGroupId = "testGroupId"
 
-        stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(NOT_FOUND, Json.obj())
+        stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(
+          NOT_FOUND,
+          Json.obj())
 
         intercept[NotFoundException](await(connector.updateCredentials(testPersonId, testGroupId, testExternalId)))
 

@@ -16,15 +16,14 @@
 
 package businessrates.authorisation.metrics
 
-import java.net.URL
-
 import com.codahale.metrics._
 import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json.Writes
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.http.ws.WSHttp
 
+import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HttpResponse
 
 trait HasMetrics extends WSHttp {
 
