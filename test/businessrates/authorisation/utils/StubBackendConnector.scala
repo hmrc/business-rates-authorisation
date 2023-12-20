@@ -17,33 +17,26 @@
 package businessrates.authorisation.utils
 
 import businessrates.authorisation.connectors.ModernisedBackendConnector
-import businessrates.authorisation.models.{Organisation, Person, PropertyLink}
+import businessrates.authorisation.models.{Organisation, Person}
+import businessrates.authorisation.utils.TestConfiguration.servicesConfig
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HeaderCarrier
-import TestConfiguration.servicesConfig
 
 class StubBackendConnector extends ModernisedBackendConnector(StubHttp, servicesConfig) {
   private var stubbedOrganisation: Option[Organisation] = None
   private var stubbedPerson: Option[Person] = None
-  private var stubbedLinks: Seq[PropertyLink] = Nil
 
   def reset() = {
     stubbedPerson = None
     stubbedOrganisation = None
-    stubbedLinks = Nil
   }
 
   def stubOrganisation(organisation: Organisation) = stubbedOrganisation = Some(organisation)
   def stubPerson(person: Person) = stubbedPerson = Some(person)
-  def stubLink(link: PropertyLink) = stubbedLinks :+= link
 
   override def getOrganisationByGGId(
         ggGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
-    Future.successful(stubbedOrganisation)
-
-  override def getOrganisationByOrgId(
-        orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     Future.successful(stubbedOrganisation)
 
   override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =

@@ -16,6 +16,7 @@
 
 package businessrates.authorisation.connectors
 
+import businessrates.authorisation.connectors.BackendConnector.UpdateCredentialsSuccess
 import businessrates.authorisation.models.{Organisation, Person}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -26,9 +27,11 @@ trait BackendConnector {
   def getOrganisationByGGId(
         ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]]
 
-  def getOrganisationByOrgId(
-        orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]]
-
   def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]]
 
+  def updateCredentials(personId: String, groupId: String, externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UpdateCredentialsSuccess.type]
+}
+
+object BackendConnector {
+  case object UpdateCredentialsSuccess
 }

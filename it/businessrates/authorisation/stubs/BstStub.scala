@@ -4,7 +4,7 @@ import businessrates.authorisation.{WiremockHelper, WiremockMethods}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.libs.json.JsValue
 
-trait BstStub extends WiremockMethods with WiremockHelper {
+object BstStub extends WiremockMethods with WiremockHelper {
 
   def stubGetOrganisationByGGId(ggId: String)(status: Int, body: JsValue): StubMapping =
     when(

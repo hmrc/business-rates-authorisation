@@ -74,28 +74,4 @@ trait ArbitraryDataGeneration {
       details        <- randomPersonDetails
     } yield Person(externalId, trustId, organisationId, individualId, details)
 
-  def randomAssessment: Gen[Assessment] =
-    for {
-      assessmentRef <- randomPositiveLong
-      listYear = "2017"
-      uarn          <- randomPositiveLong
-      effectiveDate <- randomDate.map(_.toLocalDate)
-    } yield Assessment(assessmentRef, listYear, uarn, effectiveDate)
-
-  def randomPropertyLink: Gen[PropertyLink] =
-    for {
-      authorisationId <- randomPositiveLong
-      uarn            <- randomPositiveLong
-      organisationId  <- randomPositiveLong
-      personId        <- randomPositiveLong
-      linkedDate      <- randomLocalDate
-      pending         <- arbitrary[Boolean]
-      assessment      <- Gen.nonEmptyListOf(randomAssessment).retryUntil(_.size < 10)
-      status          <- Gen.oneOf("APPROVED", "PENDING", "REVOKED", "DECLINED")
-    } yield PropertyLink(authorisationId, uarn, organisationId, personId, linkedDate, pending, assessment, Nil, status)
-
-  def randomParty: Gen[Party] =
-    for {
-      organisationId <- randomPositiveLong
-    } yield Party(organisationId)
 }

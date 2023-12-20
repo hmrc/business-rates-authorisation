@@ -16,8 +16,9 @@
 
 package businessrates.authorisation.connectors
 
+import businessrates.authorisation.connectors.BackendConnector.UpdateCredentialsSuccess
 import businessrates.authorisation.models._
-import play.api.libs.json.Reads
+import play.api.libs.json.{Json, Reads}
 import uk.gov.hmrc.http.HttpReads._
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -30,8 +31,6 @@ class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: 
 
   lazy val backendUrl: String = servicesConfig.baseUrl("voa-bst")
 
-  type AgentFilter = Party => Boolean
-
   val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
   val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
 
@@ -39,15 +38,11 @@ class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: 
     case _: NotFoundException => None
   }
 
-  def getOrganisationByGGId(
+  override def getOrganisationByGGId(
         ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     getOrganisation(ggId, "governmentGatewayGroupId")
 
-  def getOrganisationByOrgId(
-        orgId: Long)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
-    getOrganisation(s"$orgId", "organisationId")
-
-  def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
+  override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
     implicit val apiFormat: Reads[Person] = Person.apiFormat
     http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
   }
@@ -59,5 +54,19 @@ class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: 
     implicit val apiFormat: Reads[Organisation] = Organisation.apiFormat
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
   }
+
+  override def updateCredentials(personId: String, groupId: String, externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UpdateCredentialsSuccess.type] = {
+    val url = s"$backendUrl/customer-management-api/credential/$personId"
+
+    val body = Json.obj(
+      "GG-Group-ID" -> groupId,
+      "GG-External-ID" -> externalId,
+    )
+
+    http.PATCH(url, body).map {
+      _ => UpdateCredentialsSuccess //Map any OK case to an UpdateCredentialsSuccess as any non 2xx will return a failed future
+    }
+  }
+
 
 }
