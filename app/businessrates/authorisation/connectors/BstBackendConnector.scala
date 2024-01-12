@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,12 +61,12 @@ class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: 
         ec: ExecutionContext): Future[UpdateCredentialsSuccess.type] = {
     val url = s"$backendUrl/customer-management-api/credential/$personId"
 
-    val body = Json.obj(
+    val headers = Seq(
       "GG-Group-ID"    -> groupId,
       "GG-External-ID" -> externalId,
     )
 
-    http.PATCH(url, body).map { _ =>
+    http.PATCH(url, Json.obj(), headers).map { _ =>
       UpdateCredentialsSuccess //Map any OK case to an UpdateCredentialsSuccess as any non 2xx will return a failed future
     }
   }

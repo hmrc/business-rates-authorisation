@@ -100,14 +100,13 @@ class AuthorisationControllerISpec extends BaseIntegrationSpec {
           stubFor(
             patch(urlPathEqualTo(s"/customer-management-api/credential/$testPersonId"))
               .inScenario(credentialMigration)
-              .withRequestBody(
-                equalToJson(
-                  Json
-                    .obj(
-                      "GG-Group-ID"    -> testGroupId,
-                      "GG-External-ID" -> testExternalId,
-                    )
-                    .toString()))
+              .withHeader(
+                "GG-Group-ID", equalTo(testGroupId)
+              )
+              .withHeader(
+                "GG-External-ID", equalTo(testExternalId)
+              )
+              .withRequestBody(equalToJson("{}"))
               .willReturn(ok)
               .willSetStateTo(credentialMigrated)
           )

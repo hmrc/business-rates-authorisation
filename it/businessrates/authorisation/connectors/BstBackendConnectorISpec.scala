@@ -5,6 +5,7 @@ import businessrates.authorisation.connectors.BackendConnector.UpdateCredentials
 import businessrates.authorisation.models.{Organisation, Person, PersonDetails}
 import businessrates.authorisation.stubs.BstStub
 import businessrates.authorisation.stubs.ModernisedStub.stubUpdateCredentials
+import com.github.tomakehurst.wiremock.client.WireMock.{notFound, ok}
 import play.api.http.Status.{NOT_FOUND, OK}
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers.await
@@ -138,9 +139,7 @@ class BstBackendConnectorISpec extends BaseIntegrationSpec {
         val testExternalId = "testExternalId"
         val testGroupId = "testGroupId"
 
-        stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(
-          OK,
-          Json.obj())
+        stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(ok)
 
         val result: BackendConnector.UpdateCredentialsSuccess.type =
           await(connector.updateCredentials(testPersonId, testGroupId, testExternalId))
@@ -154,9 +153,7 @@ class BstBackendConnectorISpec extends BaseIntegrationSpec {
         val testExternalId = "testExternalId"
         val testGroupId = "testGroupId"
 
-        stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(
-          NOT_FOUND,
-          Json.obj())
+        stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(notFound)
 
         intercept[NotFoundException](await(connector.updateCredentials(testPersonId, testGroupId, testExternalId)))
 
