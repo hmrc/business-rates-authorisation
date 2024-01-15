@@ -2,7 +2,7 @@ package businessrates.authorisation
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, delete, equalTo, get, getRequestedFor, patch, post, postRequestedFor, put, stubFor, urlEqualTo, urlMatching, verify}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import org.scalatest.concurrent.{Eventually, IntegrationPatience}
@@ -16,59 +16,48 @@ object WiremockHelper extends Eventually with IntegrationPatience {
     val uriMapping = postRequestedFor(urlEqualTo(uri))
     val postRequest = optBody match {
       case Some(body) => uriMapping.withRequestBody(equalTo(body))
-      case None => uriMapping
+      case None       => uriMapping
     }
     verify(postRequest)
   }
 
-  def verifyGet(uri: String): Unit = {
+  def verifyGet(uri: String): Unit =
     verify(getRequestedFor(urlEqualTo(uri)))
-  }
 
   def stubGet(url: String, status: Integer, body: String): Unit =
-    stubFor(get(urlMatching(url))
-      .willReturn(
-        aResponse().
-          withStatus(status).
-          withBody(body)
-      )
-    )
+    stubFor(
+      get(urlMatching(url))
+        .willReturn(
+          aResponse().withStatus(status).withBody(body)
+        ))
 
   def stubPost(url: String, status: Integer, responseBody: String): Unit =
-    stubFor(post(urlMatching(url))
-      .willReturn(
-        aResponse().
-          withStatus(status).
-          withBody(responseBody)
-      )
-    )
+    stubFor(
+      post(urlMatching(url))
+        .willReturn(
+          aResponse().withStatus(status).withBody(responseBody)
+        ))
 
   def stubPut(url: String, status: Integer, responseBody: String): Unit =
-    stubFor(put(urlMatching(url))
-      .willReturn(
-        aResponse().
-          withStatus(status).
-          withBody(responseBody)
-      )
-    )
+    stubFor(
+      put(urlMatching(url))
+        .willReturn(
+          aResponse().withStatus(status).withBody(responseBody)
+        ))
 
   def stubPatch(url: String, status: Integer, responseBody: String): Unit =
-    stubFor(patch(urlMatching(url))
-      .willReturn(
-        aResponse().
-          withStatus(status).
-          withBody(responseBody)
-      )
-    )
+    stubFor(
+      patch(urlMatching(url))
+        .willReturn(
+          aResponse().withStatus(status).withBody(responseBody)
+        ))
 
   def stubDelete(url: String, status: Integer, responseBody: String): Unit =
-    stubFor(delete(urlMatching(url))
-      .willReturn(
-        aResponse().
-          withStatus(status).
-          withBody(responseBody)
-      )
-    )
+    stubFor(
+      delete(urlMatching(url))
+        .willReturn(
+          aResponse().withStatus(status).withBody(responseBody)
+        ))
 }
 
 trait WiremockHelper {

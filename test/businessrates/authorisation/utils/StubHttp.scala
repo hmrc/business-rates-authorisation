@@ -24,8 +24,8 @@ import com.typesafe.config.Config
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.libs.json.Writes
 import play.api.libs.ws.WSClient
-import uk.gov.hmrc.http.hooks.HttpHook
 import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.hooks.HttpHook
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.{ExecutionContext, Future}

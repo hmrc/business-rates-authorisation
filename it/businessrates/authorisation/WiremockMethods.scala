@@ -23,15 +23,14 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.libs.json.Writes
 
 trait WiremockMethods {
-  def when[T](method: HTTPMethod, uri: String, body: T)(implicit writes: Writes[T]): Mapping = {
+  def when[T](method: HTTPMethod, uri: String, body: T)(implicit writes: Writes[T]): Mapping =
     when(method, uri, Map.empty, body)
-  }
 
-  def when(method: HTTPMethod, uri: String, headers: Map[String, String] = Map.empty): Mapping = {
+  def when(method: HTTPMethod, uri: String, headers: Map[String, String] = Map.empty): Mapping =
     new Mapping(method, uri, headers, None)
-  }
 
-  def when[T](method: HTTPMethod, uri: String, headers: Map[String, String], body: T)(implicit writes: Writes[T]): Mapping = {
+  def when[T](method: HTTPMethod, uri: String, headers: Map[String, String], body: T)(
+        implicit writes: Writes[T]): Mapping = {
     val stringBody = writes.writes(body).toString()
     new Mapping(method, uri, headers, Some(stringBody))
   }
@@ -46,7 +45,7 @@ trait WiremockMethods {
 
       body match {
         case Some(extractedBody) => uriMappingWithHeaders.withRequestBody(equalToJson(extractedBody))
-        case None => uriMappingWithHeaders
+        case None                => uriMappingWithHeaders
       }
     }
 
@@ -60,9 +59,8 @@ trait WiremockMethods {
       thenReturnInternal(status, headers, Some(stringBody))
     }
 
-    def thenReturn(status: Int, headers: Map[String, String] = Map.empty): StubMapping = {
+    def thenReturn(status: Int, headers: Map[String, String] = Map.empty): StubMapping =
       thenReturnInternal(status, headers, None)
-    }
 
     private def thenReturnInternal(status: Int, headers: Map[String, String], body: Option[String]): StubMapping = {
       val response = {
@@ -72,7 +70,7 @@ trait WiremockMethods {
         }
         body match {
           case Some(extractedBody) => responseWithHeaders.withBody(extractedBody)
-          case None => responseWithHeaders
+          case None                => responseWithHeaders
         }
       }
 
@@ -100,5 +98,8 @@ trait WiremockMethods {
     override val wireMockMapping: UrlPattern => MappingBuilder = delete
   }
 
-}
+  case object PATCH extends HTTPMethod {
+    override val wireMockMapping: UrlPattern => MappingBuilder = patch
+  }
 
+}

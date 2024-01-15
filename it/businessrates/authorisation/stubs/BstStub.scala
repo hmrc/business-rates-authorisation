@@ -4,7 +4,7 @@ import businessrates.authorisation.{WiremockHelper, WiremockMethods}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.libs.json.JsValue
 
-trait BstStub extends WiremockMethods with WiremockHelper {
+object BstStub extends WiremockMethods with WiremockHelper {
 
   def stubGetOrganisationByGGId(ggId: String)(status: Int, body: JsValue): StubMapping =
     when(
@@ -18,11 +18,10 @@ trait BstStub extends WiremockMethods with WiremockHelper {
       uri = s"/customer-management-api/organisation\\?organisationId=$orgId"
     ).thenReturn(status, body)
 
-  def stubGetPerson(externalId: String)(status: Int, body: JsValue): StubMapping = {
+  def stubGetPerson(externalId: String)(status: Int, body: JsValue): StubMapping =
     when(
       method = GET,
       uri = s"/customer-management-api/person\\?governmentGatewayExternalId=$externalId"
     ).thenReturn(status, body)
-  }
 
 }

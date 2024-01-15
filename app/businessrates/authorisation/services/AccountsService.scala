@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import businessrates.authorisation.repositories.AccountsCache
 import cats.data.OptionT
 import cats.implicits._
 import play.api.Logging
+import uk.gov.hmrc.auth.core.{EnrolmentIdentifier, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -38,29 +39,49 @@ class AccountsService @Inject()(
   lazy val connector: BackendConnector =
     if (featureSwitch.isBstDownstreamEnabled) bstConnector else modernisedConnector
 
-  def get(externalId: String, groupId: String)(implicit hc: HeaderCarrier): Future[Option[Accounts]] =
-    cachedAccounts {
-      (for {
-        organisation <- OptionT(connector.getOrganisationByGGId(groupId))
-        person       <- OptionT(connector.getPerson(externalId))
-      } yield {
-        Accounts(
-          organisation.id,
-          person.individualId,
-          organisation.copy(agentCode = organisation.agentCode.filter(_ => organisation.isAgent)),
-          person)
-      }).value
-    }
-
-  private def cachedAccounts(block: => Future[Option[Accounts]])(implicit hc: HeaderCarrier): Future[Option[Accounts]] =
-    hc.sessionId.fold(block) { sessionId =>
-      accountsCache.get(sessionId.value).flatMap {
-        case None =>
-          block.flatTap {
-            case Some(accs) => accountsCache.cache(sessionId.value, accs)
-            case None       => Future.successful(())
+  def get(externalId: String, groupId: String, enrolments: Enrolments)(
+        implicit hc: HeaderCarrier): Future[Option[Accounts]] =
+    for {
+      optCachedAccounts: Option[Accounts] <- hc.sessionId match {
+                                              case Some(sessionId) => accountsCache.get(sessionId.value)
+                                              case None            => Future.successful(None)
+                                            }
+      optAccounts <- optCachedAccounts match {
+                      case Some(cachedAccounts) =>
+                        Future.successful(Some(cachedAccounts))
+                      case None =>
+                        getBackendData(externalId, groupId).flatMap {
+                          case Some(accounts) =>
+                            Future.successful(Some(accounts))
+                          case None =>
+                            enrolments.getEnrolment("HMRC-VOA-CCA").flatMap(_.getIdentifier("VOAPersonID")) match {
+                              case Some(EnrolmentIdentifier(_, enrolmentPersonId)) =>
+                                for {
+                                  _ <- connector.updateCredentials(enrolmentPersonId, groupId, externalId)
+                                  _ = logger.info(s"External ID and Group ID updated for personID: $enrolmentPersonId")
+                                  updatedAccounts <- getBackendData(externalId, groupId)
+                                } yield updatedAccounts
+                              case None =>
+                                Future.successful(Option.empty[Accounts])
+                            }
+                        }
+                    }
+      _ <- (hc.sessionId, optAccounts) match {
+            case (Some(sessionId), Some(accounts)) if optCachedAccounts.isEmpty =>
+              accountsCache.cache(sessionId.value, accounts)
+            case _ =>
+              Future.successful(())
           }
-        case accs => Future.successful(accs)
-      }
-    }
+    } yield optAccounts
+
+  def getBackendData(externalId: String, groupId: String)(implicit hc: HeaderCarrier): Future[Option[Accounts]] =
+    (for {
+      organisation <- OptionT(connector.getOrganisationByGGId(groupId))
+      person       <- OptionT(connector.getPerson(externalId))
+    } yield
+      Accounts(
+        organisation.id,
+        person.individualId,
+        organisation.copy(agentCode = organisation.agentCode.filter(_ => organisation.isAgent)),
+        person)).value
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 package businessrates.authorisation.metrics
 
-import java.net.URL
-
 import com.codahale.metrics._
 import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json.Writes
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.http.ws.WSHttp
 
+import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HttpResponse
 
 trait HasMetrics extends WSHttp {
 
