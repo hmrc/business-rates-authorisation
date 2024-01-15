@@ -24,7 +24,7 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup.{Individual, Organisation}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
 import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -37,20 +37,25 @@ class AuthorisationController @Inject()(
     extends BackendController(controllerComponents) with AuthorisedFunctions with Logging {
 
   def authenticate: Action[AnyContent] = Action.async { implicit request =>
-    authorised().retrieve(externalId and groupIdentifier and affinityGroup and authorisedEnrolments) {
-      case Some(externalId) ~ Some(groupId) ~ Some(Individual | Organisation) ~ enrolments =>
-        accountsService.get(externalId, groupId, enrolments).map {
-          case Some(accounts) =>
-            Ok(toJson(accounts))
-          case None =>
-            Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD"))
-        }
-      case Some(_) ~ Some(_) ~ Some(otherAffinityGroup) ~ _ =>
-        logger.info(s"User has logged in with non-permitted affinityGroup $otherAffinityGroup")
-        Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")))
-      case _ =>
-        Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
-    }
+    authorised()
+      .retrieve(externalId and groupIdentifier and affinityGroup and authorisedEnrolments) {
+        case Some(externalId) ~ Some(groupId) ~ Some(Individual | Organisation) ~ enrolments =>
+          accountsService.get(externalId, groupId, enrolments).map {
+            case Some(accounts) =>
+              Ok(toJson(accounts))
+            case None =>
+              Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD"))
+          }
+        case Some(_) ~ Some(_) ~ Some(otherAffinityGroup) ~ _ =>
+          logger.info(s"User has logged in with non-permitted affinityGroup $otherAffinityGroup")
+          Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")))
+        case _ =>
+          Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
+      }
+      .recover {
+        case _: AuthorisationException => Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION"))
+        case e                         => throw e
+      }
   }
 
 }
