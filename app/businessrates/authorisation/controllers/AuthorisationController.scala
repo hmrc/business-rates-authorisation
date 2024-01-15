@@ -24,7 +24,7 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup.{Individual, Organisation}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
 import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -50,6 +50,9 @@ class AuthorisationController @Inject()(
         Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")))
       case _ =>
         Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
+    }.recover {
+      case _: AuthorisationException => Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION"))
+      case e                         => throw e
     }
   }
 

@@ -187,5 +187,15 @@ class AuthorisationControllerISpec extends BaseIntegrationSpec {
         )
       }
     }
+    "the user is not logged in" should {
+      "return UNAUTHORIZED" in {
+        val res = await(ws.url(s"$baseUrl/authenticate").get())
+
+        res.status shouldBe UNAUTHORIZED
+        res.json shouldBe Json.obj(
+          "errorCode" -> "INVALID_GATEWAY_SESSION"
+        )
+      }
+    }
   }
 }
