@@ -38,7 +38,7 @@ class AuthorisationController @Inject()(
 
   def authenticate: Action[AnyContent] = Action.async { implicit request =>
     authorised()
-      .retrieve(externalId and groupIdentifier and affinityGroup and authorisedEnrolments) {
+      .retrieve(externalId and groupIdentifier and affinityGroup and allEnrolments) {
         case Some(externalId) ~ Some(groupId) ~ Some(Individual | Organisation) ~ enrolments =>
           accountsService.get(externalId, groupId, enrolments).map {
             case Some(accounts) =>
