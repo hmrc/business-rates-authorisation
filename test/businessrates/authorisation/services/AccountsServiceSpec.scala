@@ -16,7 +16,7 @@
 
 package businessrates.authorisation.services
 
-import akka.util.Timeout
+import org.apache.pekko.util.Timeout
 import businessrates.authorisation.ArbitraryDataGeneration
 import businessrates.authorisation.config.FeatureSwitch
 import businessrates.authorisation.connectors.BackendConnector.UpdateCredentialsSuccess

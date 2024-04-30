@@ -16,10 +16,9 @@
 
 package businessrates.authorisation.utils
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import businessrates.authorisation.connectors.VOABackendWSHttp
 import businessrates.authorisation.utils.TestConfiguration._
-import com.kenshoo.play.metrics.Metrics
 import com.typesafe.config.Config
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.libs.json.Writes
@@ -27,6 +26,7 @@ import play.api.libs.ws.WSClient
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.http.hooks.HttpHook
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import scala.concurrent.{ExecutionContext, Future}
 

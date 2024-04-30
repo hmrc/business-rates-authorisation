@@ -16,12 +16,11 @@
 
 package businessrates.authorisation.config
 
-import akka.actor.ActorSystem
-import akka.util.Timeout
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.util.Timeout
 import businessrates.authorisation.connectors.VOABackendWSHttp
 import businessrates.authorisation.utils.{TestConfiguration, WireMockSpec}
 import com.codahale.metrics.{Counter, Meter, MetricRegistry, Timer}
-import com.kenshoo.play.metrics.Metrics
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.time.{Millis, Span}
@@ -32,6 +31,7 @@ import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.test.Helpers.await
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import uk.gov.hmrc.play.http.ws.WSRequest
 
 import scala.concurrent.ExecutionContext.Implicits.global
