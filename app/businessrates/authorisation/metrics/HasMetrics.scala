@@ -17,9 +17,9 @@
 package businessrates.authorisation.metrics
 
 import com.codahale.metrics._
-import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json.Writes
 import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import uk.gov.hmrc.play.http.ws.WSHttp
 
 import java.net.URL

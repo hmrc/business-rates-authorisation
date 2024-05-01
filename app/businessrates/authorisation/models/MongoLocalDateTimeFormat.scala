@@ -16,10 +16,9 @@
 
 package businessrates.authorisation.models
 
-import play.api.libs.json.{Format, Reads, __}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.{localDateTimeReads, localDateTimeWrites}
+import play.api.libs.json.{Format, Reads, Writes, __}
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 object MongoLocalDateTimeFormat {
   // LocalDateTime must be written to DB as ISODate to allow the expiry TTL on createdOn date to work
@@ -28,6 +27,16 @@ object MongoLocalDateTimeFormat {
     Reads
       .at[String](__)
       .map(dateTime => LocalDateTime.parse(dateTime))
+
+  private final val localDateTimeReads: Reads[LocalDateTime] =
+    Reads
+      .at[String](__ \ "$date" \ "$numberLong")
+      .map(dateTime => Instant.ofEpochMilli(dateTime.toLong).atZone(ZoneOffset.UTC).toLocalDateTime)
+
+  private final val localDateTimeWrites: Writes[LocalDateTime] =
+    Writes
+      .at[String](__ \ "$date" \ "$numberLong")
+      .contramap(_.toInstant(ZoneOffset.UTC).toEpochMilli.toString)
 
   final implicit val localDateTimeFormat: Format[LocalDateTime] =
     Format(localDateTimeReads.orElse(legacyDateTimeReads), localDateTimeWrites)

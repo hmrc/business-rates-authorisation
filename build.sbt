@@ -1,4 +1,3 @@
-import play.core.PlayVersion
 import play.sbt.PlayImport.{PlayKeys, _}
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
@@ -9,7 +8,18 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.versioning.SbtGitVersioning
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
+import uk.gov.hmrc.DefaultBuildSettings
+
 val appName = "business-rates-authorisation"
+
+ThisBuild / majorVersion := 0
+ThisBuild / scalaVersion := "2.13.12"
+
+ThisBuild / excludeDependencies ++= Seq(
+  // As of Play 3.0, groupId has changed to org.playframework; exclude transitive dependencies to the old artifacts
+  // Specifically affects play-json-extensions dependency
+  ExclusionRule(organization = "com.typesafe.play")
+)
 
 lazy val scoverageSettings = {
   // Semicolon-separated list of regexs matching classes to exclude
@@ -32,49 +42,41 @@ lazy val microservice = Project(appName, file("."))
   .settings(scalaSettings: _*)
   .settings(defaultSettings(): _*)
   .settings(PlayKeys.playDefaultPort := 9525)
-  .settings(majorVersion := 0)
-  .settings(scalaVersion := "2.13.8")
   .settings(
-    targetJvm := "jvm-1.8",
+    targetJvm := "jvm-11",
     Test / fork := true,
     libraryDependencies ++= compileDependencies ++ testDependencies,
     retrieveManaged := true
   )
-  .configs(IntegrationTest)
-  .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
-  .settings(
-    IntegrationTest / fork := false,
-    IntegrationTest / unmanagedSourceDirectories := {(IntegrationTest / baseDirectory)(base => Seq(base / "it"))}.value,
-    addTestReportOption(IntegrationTest, "int-test-reports"),
-    IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
-    IntegrationTest / parallelExecution := false
-  )
+  .settings(resolvers += Resolver.jcenterRepo)
+
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(DefaultBuildSettings.itSettings())
+  .settings(libraryDependencies ++= testDependencies)
+  .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.AllLibraryJars)
+  .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
   .settings(resolvers += Resolver.jcenterRepo)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) = tests.map { test =>
   Group(test.name, Seq(test), SubProcess(ForkOptions().withRunJVMOptions(Vector(s"-Dtest.name=${test.name}"))))
 }
-val bootstrapVersion = "7.15.0"
+val businessRatesValuesVersion = "3.0.0"
+val bootstrapPlayVersion = "8.5.0"
 
 lazy val compileDependencies = Seq(
   ws,
-  "uk.gov.hmrc"       %% "bootstrap-backend-play-28"    % bootstrapVersion,
-  "org.typelevel"     %% "cats-core"                    % "2.9.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"           % "0.74.0"
+  "uk.gov.hmrc"       %% "bootstrap-backend-play-30"    % bootstrapPlayVersion,
+  "org.typelevel"     %% "cats-core"                    % "2.10.0",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "1.9.0"
 )
 
 lazy val testDependencies = Seq(
-  "uk.gov.hmrc"            %% "bootstrap-test-play-28" % bootstrapVersion % "test, it",
-  "org.scalatest"          %% "scalatest"          % "3.0.8"             % "test,it",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0"             % "test,it",
-  "org.pegdown"            % "pegdown"             % "1.6.0"             % "test,it",
-  "com.typesafe.play"      %% "play-test"          % PlayVersion.current % "test,it",
-  "org.mockito"            % "mockito-core"        % "3.4.6"             % "test,it",
-  "org.scalatestplus"      %% "mockito-3-4"        % "3.2.9.0"           % "test,it",
-  "com.github.tomakehurst" % "wiremock-jre8"       % "2.23.2"            % "test,it",
-  "org.scalacheck"         %% "scalacheck"         % "1.14.0"            % "test,it",
-  "com.vladsch.flexmark"   % "flexmark-all"        % "0.35.10"           % "test,it"
+  "uk.gov.hmrc"            %% "bootstrap-test-play-30" % bootstrapPlayVersion % Test,
+  "org.pegdown"            % "pegdown"             % "1.6.0"             % Test,
+  "org.scalacheck"    %% "scalacheck"                % "1.18.0"  % Test
 )
 
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
-addCommandAlias("precommit", ";scalafmt;test:scalafmt;coverage;test;coverageReport")
+addCommandAlias("precommit", ";coverage;scalafmt;test:scalafmt;test;it/test;coverageReport")

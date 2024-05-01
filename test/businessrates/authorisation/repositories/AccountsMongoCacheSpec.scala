@@ -16,7 +16,7 @@
 
 package businessrates.authorisation.repositories
 
-import akka.util.Timeout
+import org.apache.pekko.util.Timeout
 import businessrates.authorisation.models.{Accounts, Organisation, Person, PersonDetails}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers

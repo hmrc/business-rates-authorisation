@@ -16,9 +16,8 @@
 
 package businessrates.authorisation.connectors
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import businessrates.authorisation.metrics.HasMetrics
-import com.kenshoo.play.metrics.Metrics
 import com.typesafe.config.Config
 import play.api.Configuration
 import play.api.libs.ws.WSClient
@@ -26,6 +25,7 @@ import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.hooks._
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import uk.gov.hmrc.play.http.ws._
 
 import javax.inject.Inject
