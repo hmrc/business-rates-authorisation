@@ -32,7 +32,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class AccountsMongoCacheSpec extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite {
   implicit val timeout: Timeout = Timeout(Span(250, Millis))
 
-  implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(5, Millis))
+  implicit override val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = Span(5, Seconds), interval = Span(5, Millis))
 
   val mongoComponent: MongoComponent = app.injector.instanceOf[MongoComponent]
 

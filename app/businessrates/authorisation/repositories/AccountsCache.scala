@@ -21,7 +21,7 @@ import com.google.inject.ImplementedBy
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -71,6 +71,6 @@ class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionCon
 case class Record(_id: String, data: Accounts, createdAt: LocalDateTime = LocalDateTime.now())
 
 object Record {
-  implicit val dateFormat = MongoLocalDateTimeFormat.localDateTimeFormat
+  implicit val dateFormat: Format[LocalDateTime] = MongoLocalDateTimeFormat.localDateTimeFormat
   implicit val mongoFormats: OFormat[Record] = Json.format[Record]
 }

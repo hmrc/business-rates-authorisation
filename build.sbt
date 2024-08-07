@@ -63,19 +63,19 @@ def oneForkedJvmPerTest(tests: Seq[TestDefinition]) = tests.map { test =>
   Group(test.name, Seq(test), SubProcess(ForkOptions().withRunJVMOptions(Vector(s"-Dtest.name=${test.name}"))))
 }
 val businessRatesValuesVersion = "3.0.0"
-val bootstrapPlayVersion = "8.5.0"
+val bootstrapPlayVersion = "9.2.0"
 
 lazy val compileDependencies = Seq(
   ws,
   "uk.gov.hmrc"       %% "bootstrap-backend-play-30"    % bootstrapPlayVersion,
   "org.typelevel"     %% "cats-core"                    % "2.10.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "1.9.0"
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "2.2.0"
 )
 
 lazy val testDependencies = Seq(
   "uk.gov.hmrc"            %% "bootstrap-test-play-30" % bootstrapPlayVersion % Test,
-  "org.pegdown"            % "pegdown"             % "1.6.0"             % Test,
-  "org.scalacheck"    %% "scalacheck"                % "1.18.0"  % Test
+  "org.pegdown"            % "pegdown"                 % "1.6.0"              % Test,
+  "org.scalacheck"         %% "scalacheck"             % "1.18.0"             % Test
 )
 
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
