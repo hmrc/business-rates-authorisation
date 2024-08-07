@@ -16,22 +16,28 @@
 
 package businessrates.authorisation.utils
 
-import org.apache.pekko.actor.ActorSystem
 import businessrates.authorisation.connectors.VOABackendWSHttp
 import businessrates.authorisation.utils.TestConfiguration._
-import com.typesafe.config.Config
+import org.apache.pekko.actor.ActorSystem
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.libs.json.Writes
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.http.hooks.HttpHook
+import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import scala.concurrent.{ExecutionContext, Future}
 
 object StubHttp
-    extends VOABackendWSHttp(configuration, mock[Metrics], mock[AuditConnector], mock[WSClient], mock[ActorSystem]) {
+    extends VOABackendWSHttp(
+      configuration,
+      mock[Metrics],
+      mock[AuditConnector],
+      mock[WSClient],
+      mock[ActorSystem],
+      mock[HttpAuditing]) {
 
   override def doGet(url: String, headers: Seq[(String, String)])(implicit ec: ExecutionContext): Future[HttpResponse] =
     ???
@@ -49,8 +55,6 @@ object StubHttp
   override def doEmptyPost[A](url: String, headers: Seq[(String, String)])(
         implicit ec: ExecutionContext): Future[HttpResponse] =
     ???
-
-  override protected def configuration: Config = ???
 
   override val hooks: Seq[HttpHook] = Seq.empty
 }

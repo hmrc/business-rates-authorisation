@@ -16,11 +16,11 @@
 
 package businessrates.authorisation.config
 
-import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.util.Timeout
 import businessrates.authorisation.connectors.VOABackendWSHttp
 import businessrates.authorisation.utils.{TestConfiguration, WireMockSpec}
 import com.codahale.metrics.{Counter, Meter, MetricRegistry, Timer}
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.util.Timeout
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.time.{Millis, Span}
@@ -30,9 +30,10 @@ import play.api.libs.ws
 import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.test.Helpers.await
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
-import uk.gov.hmrc.play.http.ws.WSRequest
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -45,6 +46,7 @@ class VOABackendWSHttpSpec extends AnyWordSpec with WireMockSpec with MockitoSug
   val metricRegistry = mock[MetricRegistry]
   val mockTimer = mock[Timer]
   val mockWSClient = mock[WSClient]
+  val mockAuditing = mock[HttpAuditing]
 
   when(metricsMock.defaultRegistry).thenReturn(metricRegistry)
 
@@ -57,13 +59,23 @@ class VOABackendWSHttpSpec extends AnyWordSpec with WireMockSpec with MockitoSug
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   val backendWSHttp =
-    new VOABackendWSHttp(configuration, metricsMock, mock[AuditConnector], mockWSClient, mock[ActorSystem])
-    with MockWsRequest {
+    new VOABackendWSHttp(
+      configuration,
+      metricsMock,
+      mock[AuditConnector],
+      mockWSClient,
+      mock[ActorSystem],
+      mockAuditing) with MockWsRequest {
       val status = 200
     }
   val failHttp =
-    new VOABackendWSHttp(configuration, metricsMock, mock[AuditConnector], mock[WSClient], mock[ActorSystem])
-    with MockWsRequest {
+    new VOABackendWSHttp(
+      configuration,
+      metricsMock,
+      mock[AuditConnector],
+      mock[WSClient],
+      mock[ActorSystem],
+      mockAuditing) with MockWsRequest {
       val status = 400
     }
 
@@ -98,7 +110,7 @@ class VOABackendWSHttpSpec extends AnyWordSpec with WireMockSpec with MockitoSug
     }
   }
 
-  trait MockWsRequest extends WSRequest {
+  trait MockWsRequest extends DefaultHttpClient {
     val status: Int
 
     override def buildRequest(url: String, headers: Seq[(String, String)]): ws.WSRequest = {
@@ -112,6 +124,5 @@ class VOABackendWSHttpSpec extends AnyWordSpec with WireMockSpec with MockitoSug
 
       mockRequest
     }
-
   }
 }
