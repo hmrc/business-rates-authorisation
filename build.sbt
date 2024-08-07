@@ -37,7 +37,7 @@ lazy val scoverageSettings = {
 lazy val playSettings = Seq()
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(playSettings ++ scoverageSettings: _*)
   .settings(scalaSettings: _*)
   .settings(defaultSettings(): _*)
@@ -59,9 +59,9 @@ lazy val it = project
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
   .settings(resolvers += Resolver.jcenterRepo)
 
-def oneForkedJvmPerTest(tests: Seq[TestDefinition]) = tests.map { test =>
-  Group(test.name, Seq(test), SubProcess(ForkOptions().withRunJVMOptions(Vector(s"-Dtest.name=${test.name}"))))
-}
+//def oneForkedJvmPerTest(tests: Seq[TestDefinition]) = tests.map { test =>
+//  Group(test.name, Seq(test), SubProcess(ForkOptions().withRunJVMOptions(Vector(s"-Dtest.name=${test.name}"))))
+//}
 val businessRatesValuesVersion = "3.0.0"
 val bootstrapPlayVersion = "9.2.0"
 
