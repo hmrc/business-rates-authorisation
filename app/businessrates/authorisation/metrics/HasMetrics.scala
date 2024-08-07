@@ -19,13 +19,13 @@ package businessrates.authorisation.metrics
 import com.codahale.metrics._
 import play.api.libs.json.Writes
 import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
-import uk.gov.hmrc.play.http.ws.WSHttp
 
 import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
 
-trait HasMetrics extends WSHttp {
+trait HasMetrics extends DefaultHttpClient {
 
   type Metric = String
 

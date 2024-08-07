@@ -19,10 +19,9 @@ package businessrates.authorisation.connectors
 import businessrates.authorisation.connectors.BackendConnector.UpdateCredentialsSuccess
 import businessrates.authorisation.models._
 import play.api.libs.json.{Json, Reads}
-import uk.gov.hmrc.http.HttpReads._
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -51,7 +50,6 @@ class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: 
   private def getOrganisation(id: String, paramName: String)(
         implicit hc: HeaderCarrier,
         ec: ExecutionContext): Future[Option[Organisation]] = {
-    uk.gov.hmrc.http.HttpReads.Implicits
     implicit val apiFormat: Reads[Organisation] = Organisation.apiFormat
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
   }
@@ -70,5 +68,4 @@ class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: 
       UpdateCredentialsSuccess //Map any OK case to an UpdateCredentialsSuccess as any non 2xx will return a failed future
     }
   }
-
 }
