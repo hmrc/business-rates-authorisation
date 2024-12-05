@@ -66,7 +66,7 @@ lazy val compileDependencies = Seq(
   ws,
   "uk.gov.hmrc"       %% "bootstrap-backend-play-30"    % bootstrapPlayVersion,
   "org.typelevel"     %% "cats-core"                    % "2.12.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "2.2.0"
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "2.3.0"
 )
 
 lazy val testDependencies = Seq(
@@ -76,4 +76,4 @@ lazy val testDependencies = Seq(
 )
 
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
-addCommandAlias("precommit", ";coverage;scalafmt;test:scalafmt;test;it/test;coverageReport")
+addCommandAlias("precommit", :";coverage;scalafmt;test:scalafmt;test;it/test;coverageReport")
