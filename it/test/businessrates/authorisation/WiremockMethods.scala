@@ -29,8 +29,9 @@ trait WiremockMethods {
   def when(method: HTTPMethod, uri: String, headers: Map[String, String] = Map.empty): Mapping =
     new Mapping(method, uri, headers, None)
 
-  def when[T](method: HTTPMethod, uri: String, headers: Map[String, String], body: T)(
-        implicit writes: Writes[T]): Mapping = {
+  def when[T](method: HTTPMethod, uri: String, headers: Map[String, String], body: T)(implicit
+        writes: Writes[T]
+  ): Mapping = {
     val stringBody = writes.writes(body).toString()
     new Mapping(method, uri, headers, Some(stringBody))
   }

@@ -37,23 +37,28 @@ object StubHttp
       mock[AuditConnector],
       mock[WSClient],
       mock[ActorSystem],
-      mock[HttpAuditing]) {
+      mock[HttpAuditing]
+    ) {
 
   override def doGet(url: String, headers: Seq[(String, String)])(implicit ec: ExecutionContext): Future[HttpResponse] =
     ???
 
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
-        implicit rds: Writes[A],
-        ec: ExecutionContext): Future[HttpResponse] = ???
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit
+        rds: Writes[A],
+        ec: ExecutionContext
+  ): Future[HttpResponse] = ???
 
-  override def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)])(
-        implicit ec: ExecutionContext): Future[HttpResponse] = ???
+  override def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)])(implicit
+        ec: ExecutionContext
+  ): Future[HttpResponse] = ???
 
-  override def doPostString(url: String, body: String, headers: Seq[(String, String)])(
-        implicit ec: ExecutionContext): Future[HttpResponse] = ???
+  override def doPostString(url: String, body: String, headers: Seq[(String, String)])(implicit
+        ec: ExecutionContext
+  ): Future[HttpResponse] = ???
 
-  override def doEmptyPost[A](url: String, headers: Seq[(String, String)])(
-        implicit ec: ExecutionContext): Future[HttpResponse] =
+  override def doEmptyPost[A](url: String, headers: Seq[(String, String)])(implicit
+        ec: ExecutionContext
+  ): Future[HttpResponse] =
     ???
 
   override val hooks: Seq[HttpHook] = Seq.empty

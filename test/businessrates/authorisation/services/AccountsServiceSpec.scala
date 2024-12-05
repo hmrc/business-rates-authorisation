@@ -78,9 +78,8 @@ class AccountsServiceSpec
         val res: Option[Accounts] = await(accountsService.get(externalId, groupId, emptyEnrolments)(HeaderCarrier()))
         res shouldBe Some(expected)
 
-        verify(mockBstConnector, once).getOrganisationByGGId(matching(groupId))(
-          any[HeaderCarrier],
-          any[ExecutionContext])
+        verify(mockBstConnector, once)
+          .getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
         verify(mockBstConnector, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
         verify(mockCache, never).get(anyString())
         verify(mockCache, never).cache(anyString, matching(expected))
@@ -127,9 +126,8 @@ class AccountsServiceSpec
           res shouldBe Some(expected)
 
           verify(mockCache, once).get(sid)
-          verify(mockBstConnector, once).getOrganisationByGGId(matching(groupId))(
-            any[HeaderCarrier],
-            any[ExecutionContext])
+          verify(mockBstConnector, once)
+            .getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockBstConnector, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockCache, once).cache(sid, expected)
         }
@@ -147,9 +145,8 @@ class AccountsServiceSpec
           res shouldBe Some(expected)
 
           verify(mockCache, once).get(sid)
-          verify(mockBstConnector, never).getOrganisationByGGId(matching(groupId))(
-            any[HeaderCarrier],
-            any[ExecutionContext])
+          verify(mockBstConnector, never)
+            .getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockBstConnector, never).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockCache, never).cache(anyString, any[Accounts])
         }
@@ -176,9 +173,8 @@ class AccountsServiceSpec
         val res = await(accountsService.get(externalId, groupId, emptyEnrolments)(HeaderCarrier()))
         res shouldBe Some(expected)
 
-        verify(mockModernisedConnector, once).getOrganisationByGGId(matching(groupId))(
-          any[HeaderCarrier],
-          any[ExecutionContext])
+        verify(mockModernisedConnector, once)
+          .getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
         verify(mockModernisedConnector, once).getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
         verify(mockCache, never).get(anyString())
         verify(mockCache, never).cache(anyString, matching(expected))
@@ -202,7 +198,9 @@ class AccountsServiceSpec
                   key = "HMRC-VOA-CCA",
                   identifiers = Seq(EnrolmentIdentifier("VOAPersonID", person.individualId.toString)),
                   state = "activated"
-                )))
+                )
+              )
+            )
 
             when(mockModernisedConnector.getOrganisationByGGId(anyString())(any[HeaderCarrier], any[ExecutionContext]))
               .thenReturn(Future.successful(None), Future.successful(Some(organisation)))
@@ -214,8 +212,9 @@ class AccountsServiceSpec
               mockModernisedConnector.updateCredentials(
                 ArgumentMatchers.eq(person.individualId.toString),
                 ArgumentMatchers.eq(groupId),
-                ArgumentMatchers.eq(externalId))(any[HeaderCarrier], any[ExecutionContext]))
-              .thenReturn(Future.successful(UpdateCredentialsSuccess))
+                ArgumentMatchers.eq(externalId)
+              )(any[HeaderCarrier], any[ExecutionContext])
+            ).thenReturn(Future.successful(UpdateCredentialsSuccess))
 
             when(mockFeatureSwitch.isBstDownstreamEnabled).thenReturn(false)
 
@@ -225,13 +224,12 @@ class AccountsServiceSpec
             verify(mockCache, once).get(sid)
             verify(mockModernisedConnector, times(2))
               .getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
-            verify(mockModernisedConnector, once).getPerson(matching(externalId))(
-              any[HeaderCarrier],
-              any[ExecutionContext])
+            verify(mockModernisedConnector, once)
+              .getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
             verify(mockModernisedConnector, once).updateCredentials(
               matching(person.individualId.toString),
               matching(groupId),
-              matching(externalId),
+              matching(externalId)
             )(
               any[HeaderCarrier],
               any[ExecutionContext]
@@ -253,12 +251,10 @@ class AccountsServiceSpec
             res shouldBe None
 
             verify(mockCache, once).get(sid)
-            verify(mockModernisedConnector).getOrganisationByGGId(matching(groupId))(
-              any[HeaderCarrier],
-              any[ExecutionContext])
-            verify(mockModernisedConnector, never).getPerson(matching(externalId))(
-              any[HeaderCarrier],
-              any[ExecutionContext])
+            verify(mockModernisedConnector)
+              .getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
+            verify(mockModernisedConnector, never)
+              .getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
             verify(mockCache, never).cache(anyString, any[Accounts])
           }
         }
@@ -271,8 +267,8 @@ class AccountsServiceSpec
           val expected: Accounts = Accounts(organisation.id, person.individualId, organisation, person)
 
           when(
-            mockModernisedConnector.getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext]))
-            .thenReturn(Future.successful(Some(organisation)))
+            mockModernisedConnector.getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
+          ).thenReturn(Future.successful(Some(organisation)))
           when(mockModernisedConnector.getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext]))
             .thenReturn(Future.successful(Some(person)))
           when(mockFeatureSwitch.isBstDownstreamEnabled).thenReturn(false)
@@ -281,12 +277,10 @@ class AccountsServiceSpec
           res shouldBe Some(expected)
 
           verify(mockCache, once).get(sid)
-          verify(mockModernisedConnector, once).getOrganisationByGGId(matching(groupId))(
-            any[HeaderCarrier],
-            any[ExecutionContext])
-          verify(mockModernisedConnector, once).getPerson(matching(externalId))(
-            any[HeaderCarrier],
-            any[ExecutionContext])
+          verify(mockModernisedConnector, once)
+            .getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockModernisedConnector, once)
+            .getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockCache, once).cache(sid, expected)
         }
       }
@@ -303,12 +297,10 @@ class AccountsServiceSpec
           res shouldBe Some(expected)
 
           verify(mockCache, once).get(sid)
-          verify(mockModernisedConnector, never).getOrganisationByGGId(matching(groupId))(
-            any[HeaderCarrier],
-            any[ExecutionContext])
-          verify(mockModernisedConnector, never).getPerson(matching(externalId))(
-            any[HeaderCarrier],
-            any[ExecutionContext])
+          verify(mockModernisedConnector, never)
+            .getOrganisationByGGId(matching(groupId))(any[HeaderCarrier], any[ExecutionContext])
+          verify(mockModernisedConnector, never)
+            .getPerson(matching(externalId))(any[HeaderCarrier], any[ExecutionContext])
           verify(mockCache, never).cache(anyString, any[Accounts])
         }
       }

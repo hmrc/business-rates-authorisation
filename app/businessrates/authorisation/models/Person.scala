@@ -25,7 +25,8 @@ case class PersonDetails(
       email: String,
       phone1: String,
       phone2: Option[String],
-      addressId: Int)
+      addressId: Int
+)
 case class Person(externalId: String, trustId: String, organisationId: Long, individualId: Long, details: PersonDetails)
 
 object PersonDetails {

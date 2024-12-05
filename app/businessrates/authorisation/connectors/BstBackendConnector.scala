@@ -25,7 +25,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: ServicesConfig)
+class BstBackendConnector @Inject() (val http: VOABackendWSHttp, servicesConfig: ServicesConfig)
     extends BackendConnector {
 
   lazy val backendUrl: String = servicesConfig.baseUrl("voa-bst")
@@ -38,30 +38,34 @@ class BstBackendConnector @Inject()(val http: VOABackendWSHttp, servicesConfig: 
   }
 
   override def getOrganisationByGGId(
-        ggId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
+        ggId: String
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     getOrganisation(ggId, "governmentGatewayGroupId")
 
   override def getPerson(
-        externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
+        externalId: String
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
     implicit val apiFormat: Reads[Person] = Person.apiFormat
     http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
   }
 
-  private def getOrganisation(id: String, paramName: String)(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[Option[Organisation]] = {
+  private def getOrganisation(id: String, paramName: String)(implicit
+        hc: HeaderCarrier,
+        ec: ExecutionContext
+  ): Future[Option[Organisation]] = {
     implicit val apiFormat: Reads[Organisation] = Organisation.apiFormat
     http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
   }
 
-  override def updateCredentials(personId: String, groupId: String, externalId: String)(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[UpdateCredentialsSuccess.type] = {
+  override def updateCredentials(personId: String, groupId: String, externalId: String)(implicit
+        hc: HeaderCarrier,
+        ec: ExecutionContext
+  ): Future[UpdateCredentialsSuccess.type] = {
     val url = s"$backendUrl/customer-management-api/credential/$personId"
 
     val headers = Seq(
       "GG-Group-ID"    -> groupId,
-      "GG-External-ID" -> externalId,
+      "GG-External-ID" -> externalId
     )
 
     http.PATCH(url, Json.obj(), headers).map { _ =>

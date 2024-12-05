@@ -25,16 +25,17 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CacheController @Inject()(cache: AccountsCache, controllerComponents: ControllerComponents)(
-      implicit ec: ExecutionContext)
-    extends BackendController(controllerComponents) {
+class CacheController @Inject() (cache: AccountsCache, controllerComponents: ControllerComponents)(implicit
+      ec: ExecutionContext
+) extends BackendController(controllerComponents) {
 
-  def clearCache: Action[AnyContent] = Action.async { implicit request =>
-    val header = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-    header.sessionId.fold(Future.successful(Ok(EmptyContent()))) { sid =>
-      cache.drop(sid.value) map { _ =>
-        Ok(EmptyContent())
+  def clearCache: Action[AnyContent] =
+    Action.async { implicit request =>
+      val header = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+      header.sessionId.fold(Future.successful(Ok(EmptyContent()))) { sid =>
+        cache.drop(sid.value) map { _ =>
+          Ok(EmptyContent())
+        }
       }
     }
-  }
 }

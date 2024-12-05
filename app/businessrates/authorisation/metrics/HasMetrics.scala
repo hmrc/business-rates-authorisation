@@ -33,32 +33,37 @@ trait HasMetrics extends DefaultHttpClient {
 
   lazy val registry: MetricRegistry = metrics.defaultRegistry
 
-  override def doPatch[A](url: String, body: A, headers: Seq[(String, String)])(
-        implicit rds: Writes[A],
-        ec: ExecutionContext): Future[HttpResponse] =
-    withMetricsTimer(getApiName(url)) { super.doPatch(url, body, headers) }
+  override def doPatch[A](url: String, body: A, headers: Seq[(String, String)])(implicit
+        rds: Writes[A],
+        ec: ExecutionContext
+  ): Future[HttpResponse] =
+    withMetricsTimer(getApiName(url))(super.doPatch(url, body, headers))
 
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(
-        implicit rds: Writes[A],
-        ec: ExecutionContext): Future[HttpResponse] =
-    withMetricsTimer(getApiName(url)) { super.doPost(url, body, headers) }
+  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit
+        rds: Writes[A],
+        ec: ExecutionContext
+  ): Future[HttpResponse] =
+    withMetricsTimer(getApiName(url))(super.doPost(url, body, headers))
 
-  override def doDelete(url: String, headers: Seq[(String, String)])(
-        implicit ec: ExecutionContext): Future[HttpResponse] =
-    withMetricsTimer(getApiName(url)) { super.doDelete(url, headers) }
+  override def doDelete(url: String, headers: Seq[(String, String)])(implicit
+        ec: ExecutionContext
+  ): Future[HttpResponse] =
+    withMetricsTimer(getApiName(url))(super.doDelete(url, headers))
 
-  override def doPut[A](url: String, body: A, headers: Seq[(String, String)])(
-        implicit rds: Writes[A],
-        ec: ExecutionContext): Future[HttpResponse] =
-    withMetricsTimer(getApiName(url)) { super.doPut(url, body, headers) }
+  override def doPut[A](url: String, body: A, headers: Seq[(String, String)])(implicit
+        rds: Writes[A],
+        ec: ExecutionContext
+  ): Future[HttpResponse] =
+    withMetricsTimer(getApiName(url))(super.doPut(url, body, headers))
 
   override def doGet(url: String, headers: Seq[(String, String)])(implicit ec: ExecutionContext): Future[HttpResponse] =
-    withMetricsTimer(getApiName(url)) { super.doGet(url, headers) }
+    withMetricsTimer(getApiName(url))(super.doGet(url, headers))
 
   private def getApiName(url: String): String = new URL(url).getPath.drop(1).split("/").head
 
-  private def withMetricsTimer(metric: Metric)(block: => Future[HttpResponse])(
-        implicit executionContext: ExecutionContext): Future[HttpResponse] = {
+  private def withMetricsTimer(
+        metric: Metric
+  )(block: => Future[HttpResponse])(implicit executionContext: ExecutionContext): Future[HttpResponse] = {
     val timer = MetricsTimer(metric)
     block.map { response =>
       timer.complete(response.status)

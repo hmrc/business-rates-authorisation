@@ -65,7 +65,8 @@ class VOABackendWSHttpSpec extends AnyWordSpec with WireMockSpec with MockitoSug
       mock[AuditConnector],
       mockWSClient,
       mock[ActorSystem],
-      mockAuditing) with MockWsRequest {
+      mockAuditing
+    ) with MockWsRequest {
       val status = 200
     }
   val failHttp =
@@ -75,7 +76,8 @@ class VOABackendWSHttpSpec extends AnyWordSpec with WireMockSpec with MockitoSug
       mock[AuditConnector],
       mock[WSClient],
       mock[ActorSystem],
-      mockAuditing) with MockWsRequest {
+      mockAuditing
+    ) with MockWsRequest {
       val status = 400
     }
 

@@ -30,26 +30,25 @@ import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class VOABackendWSHttp @Inject()(
+class VOABackendWSHttp @Inject() (
       config: Configuration,
       override val metrics: Metrics,
       override val auditConnector: AuditConnector,
       override val wsClient: WSClient,
       override val actorSystem: ActorSystem,
-      httpAuditing: HttpAuditing)
-    extends DefaultHttpClient(
+      httpAuditing: HttpAuditing
+) extends DefaultHttpClient(
       config = config,
       httpAuditing = httpAuditing,
       wsClient = wsClient,
-      actorSystem = actorSystem) with HasMetrics with HttpAuditing {
+      actorSystem = actorSystem
+    ) with HasMetrics with HttpAuditing {
 
   override val hooks: Seq[HttpHook] = Seq(AuditingHook)
 
   override def appName: String = "business-rates-authorisation"
 
-  override def doGet(url: String, headers: Seq[(String, String)])(
-        implicit
-        ec: ExecutionContext): Future[HttpResponse] =
+  override def doGet(url: String, headers: Seq[(String, String)])(implicit ec: ExecutionContext): Future[HttpResponse] =
     super.doGet(url, headers)(ec)
 
 }

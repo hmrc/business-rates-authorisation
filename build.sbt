@@ -76,4 +76,5 @@ lazy val testDependencies = Seq(
 )
 
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
-addCommandAlias("precommit", :";coverage;scalafmt;test:scalafmt;test;it/test;coverageReport")
+
+addCommandAlias("precommit", ";coverage;scalafmt;test:scalafmt;it/test:scalafmt;test;it/test;coverageReport")
