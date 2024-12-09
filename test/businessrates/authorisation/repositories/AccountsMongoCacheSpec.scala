@@ -58,7 +58,8 @@ class AccountsMongoCacheSpec extends AnyWordSpec with Matchers with ScalaFutures
     "email@test.com",
     "0213456788",
     isAgent,
-    Some(agentCode).filter(_ => isAgent))
+    Some(agentCode).filter(_ => isAgent)
+  )
   private val accounts = Accounts(organisationId, 57654, organisation, person)
 
   "AccountsMongoCacheSpec" should {

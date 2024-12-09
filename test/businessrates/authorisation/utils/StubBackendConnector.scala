@@ -36,7 +36,8 @@ class StubBackendConnector extends ModernisedBackendConnector(StubHttp, services
   def stubPerson(person: Person) = stubbedPerson = Some(person)
 
   override def getOrganisationByGGId(
-        ggGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
+        ggGroupId: String
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Organisation]] =
     Future.successful(stubbedOrganisation)
 
   override def getPerson(externalId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] =

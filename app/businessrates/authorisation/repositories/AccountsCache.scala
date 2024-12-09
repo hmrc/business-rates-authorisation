@@ -40,7 +40,7 @@ trait AccountsCache {
 }
 
 @Singleton
-class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionContext)
+class AccountsMongoCache @Inject() (db: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[Record](
       mongoComponent = db,
       collectionName = "accountsCache",
@@ -51,7 +51,9 @@ class AccountsMongoCache @Inject()(db: MongoComponent)(implicit ec: ExecutionCon
           IndexOptions()
             .name("ttl")
             .unique(false)
-            .expireAfter(900L, SECONDS)))
+            .expireAfter(900L, SECONDS)
+        )
+      )
     ) with AccountsCache {
 
   override def cache(sessionId: String, accounts: Accounts): Future[Unit] =

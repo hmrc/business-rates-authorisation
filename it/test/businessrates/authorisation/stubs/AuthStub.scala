@@ -34,11 +34,12 @@ object AuthStub {
       )
     )
 
-  def authResponseBody(enrolments: JsObject*): JsObject = Json.obj(
-    "externalId"      -> testExternalId,
-    "groupIdentifier" -> testGroupId,
-    "affinityGroup"   -> testAffinityGroup,
-    "allEnrolments"   -> JsArray(enrolments)
-  )
+  def authResponseBody(enrolments: JsObject*): JsObject =
+    Json.obj(
+      "externalId"      -> testExternalId,
+      "groupIdentifier" -> testGroupId,
+      "affinityGroup"   -> testAffinityGroup,
+      "allEnrolments"   -> JsArray(enrolments)
+    )
 
 }

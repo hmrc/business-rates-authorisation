@@ -45,35 +45,40 @@ object WiremockHelper extends Eventually with IntegrationPatience {
       get(urlMatching(url))
         .willReturn(
           aResponse().withStatus(status).withBody(body)
-        ))
+        )
+    )
 
   def stubPost(url: String, status: Integer, responseBody: String): Unit =
     stubFor(
       post(urlMatching(url))
         .willReturn(
           aResponse().withStatus(status).withBody(responseBody)
-        ))
+        )
+    )
 
   def stubPut(url: String, status: Integer, responseBody: String): Unit =
     stubFor(
       put(urlMatching(url))
         .willReturn(
           aResponse().withStatus(status).withBody(responseBody)
-        ))
+        )
+    )
 
   def stubPatch(url: String, status: Integer, responseBody: String): Unit =
     stubFor(
       patch(urlMatching(url))
         .willReturn(
           aResponse().withStatus(status).withBody(responseBody)
-        ))
+        )
+    )
 
   def stubDelete(url: String, status: Integer, responseBody: String): Unit =
     stubFor(
       delete(urlMatching(url))
         .willReturn(
           aResponse().withStatus(status).withBody(responseBody)
-        ))
+        )
+    )
 }
 
 trait WiremockHelper {

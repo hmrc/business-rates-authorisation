@@ -38,15 +38,16 @@ trait BaseIntegrationSpec
 
   lazy val baseUrl: String = s"http://localhost:$port/business-rates-authorisation"
 
-  def config: Map[String, String] = Map(
-    "auditing.enabled"                         -> "false",
-    "microservice.services.data-platform.host" -> wiremockHost,
-    "microservice.services.data-platform.port" -> wiremockPort.toString,
-    "microservice.services.voa-bst.host"       -> wiremockHost,
-    "microservice.services.voa-bst.port"       -> wiremockPort.toString,
-    "microservice.services.auth.host"          -> wiremockHost,
-    "microservice.services.auth.port"          -> wiremockPort.toString,
-  )
+  def config: Map[String, String] =
+    Map(
+      "auditing.enabled"                         -> "false",
+      "microservice.services.data-platform.host" -> wiremockHost,
+      "microservice.services.data-platform.port" -> wiremockPort.toString,
+      "microservice.services.voa-bst.host"       -> wiremockHost,
+      "microservice.services.voa-bst.port"       -> wiremockPort.toString,
+      "microservice.services.auth.host"          -> wiremockHost,
+      "microservice.services.auth.port"          -> wiremockPort.toString
+    )
 
   override def beforeAll(): Unit = {
     startWiremock()

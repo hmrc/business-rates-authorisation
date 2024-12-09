@@ -117,10 +117,12 @@ class AuthorisationControllerISpec extends BaseIntegrationSpec {
             patch(urlPathEqualTo(s"/customer-management-api/credential/$testPersonId"))
               .inScenario(credentialMigration)
               .withHeader(
-                "GG-Group-ID", equalTo(testGroupId)
+                "GG-Group-ID",
+                equalTo(testGroupId)
               )
               .withHeader(
-                "GG-External-ID", equalTo(testExternalId)
+                "GG-External-ID",
+                equalTo(testExternalId)
               )
               .withRequestBody(equalToJson("{}"))
               .willReturn(ok)
@@ -146,7 +148,8 @@ class AuthorisationControllerISpec extends BaseIntegrationSpec {
           val res = await(
             ws.url(s"$baseUrl/authenticate")
               .withHttpHeaders("AUTHORIZATION" -> "testBearerToken")
-              .get())
+              .get()
+          )
 
           res.status shouldBe OK
           res.json shouldBe expectedResponseJson
