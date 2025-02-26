@@ -30,8 +30,7 @@ import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object StubHttp
-    extends VOABackendWSHttp(
+object StubHttp extends VOABackendWSHttp(
       configuration,
       mock[Metrics],
       mock[AuditConnector],
