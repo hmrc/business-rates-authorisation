@@ -59,7 +59,7 @@ lazy val it = project
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
   .settings(resolvers += Resolver.jcenterRepo)
 
-val businessRatesValuesVersion = "3.0.0"
+val businessRatesValuesVersion = "3.5.0"
 val bootstrapPlayVersion = "9.9.0"
 
 lazy val compileDependencies = Seq(
