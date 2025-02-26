@@ -60,13 +60,13 @@ lazy val it = project
   .settings(resolvers += Resolver.jcenterRepo)
 
 val businessRatesValuesVersion = "3.0.0"
-val bootstrapPlayVersion = "9.5.0"
+val bootstrapPlayVersion = "9.9.0"
 
 lazy val compileDependencies = Seq(
   ws,
   "uk.gov.hmrc"       %% "bootstrap-backend-play-30"    % bootstrapPlayVersion,
   "org.typelevel"     %% "cats-core"                    % "2.12.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "2.3.0"
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "2.5.0"
 )
 
 lazy val testDependencies = Seq(

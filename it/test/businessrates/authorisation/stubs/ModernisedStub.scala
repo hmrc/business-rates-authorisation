@@ -38,22 +38,23 @@ object ModernisedStub extends WiremockMethods with WiremockHelper {
                                                                 |}
                                                                 |""".stripMargin)
 
-  def testPersonJson(testExternalId: String): JsValue = Json.parse(s"""
-                                                                      |{
-                                                                      |  "governmentGatewayExternalId": "$testExternalId",
-                                                                      |  "organisationId": 12345,
-                                                                      |  "id": 12345,
-                                                                      |  "personLatestDetail": {
-                                                                      |    "firstName": "Testy",
-                                                                      |    "lastName": "McTestface",
-                                                                      |    "emailAddress": "test@test.com",
-                                                                      |    "telephoneNumber": "0123456789",
-                                                                      |    "mobileNumber": "0123456789",
-                                                                      |    "addressUnitId": 1,
-                                                                      |    "identifyVerificationId": "ivId"
-                                                                      |  }
-                                                                      |}
-                                                                      |""".stripMargin)
+  def testPersonJson(testExternalId: String): JsValue =
+    Json.parse(s"""
+                  |{
+                  |  "governmentGatewayExternalId": "$testExternalId",
+                  |  "organisationId": 12345,
+                  |  "id": 12345,
+                  |  "personLatestDetail": {
+                  |    "firstName": "Testy",
+                  |    "lastName": "McTestface",
+                  |    "emailAddress": "test@test.com",
+                  |    "telephoneNumber": "0123456789",
+                  |    "mobileNumber": "0123456789",
+                  |    "addressUnitId": 1,
+                  |    "identifyVerificationId": "ivId"
+                  |  }
+                  |}
+                  |""".stripMargin)
 
   def stubGetOrganisationByGGId(ggId: String)(status: Int, body: JsValue): StubMapping =
     when(

@@ -33,8 +33,8 @@ class BstBackendConnector @Inject() (val http: VOABackendWSHttp, servicesConfig:
   val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
   val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
 
-  private def NotFound[T]: PartialFunction[Throwable, Option[T]] = {
-    case _: NotFoundException => None
+  private def NotFound[T]: PartialFunction[Throwable, Option[T]] = { case _: NotFoundException =>
+    None
   }
 
   override def getOrganisationByGGId(
@@ -69,7 +69,7 @@ class BstBackendConnector @Inject() (val http: VOABackendWSHttp, servicesConfig:
     )
 
     http.PATCH(url, Json.obj(), headers).map { _ =>
-      UpdateCredentialsSuccess //Map any OK case to an UpdateCredentialsSuccess as any non 2xx will return a failed future
+      UpdateCredentialsSuccess // Map any OK case to an UpdateCredentialsSuccess as any non 2xx will return a failed future
     }
   }
 }

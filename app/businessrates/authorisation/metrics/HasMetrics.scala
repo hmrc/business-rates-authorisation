@@ -68,10 +68,9 @@ trait HasMetrics extends DefaultHttpClient {
     block.map { response =>
       timer.complete(response.status)
       response
-    } recover {
-      case ex: Exception =>
-        timer.fail()
-        throw ex
+    } recover { case ex: Exception =>
+      timer.fail()
+      throw ex
     }
   }
 
