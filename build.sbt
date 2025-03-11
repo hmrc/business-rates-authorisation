@@ -43,7 +43,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(defaultSettings(): _*)
   .settings(PlayKeys.playDefaultPort := 9525)
   .settings(
-    targetJvm := "jvm-11",
     Test / fork := true,
     libraryDependencies ++= compileDependencies ++ testDependencies,
     retrieveManaged := true
@@ -59,8 +58,7 @@ lazy val it = project
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
   .settings(resolvers += Resolver.jcenterRepo)
 
-val businessRatesValuesVersion = "3.5.0"
-val bootstrapPlayVersion = "9.9.0"
+val bootstrapPlayVersion = "9.11.0"
 
 lazy val compileDependencies = Seq(
   ws,

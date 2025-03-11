@@ -78,5 +78,26 @@ class AccountsMongoCacheSpec extends AnyWordSpec with Matchers with ScalaFutures
       val maybeDroppedAccounts = await(accountsMongoCache.get(sessionId))
       maybeDroppedAccounts.isDefined shouldBe false
     }
+
+    "handle duplicate sessionId by overwriting existing data" in {
+      val sessionId = "session-id-duplicate"
+      val firstAccounts = accounts
+      val secondAccounts = accounts.copy(organisationId = 12345L)
+
+      await(accountsMongoCache.cache(sessionId, firstAccounts))
+      val firstRetrieval = await(accountsMongoCache.get(sessionId))
+
+      firstRetrieval.isDefined shouldBe true
+      firstRetrieval.get shouldBe firstAccounts
+
+      await(accountsMongoCache.cache(sessionId, secondAccounts))
+      val secondRetrieval = await(accountsMongoCache.get(sessionId))
+
+      secondRetrieval.isDefined shouldBe true
+      secondRetrieval.get shouldBe secondAccounts
+
+      val allRecords = await(accountsMongoCache.getAll)
+      allRecords.count(_._id == sessionId) shouldBe 1
+    }
   }
 }
