@@ -20,7 +20,7 @@ import businessrates.authorisation.models.{Accounts, MongoLocalDateTimeFormat}
 import com.google.inject.ImplementedBy
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Indexes.ascending
-import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, ReplaceOptions}
 import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -37,6 +37,8 @@ trait AccountsCache {
   def get(sessionId: String): Future[Option[Accounts]]
 
   def drop(sessionId: String): Future[Unit]
+
+  def getAll: Future[Seq[Record]]
 }
 
 @Singleton
@@ -57,9 +59,14 @@ class AccountsMongoCache @Inject() (db: MongoComponent)(implicit ec: ExecutionCo
     ) with AccountsCache {
 
   override def cache(sessionId: String, accounts: Accounts): Future[Unit] =
-    collection.insertOne(Record(sessionId, accounts)).toFuture().map { _ =>
-      ()
-    }
+    collection
+      .replaceOne(
+        filter = Filters.eq("_id", sessionId),
+        replacement = Record(sessionId, accounts),
+        options = new ReplaceOptions().upsert(true)
+      )
+      .toFuture()
+      .map(_ => ())
 
   override def get(sessionId: String): Future[Option[Accounts]] =
     collection.find(equal("_id", sessionId)).map(_.data).toSingle().toFutureOption()
@@ -68,6 +75,10 @@ class AccountsMongoCache @Inject() (db: MongoComponent)(implicit ec: ExecutionCo
     collection.findOneAndDelete(equal("_id", sessionId)).toFuture().map { _ =>
       ()
     }
+
+  // Implemented for IT test purpose only
+  def getAll: Future[Seq[Record]] =
+    collection.find().toFuture()
 }
 
 case class Record(_id: String, data: Accounts, createdAt: LocalDateTime = LocalDateTime.now())
