@@ -13,7 +13,7 @@ import uk.gov.hmrc.DefaultBuildSettings
 val appName = "business-rates-authorisation"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.16"
 
 ThisBuild / excludeDependencies ++= Seq(
   // As of Play 3.0, groupId has changed to org.playframework; exclude transitive dependencies to the old artifacts
@@ -47,7 +47,6 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= compileDependencies ++ testDependencies,
     retrieveManaged := true
   )
-  .settings(resolvers += Resolver.jcenterRepo)
 
 lazy val it = project
   .enablePlugins(PlayScala)
@@ -56,20 +55,18 @@ lazy val it = project
   .settings(libraryDependencies ++= testDependencies)
   .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.AllLibraryJars)
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
-  .settings(resolvers += Resolver.jcenterRepo)
 
-val bootstrapPlayVersion = "9.11.0"
+val bootstrapPlayVersion = "9.13.0"
 
 lazy val compileDependencies = Seq(
   ws,
   "uk.gov.hmrc"       %% "bootstrap-backend-play-30"    % bootstrapPlayVersion,
-  "org.typelevel"     %% "cats-core"                    % "2.12.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "2.5.0"
+  "org.typelevel"     %% "cats-core"                    % "2.13.0",
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "2.6.0"
 )
 
 lazy val testDependencies = Seq(
   "uk.gov.hmrc"            %% "bootstrap-test-play-30" % bootstrapPlayVersion % Test,
-  "org.pegdown"            % "pegdown"                 % "1.6.0"              % Test,
   "org.scalacheck"         %% "scalacheck"             % "1.18.1"             % Test
 )
 
