@@ -56,7 +56,7 @@ lazy val it = project
   .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.AllLibraryJars)
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
-val bootstrapPlayVersion = "9.13.0"
+val bootstrapPlayVersion = "9.16.0"
 
 lazy val compileDependencies = Seq(
   ws,
