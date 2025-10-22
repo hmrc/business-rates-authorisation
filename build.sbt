@@ -56,18 +56,18 @@ lazy val it = project
   .settings(Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.AllLibraryJars)
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
-val bootstrapPlayVersion = "9.16.0"
+val bootstrapPlayVersion = "10.3.0"
 
 lazy val compileDependencies = Seq(
   ws,
   "uk.gov.hmrc"       %% "bootstrap-backend-play-30"    % bootstrapPlayVersion,
   "org.typelevel"     %% "cats-core"                    % "2.13.0",
-  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "2.6.0"
+  "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"           % "2.10.0"
 )
 
 lazy val testDependencies = Seq(
   "uk.gov.hmrc"            %% "bootstrap-test-play-30" % bootstrapPlayVersion % Test,
-  "org.scalacheck"         %% "scalacheck"             % "1.18.1"             % Test
+  "org.scalacheck"         %% "scalacheck"             % "1.19.0"             % Test
 )
 
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
