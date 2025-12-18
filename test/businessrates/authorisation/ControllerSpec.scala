@@ -20,6 +20,7 @@ import businessrates.authorisation.utils.{StubOrganisationAccounts, StubPersonAc
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 
 class ControllerSpec
@@ -30,6 +31,4 @@ class ControllerSpec
     StubOrganisationAccounts.reset()
     StubPersonAccounts.reset()
   }
-
-  implicit val request = FakeRequest()
 }
