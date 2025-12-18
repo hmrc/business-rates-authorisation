@@ -20,8 +20,7 @@ import businessrates.authorisation.utils.{StubOrganisationAccounts, StubPersonAc
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.mvc.AnyContentAsEmpty
-import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
+import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
 class ControllerSpec
     extends AnyWordSpec with Matchers with BeforeAndAfterEach with FutureAwaits with DefaultAwaitTimeout
