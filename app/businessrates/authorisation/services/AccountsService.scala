@@ -16,8 +16,7 @@
 
 package businessrates.authorisation.services
 
-import businessrates.authorisation.config.FeatureSwitch
-import businessrates.authorisation.connectors.{BackendConnector, BstBackendConnector, ModernisedBackendConnector}
+import businessrates.authorisation.connectors.ModernisedBackendConnector
 import businessrates.authorisation.models.Accounts
 import businessrates.authorisation.repositories.AccountsCache
 import cats.data.OptionT
@@ -31,14 +30,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AccountsService @Inject() (
       modernisedConnector: ModernisedBackendConnector,
-      bstConnector: BstBackendConnector,
-      accountsCache: AccountsCache,
-      featureSwitch: FeatureSwitch
+      accountsCache: AccountsCache
 )(implicit ec: ExecutionContext)
     extends Logging {
-
-  lazy val connector: BackendConnector =
-    if (featureSwitch.isBstDownstreamEnabled) bstConnector else modernisedConnector
 
   def get(externalId: String, groupId: String, enrolments: Enrolments)(implicit
         hc: HeaderCarrier
@@ -59,7 +53,7 @@ class AccountsService @Inject() (
                              enrolments.getEnrolment("HMRC-VOA-CCA").flatMap(_.getIdentifier("VOAPersonID")) match {
                                case Some(EnrolmentIdentifier(_, enrolmentPersonId)) =>
                                  for {
-                                   _ <- connector.updateCredentials(enrolmentPersonId, groupId, externalId)
+                                   _ <- modernisedConnector.updateCredentials(enrolmentPersonId, groupId, externalId)
                                    _ = logger.info(s"External ID and Group ID updated for personID: $enrolmentPersonId")
                                    updatedAccounts <- getBackendData(externalId, groupId)
                                  } yield updatedAccounts
@@ -78,8 +72,8 @@ class AccountsService @Inject() (
 
   def getBackendData(externalId: String, groupId: String)(implicit hc: HeaderCarrier): Future[Option[Accounts]] =
     (for {
-      organisation <- OptionT(connector.getOrganisationByGGId(groupId))
-      person       <- OptionT(connector.getPerson(externalId))
+      organisation <- OptionT(modernisedConnector.getOrganisationByGGId(groupId))
+      person       <- OptionT(modernisedConnector.getPerson(externalId))
     } yield Accounts(
       organisation.id,
       person.individualId,
