@@ -16,27 +16,23 @@
 
 package businessrates.authorisation.connectors
 
-import businessrates.authorisation.connectors.BackendConnector.UpdateCredentialsSuccess
 import businessrates.authorisation.models._
 import play.api.libs.json.{Json, Reads}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class ModernisedBackendConnector @Inject() (val http: VOABackendWSHttp, servicesConfig: ServicesConfig)
+class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConfig: ServicesConfig)
     extends BackendConnector {
 
   lazy val backendUrl: String = servicesConfig.baseUrl("data-platform")
 
   val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
   val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
-
-  private def NotFound[T]: PartialFunction[Throwable, Option[T]] = { case _: NotFoundException =>
-    None
-  }
 
   override def getOrganisationByGGId(
         ggId: String
@@ -47,7 +43,11 @@ class ModernisedBackendConnector @Inject() (val http: VOABackendWSHttp, services
         externalId: String
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
     implicit val apiFormat: Reads[Person] = Person.apiFormat
-    http.GET[Option[Person]](s"$individualAccountsUrl?governmentGatewayExternalId=$externalId") recover NotFound[Person]
+    val url = s"$individualAccountsUrl?governmentGatewayExternalId=$externalId"
+    http
+      .get(url"$url")
+      .withProxy
+      .execute[Option[Person]]
   }
 
   private def getOrganisation(id: String, paramName: String)(implicit
@@ -55,13 +55,17 @@ class ModernisedBackendConnector @Inject() (val http: VOABackendWSHttp, services
         ec: ExecutionContext
   ): Future[Option[Organisation]] = {
     implicit val apiFormat: Reads[Organisation] = Organisation.apiFormat
-    http.GET[Option[Organisation]](s"$groupAccountsUrl?$paramName=$id") recover NotFound[Organisation]
+    val url = s"$groupAccountsUrl?$paramName=$id"
+    http
+      .get(url"$url")
+      .withProxy
+      .execute[Option[Organisation]]
   }
 
   override def updateCredentials(personId: String, groupId: String, externalId: String)(implicit
         hc: HeaderCarrier,
         ec: ExecutionContext
-  ): Future[UpdateCredentialsSuccess.type] = {
+  ): Future[Unit] = {
     val url = s"$backendUrl/customer-management-api/credential/$personId"
 
     val headers = Seq(
@@ -69,8 +73,10 @@ class ModernisedBackendConnector @Inject() (val http: VOABackendWSHttp, services
       "GG-External-ID" -> externalId
     )
 
-    http.PATCH(url, Json.obj(), headers).map { _ =>
-      UpdateCredentialsSuccess // Map any OK case to an UpdateCredentialsSuccess as any non 2xx will return a failed future
-    }
+    http
+      .patch(url"$url")
+      .withBody(Json.obj())
+      .setHeader(headers: _*)
+      .execute(throwOnFailure(readEitherOf(readUnit)), ec)
   }
 }

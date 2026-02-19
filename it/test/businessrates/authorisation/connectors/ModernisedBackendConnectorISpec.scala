@@ -17,14 +17,13 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.BaseIntegrationSpec
-import businessrates.authorisation.connectors.BackendConnector.UpdateCredentialsSuccess
 import businessrates.authorisation.models.{Organisation, Person, PersonDetails}
 import businessrates.authorisation.stubs.ModernisedStub
 import com.github.tomakehurst.wiremock.client.WireMock.{notFound, ok}
-import play.api.http.Status.{NOT_FOUND, OK}
+import play.api.http.Status.OK
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers.await
-import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.ExecutionContext
 
@@ -151,17 +150,14 @@ class ModernisedBackendConnectorISpec extends BaseIntegrationSpec {
 
   "updateCredentials" should {
     "return a success" when {
-      "Modernised returns a success" in new TestSetup {
+      "Modernised does not throw an exception" in new TestSetup {
         val testPersonId = "testPersonId"
         val testExternalId = "testExternalId"
         val testGroupId = "testGroupId"
 
         stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(ok)
 
-        val result: BackendConnector.UpdateCredentialsSuccess.type =
-          await(connector.updateCredentials(testPersonId, testGroupId, testExternalId))
-
-        result shouldBe UpdateCredentialsSuccess
+        await(connector.updateCredentials(testPersonId, testGroupId, testExternalId))
       }
     }
     "return a failed future" when {
@@ -172,8 +168,9 @@ class ModernisedBackendConnectorISpec extends BaseIntegrationSpec {
 
         stubUpdateCredentials(personId = testPersonId, externalId = testExternalId, groupId = testGroupId)(notFound)
 
-        intercept[NotFoundException](await(connector.updateCredentials(testPersonId, testGroupId, testExternalId)))
-
+        assertThrows[UpstreamErrorResponse](
+          await(connector.updateCredentials(testPersonId, testGroupId, testExternalId))
+        )
       }
     }
   }

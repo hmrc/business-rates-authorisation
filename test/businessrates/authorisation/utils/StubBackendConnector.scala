@@ -19,11 +19,13 @@ package businessrates.authorisation.utils
 import businessrates.authorisation.connectors.ModernisedBackendConnector
 import businessrates.authorisation.models.{Organisation, Person}
 import businessrates.authorisation.utils.TestConfiguration.servicesConfig
+import org.scalatestplus.mockito.MockitoSugar.mock
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class StubBackendConnector extends ModernisedBackendConnector(StubHttp, servicesConfig) {
+class StubBackendConnector extends ModernisedBackendConnector(mock[HttpClientV2], servicesConfig) {
   private var stubbedOrganisation: Option[Organisation] = None
   private var stubbedPerson: Option[Person] = None
 
