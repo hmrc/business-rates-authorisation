@@ -97,6 +97,7 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
       .patch(url"$url")
       .withBody(Json.obj())
       .setHeader(headers: _*)
+      .withProxy
       .execute(throwOnFailure(readEitherOf(readUnit)), ec)
   }
 }
