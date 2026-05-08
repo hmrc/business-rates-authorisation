@@ -17,6 +17,7 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.models._
+import play.api.Logging
 import play.api.libs.json.{Json, Reads}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -27,9 +28,25 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConfig: ServicesConfig)
-    extends BackendConnector {
+    extends BackendConnector with Logging {
 
-  lazy val backendUrl: String = servicesConfig.baseUrl("data-platform")
+  val modernisedName = "modernised"
+  lazy val backendUrl: String = servicesConfig.baseUrl(modernisedName)
+  lazy val backendApiKeyHeader: (String, String) = {
+    val modernisedApiHeaderPath = s"$modernisedName.apiHeader"
+    val configNotFoundError = "NOT FOUND"
+    val keyPath = s"$modernisedApiHeaderPath.name"
+    val key = servicesConfig.getConfString(keyPath, configNotFoundError)
+    if (key == configNotFoundError) {
+      logger.error(s"Could not find config for microservice.services.$keyPath")
+    }
+    val valuePath = s"$modernisedApiHeaderPath.value"
+    val value = servicesConfig.getConfString(valuePath, configNotFoundError)
+    if (value == configNotFoundError) {
+      logger.error(s"Could not find config for microservice.services.$valuePath")
+    }
+    key -> value
+  }
 
   val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
   val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
@@ -46,6 +63,7 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
     val url = s"$individualAccountsUrl?governmentGatewayExternalId=$externalId"
     http
       .get(url"$url")
+      .setHeader(backendApiKeyHeader)
       .withProxy
       .execute[Option[Person]]
   }
@@ -58,6 +76,7 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
     val url = s"$groupAccountsUrl?$paramName=$id"
     http
       .get(url"$url")
+      .setHeader(backendApiKeyHeader)
       .withProxy
       .execute[Option[Organisation]]
   }
@@ -70,13 +89,15 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
 
     val headers = Seq(
       "GG-Group-ID"    -> groupId,
-      "GG-External-ID" -> externalId
+      "GG-External-ID" -> externalId,
+      backendApiKeyHeader
     )
 
     http
       .patch(url"$url")
       .withBody(Json.obj())
       .setHeader(headers: _*)
+      .withProxy
       .execute(throwOnFailure(readEitherOf(readUnit)), ec)
   }
 }
