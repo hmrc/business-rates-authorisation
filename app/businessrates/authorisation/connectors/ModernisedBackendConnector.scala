@@ -32,21 +32,25 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
 
   val modernisedName = "modernised"
   lazy val backendUrl: String = servicesConfig.baseUrl(modernisedName)
-  lazy val backendApiKeyHeader: (String, String) = {
+  lazy val backendApiKeyHeader: Seq[(String, String)] = {
     val modernisedApiHeaderPath = s"$modernisedName.apiHeader"
-    val configNotFoundError = "NOT FOUND"
     val keyPath = s"$modernisedApiHeaderPath.name"
-    val key = servicesConfig.getConfString(keyPath, configNotFoundError)
-    if (key == configNotFoundError) {
-      logger.error(s"Could not find config for microservice.services.$keyPath")
+    val maybeKey = servicesConfig.getConfString(keyPath, "")
+    maybeKey match {
+      case "" =>
+        logger.error(s"Could not find config for microservice.services.$keyPath")
+        None
+      case key =>
+        val valuePath = s"$modernisedApiHeaderPath.value"
+        val maybeValue = servicesConfig.getConfString(valuePath, "")
+        maybeValue match {
+          case "" =>
+            logger.error(s"Could not find config for microservice.services.$valuePath")
+            None
+          case value => Some(key -> value)
+        }
     }
-    val valuePath = s"$modernisedApiHeaderPath.value"
-    val value = servicesConfig.getConfString(valuePath, configNotFoundError)
-    if (value == configNotFoundError) {
-      logger.error(s"Could not find config for microservice.services.$valuePath")
-    }
-    key -> value
-  }
+  }.toSeq
 
   val groupAccountsUrl = s"$backendUrl/customer-management-api/organisation"
   val individualAccountsUrl: String = s"$backendUrl/customer-management-api/person"
@@ -63,7 +67,7 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
     val url = s"$individualAccountsUrl?governmentGatewayExternalId=$externalId"
     http
       .get(url"$url")
-      .setHeader(backendApiKeyHeader)
+      .setHeader(backendApiKeyHeader: _*)
       .withProxy
       .execute[Option[Person]]
   }
@@ -76,7 +80,7 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
     val url = s"$groupAccountsUrl?$paramName=$id"
     http
       .get(url"$url")
-      .setHeader(backendApiKeyHeader)
+      .setHeader(backendApiKeyHeader: _*)
       .withProxy
       .execute[Option[Organisation]]
   }
@@ -87,11 +91,7 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
   ): Future[Unit] = {
     val url = s"$backendUrl/customer-management-api/credential/$personId"
 
-    val headers = Seq(
-      "GG-Group-ID"    -> groupId,
-      "GG-External-ID" -> externalId,
-      backendApiKeyHeader
-    )
+    val headers = Seq("GG-Group-ID" -> groupId, "GG-External-ID" -> externalId) ++ backendApiKeyHeader
 
     http
       .patch(url"$url")
