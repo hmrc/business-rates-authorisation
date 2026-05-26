@@ -17,18 +17,18 @@
 package businessrates.authorisation.connectors
 
 import businessrates.authorisation.models._
-import play.api.Logging
+import play.api.http.Status
 import play.api.libs.json.{Json, Reads}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConfig: ServicesConfig)
-    extends BackendConnector with Logging {
+    extends BackendConnector with ModernisedRequestErrorLogging {
 
   val modernisedName = "modernised"
   lazy val backendUrl: String = servicesConfig.baseUrl(modernisedName)
@@ -65,11 +65,15 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Person]] = {
     implicit val apiFormat: Reads[Person] = Person.apiFormat
     val url = s"$individualAccountsUrl?governmentGatewayExternalId=$externalId"
-    http
-      .get(url"$url")
-      .setHeader(backendApiKeyHeader: _*)
-      .withProxy
-      .execute[Option[Person]]
+    logModernisedErrorResponse(
+      response = http
+        .get(url"$url")
+        .setHeader(backendApiKeyHeader: _*)
+        .withProxy
+        .execute[Option[Person]],
+      errorInfo = Seq("governmentGatewayExternalId" -> externalId),
+      url = url
+    )
   }
 
   private def getOrganisation(id: String, paramName: String)(implicit
@@ -78,11 +82,15 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
   ): Future[Option[Organisation]] = {
     implicit val apiFormat: Reads[Organisation] = Organisation.apiFormat
     val url = s"$groupAccountsUrl?$paramName=$id"
-    http
-      .get(url"$url")
-      .setHeader(backendApiKeyHeader: _*)
-      .withProxy
-      .execute[Option[Organisation]]
+    logModernisedErrorResponse(
+      response = http
+        .get(url"$url")
+        .setHeader(backendApiKeyHeader: _*)
+        .withProxy
+        .execute[Option[Organisation]],
+      errorInfo = Seq(paramName -> id),
+      url = url
+    )
   }
 
   override def updateCredentials(personId: String, groupId: String, externalId: String)(implicit
@@ -93,11 +101,25 @@ class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConf
 
     val headers = Seq("GG-Group-ID" -> groupId, "GG-External-ID" -> externalId) ++ backendApiKeyHeader
 
-    http
-      .patch(url"$url")
-      .withBody(Json.obj())
-      .setHeader(headers: _*)
-      .withProxy
-      .execute(throwOnFailure(readEitherOf(readUnit)), ec)
+    logModernisedErrorResponse(
+      response = http
+        .patch(url"$url")
+        .withBody(Json.obj())
+        .setHeader(headers: _*)
+        .withProxy
+        .execute[HttpResponse]
+        .flatMap { response =>
+          response.status match {
+            case status if Status.isSuccessful(status) => Future.unit
+            case status                                => Future.failed(UpstreamErrorResponse(response.body, status))
+          }
+        },
+      errorInfo = Seq(
+        "personId"   -> personId,
+        "groupId"    -> groupId,
+        "externalId" -> externalId
+      ),
+      url = url
+    )
   }
 }
