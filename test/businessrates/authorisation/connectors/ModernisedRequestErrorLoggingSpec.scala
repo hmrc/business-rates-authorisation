@@ -42,7 +42,7 @@ class ModernisedRequestErrorLoggingSpec extends AnyWordSpec with Matchers with S
   "logModernisedErrorResponse" should {
     "log a WARN with relevant IDs when Modernised returns an error" in {
       val upstreamError = UpstreamErrorResponse("Internal Server Error", 500)
-      val endpoint = "http://modernised/customer-management-api/credential/123"
+      val endpoint = "http://voa-modernised-api/customer-management-api/credential/123"
 
       withCaptureOfLoggingFrom(Logger(classOf[TestConnector])) { logs =>
         whenReady(

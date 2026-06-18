@@ -40,15 +40,13 @@ trait BaseIntegrationSpec
 
   def config: Map[String, String] =
     Map(
-      "auditing.enabled"                                 -> "false",
-      "microservice.services.modernised.apiHeader.name"  -> "someName",
-      "microservice.services.modernised.apiHeader.value" -> "someValue",
-      "microservice.services.modernised.host"            -> wiremockHost,
-      "microservice.services.modernised.port"            -> wiremockPort.toString,
-      "microservice.services.voa-bst.host"               -> wiremockHost,
-      "microservice.services.voa-bst.port"               -> wiremockPort.toString,
-      "microservice.services.auth.host"                  -> wiremockHost,
-      "microservice.services.auth.port"                  -> wiremockPort.toString
+      "auditing.enabled"                                         -> "false",
+      "microservice.services.voa-modernised-api.apiHeader.name"  -> "someName",
+      "microservice.services.voa-modernised-api.apiHeader.value" -> "someValue",
+      "microservice.services.voa-modernised-api.host"            -> wiremockHost,
+      "microservice.services.voa-modernised-api.port"            -> wiremockPort.toString,
+      "microservice.services.auth.host"                          -> wiremockHost,
+      "microservice.services.auth.port"                          -> wiremockPort.toString
     )
 
   override def beforeAll(): Unit = {
