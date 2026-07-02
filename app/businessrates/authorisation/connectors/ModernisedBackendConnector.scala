@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ModernisedBackendConnector @Inject() (val http: HttpClientV2, servicesConfig: ServicesConfig)
     extends BackendConnector with ModernisedRequestErrorLogging {
 
-  val modernisedName = "modernised"
+  val modernisedName = "voa-modernised-api"
   lazy val backendUrl: String = servicesConfig.baseUrl(modernisedName)
   lazy val backendApiKeyHeader: Seq[(String, String)] = {
     val modernisedApiHeaderPath = s"$modernisedName.apiHeader"
