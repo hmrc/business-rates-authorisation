@@ -70,6 +70,10 @@ lazy val testDependencies = Seq(
   "org.scalacheck"         %% "scalacheck"             % "1.19.0"             % Test
 )
 
-ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
-
+ThisBuild / scalacOptions ++= Seq(
+  "-unchecked",
+  "-deprecation",
+  "-feature",
+  "-Wconf:msg=Unused import:s,msg=.*defaultPrefix in class Routes is never used:s"
+)
 addCommandAlias("precommit", ";reload;coverage;scalafmt;test:scalafmt;it/test:scalafmt;test;it/test;coverageReport")
