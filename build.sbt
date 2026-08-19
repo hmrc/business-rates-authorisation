@@ -76,4 +76,4 @@ ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-Wconf:msg=Unused import:s,msg=.*defaultPrefix in class Routes is never used:s"
 )
-addCommandAlias("precommit", ";reload;coverage;scalafmt;test:scalafmt;it/test:scalafmt;test;it/test;coverageReport")
+addCommandAlias("precommit", ";reload;coverage;scalafmt;Test/scalafmt;it/Test/scalafmt;test;it/Test/test;coverageReport")
