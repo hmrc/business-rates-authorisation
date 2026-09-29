@@ -2,4 +2,6 @@
 
 GET        /authenticate                                                    businessrates.authorisation.controllers.AuthorisationController.authenticate
 
+GET        /authentication-status                                           businessrates.authorisation.controllers.AuthorisationController.authenticationStatus
+
 DELETE     /cache                                                           businessrates.authorisation.controllers.CacheController.clearCache

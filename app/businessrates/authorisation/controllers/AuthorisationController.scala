@@ -16,6 +16,8 @@
 
 package businessrates.authorisation.controllers
 
+import businessrates.authorisation.controllers.AuthorisationController._
+import businessrates.authorisation.models.Accounts
 import businessrates.authorisation.services.AccountsService
 import play.api.Logging
 import play.api.libs.json.Json
@@ -25,6 +27,7 @@ import uk.gov.hmrc.auth.core.AffinityGroup.{Individual, Organisation}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, AuthorisedFunctions}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -39,25 +42,62 @@ class AuthorisationController @Inject() (
 
   def authenticate: Action[AnyContent] =
     Action.async { implicit request =>
-      authorised()
-        .retrieve(externalId and groupIdentifier and affinityGroup and allEnrolments) {
-          case Some(externalId) ~ Some(groupId) ~ Some(Individual | Organisation) ~ enrolments =>
-            accountsService.get(externalId, groupId, enrolments).map {
-              case Some(accounts) =>
-                Ok(toJson(accounts))
-              case None =>
-                Unauthorized(Json.obj("errorCode" -> "NO_CUSTOMER_RECORD"))
-            }
-          case Some(_) ~ Some(_) ~ Some(otherAffinityGroup) ~ _ =>
-            logger.info(s"User has logged in with non-permitted affinityGroup $otherAffinityGroup")
-            Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_ACCOUNT_TYPE")))
-          case _ =>
-            Future.successful(Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION")))
-        }
-        .recover {
-          case _: AuthorisationException => Unauthorized(Json.obj("errorCode" -> "INVALID_GATEWAY_SESSION"))
-          case e                         => throw e
+      getAccounts().map {
+        case Authenticated(accounts) =>
+          Ok(toJson(accounts))
+        case err: AuthenticationErrorResult =>
+          Unauthorized(Json.obj("errorCode" -> err.reason))
+      }
+    }
+
+  def authenticationStatus: Action[AnyContent] =
+    Action.async { implicit request =>
+      getAccounts()
+        .map {
+          case Authenticated(accounts) =>
+            Ok(Json.obj("authenticated" -> true, "accounts" -> accounts))
+          case error: AuthenticationErrorResult =>
+            Ok(Json.obj("authenticated" -> false, "errorCode" -> error.reason))
         }
     }
 
+  private def getAccounts()(implicit hc: HeaderCarrier): Future[AuthenticationResult] =
+    authorised()
+      .retrieve(externalId and groupIdentifier and affinityGroup and allEnrolments) {
+        case Some(externalId) ~ Some(groupId) ~ Some(Individual | Organisation) ~ enrolments =>
+          accountsService.get(externalId, groupId, enrolments).map {
+            case Some(accounts) =>
+              Authenticated(accounts)
+            case None =>
+              NoCustomerRecord
+          }
+        case Some(_) ~ Some(_) ~ Some(otherAffinityGroup) ~ _ =>
+          logger.info(s"User has logged in with non-permitted affinityGroup $otherAffinityGroup")
+          Future.successful(InvalidAccountType)
+        case _ =>
+          Future.successful(InvalidGatewaySession)
+      }
+      .recover {
+        case _: AuthorisationException => InvalidGatewaySession
+        case e                         => throw e
+      }
+
+}
+
+object AuthorisationController {
+  private sealed trait AuthenticationResult
+  private sealed trait AuthenticationErrorResult extends AuthenticationResult {
+    val reason: String
+  }
+  private case class Authenticated(accounts: Accounts) extends AuthenticationResult
+  private case object NoCustomerRecord extends AuthenticationErrorResult {
+    override val reason: String = "NO_CUSTOMER_RECORD"
+  }
+
+  private case object InvalidAccountType extends AuthenticationErrorResult {
+    override val reason: String = "INVALID_ACCOUNT_TYPE"
+  }
+  private case object InvalidGatewaySession extends AuthenticationErrorResult {
+    override val reason: String = "INVALID_GATEWAY_SESSION"
+  }
 }
